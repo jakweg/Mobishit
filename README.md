@@ -1,4 +1,5 @@
 # Mobishit
+# Aplikację będzie można pobrać o 19:00
 **Alternatywna, otwartoźródłowa aplikacja do dziennika mobireg z wieloma funkcjami, takimi jak pokazywanie średnich, powiadomienia o nowych ocenach, odliczanie czasu do końca lekcji czy widżet z planem godzin.**
 
 
