@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Od teraz dostaniesz powiadomienia o nowych ocenach itd. W ustawieniach możesz też zmienić motyw aplkacji oraz włączyć powiadomienie, które pokazuje czas pozostały do końca lekcji. Polecam też widżet z planem lekcji na ekranie domowym.\n\nAplikacja wykonana przez JakubekWeg." />
+                android:text="Od teraz dostaniesz powiadomienia o świeżych ocenach itd. W ustawieniach możesz też zmienić motyw aplkacji oraz włączyć powiadomienie, które pokazuje czas pozostały do końca lekcji. Polecam też widżet z planem lekcji na ekranie domowym.\n\nAplikacja wykonana przez JakubekWeg." />
 
             <Button
                 android:id="@+id/btnFinish"
