@@ -1,7 +1,8 @@
 # Mobishit
-# Aplikację będzie można pobrać o 19:00 z powodu błędów technicznych
 **Alternatywna, otwartoźródłowa aplikacja do dziennika mobireg z wieloma funkcjami, takimi jak pokazywanie średnich, powiadomienia o nowych ocenach, odliczanie czasu do końca lekcji czy widżet z planem godzin.**
 
+<a href="https://github.com/JakubekWeg/Mobishit/blob/master/app/release/mobishit.apk?raw=true">
+<b>Pobierz plik .apk</b></a>
 
 ### Instrukcja instalacji po kliknęciu w <i> View all of README.md</i>
 
