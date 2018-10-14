@@ -3,7 +3,7 @@
 
 ![Zrzuty ekranu](./art.png?raw=true)
 
-<a href="https://github.com/JakubekWeg/Mobishit/blob/master/app/release/app-release.apk?raw=true">
+<a href="https://github.com/JakubekWeg/Mobishit/blob/master/app/release/mobishit.apk?raw=true">
 <b>Pobierz plik .apk</b></a>
 
 ### Instrukcja instalacji:
