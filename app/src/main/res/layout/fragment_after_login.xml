@@ -32,7 +32,7 @@
                 android:id="@+id/textPrimary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Proszę przeczytaj tą notkę\n\nFajnie, że korzystasz z tej aplikacji\nWeź po uwagę, że nie jest to oficjalna aplikacja i mogą pojawić się w niej błędy. Proszę bądź wyrozumiałym użytkownikiem i zgłaszaj błędy jeżeli tylko możesz abym mógł je poprawić." />
+                android:text="Proszę przeczytaj tę notkę.\n\nFajnie, że korzystasz z tej aplikacji.\nWeź po uwagę, że nie jest to oficjalna aplikacja i mogą pojawić się w niej błędy. Proszę bądź wyrozumiałym użytkownikiem i zgłaszaj błędy jeżeli tylko możesz, abym mógł je poprawić." />
 
             <TextView
                 android:id="@+id/textSecondary"
