@@ -14,7 +14,7 @@
         <item>Dwa razy dziennie</item>
         <item>Trzy razy dziennie</item>
         <item>Cztery razy dziennie</item>
-        <item>Cześć razy dziennie</item>
+        <item>Sześć razy dziennie</item>
     </string-array>
     <string-array name="refresh_frequency_values">
         <item>0</item>

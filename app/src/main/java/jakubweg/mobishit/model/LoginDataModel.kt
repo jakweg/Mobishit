@@ -86,7 +86,7 @@ class LoginDataModel(application: Application)
                                     val id = get("id")!!.asInt
                                     val name = get("name")!!.asString
                                     val surname = get("surname")!!.asString
-                                    val phone = get("phone")!!.asStringOrNull ?: ""
+                                     val phone = get("phone")!!.asStringOrNull ?: ""
                                     val sex = validateSex(get("sex")!!.asStringOrNull)
 
                                     MobiregPreferences.get(context).also {
