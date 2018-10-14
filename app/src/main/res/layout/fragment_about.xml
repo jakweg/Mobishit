@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="15dp"
+            android:gravity="center_horizontal"
+            android:text="Mobishit"
+            android:textAllCaps="true"
+            app:autoSizeTextType="uniform" />
+
+        <ImageView
+            android:id="@+id/imgAppIcon"
+            android:elevation="4dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="Ikona aplikacji"
+            android:src="@mipmap/ic_launcher_round"
+            tools:ignore="UnusedAttribute" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:padding="5dp"
+            android:text="Aplikacja autorstwa użytkownika JakubekWeg.\nDziękuję p0358 za jej popularyzacje."
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:padding="5dp"
+            android:text="Ten projekt jest otwartoźródłowy, zapraszam na Githuba."
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnOpenGithub"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="0px"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Otwórz Githuba" />
+
+            <Button
+                android:id="@+id/btnReportError"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="0px"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Zgłoś błąd/sugestię" />
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/btnUsedLibs"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Wykorzystane biblioteki" />
+    </LinearLayout>
+</ScrollView>

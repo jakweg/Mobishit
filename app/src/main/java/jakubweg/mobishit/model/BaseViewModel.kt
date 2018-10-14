@@ -1,0 +1,62 @@
+package jakubweg.mobishit.model
+
+import android.app.Application
+import android.arch.lifecycle.AndroidViewModel
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
+import android.os.AsyncTask
+import android.support.annotation.WorkerThread
+
+@Suppress("NOTHING_TO_INLINE")
+abstract class BaseViewModel(application: Application)
+    : AndroidViewModel(application) {
+
+    protected inline fun <reified T> doAtLeast(atLeastMillis: Long, function: () -> T): T {
+        val start = System.currentTimeMillis()
+
+        val returnValue: T = function.invoke()
+
+        (System.currentTimeMillis() - start).also {
+            if (it < atLeastMillis)
+                try {
+                    Thread.sleep(atLeastMillis - it)
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+        }
+
+        return returnValue
+    }
+
+    protected val context: Application get() = getApplication()
+
+    private var currentTask: BackgroundTask? = null
+
+    protected inline fun <T> handleBackground(returnValue: T): T {
+        handleBackground()
+        return returnValue
+    }
+
+    protected fun handleBackground() {
+        if (currentTask == null)
+            currentTask = BackgroundTask(this).apply { execute() }
+    }
+
+    protected fun cancelLastTask() {
+        currentTask?.cancel(false)
+        currentTask = null
+    }
+
+    @WorkerThread
+    protected abstract fun doInBackground()
+
+    private class BackgroundTask(
+            private val instance: BaseViewModel)
+        : AsyncTask<Unit, Unit, Unit>(){
+        override fun doInBackground(vararg params: Unit?) {
+            instance.doInBackground()
+        }
+    }
+}
+
+inline val <reified T> MutableLiveData<T>.asImmutable: LiveData<T> get() = this

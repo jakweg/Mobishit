@@ -1,0 +1,113 @@
+<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory android:title="Mobireg">
+        <Preference
+            android:key="key_log_out"
+            android:summary="Zapomnij mnie w tej aplikacji"
+            android:title="Wyloguj się" />
+
+        <android.support.v7.preference.ListPreference
+            android:defaultValue="480"
+            android:entries="@array/refresh_frequency"
+            android:entryValues="@array/refresh_frequency_values"
+            android:key="refreshFrequency"
+            android:summary="Im więcej tym częściej otrzymasz powiadomienia"
+            android:title="Częstotliwość odświeżania" />
+
+        <SwitchPreferenceCompat
+            android:key="runCountdownService"
+            android:summary="Pokazuje powiadomienie z czasem do końca lekcji"
+            android:title="Odliczaj czas do końca lekcji" />
+
+        <android.support.v7.preference.EditTextPreference
+            android:defaultValue="45"
+            android:inputType="numberSigned"
+            android:key="beforeLessonsMinutes"
+            android:maxLength="3"
+            android:summary="Ustawia ile minut przed rozpoczęciem lekcji ma rozpocząć się odliczanie"
+            android:title="Minuty do odliczania przed lekcjami" />
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory android:title="Wygląd">
+        <android.support.v7.preference.ListPreference
+            android:defaultValue="light"
+            android:entries="@array/themes_human_readable"
+            android:entryValues="@array/themes_values"
+            android:key="theme"
+            android:summary="Motyw w aplikacji"
+            android:title="Motyw" />
+
+        <android.support.v7.preference.ListPreference
+            android:defaultValue="mk"
+            android:entries="@array/default_fragment"
+            android:entryValues="@array/default_fragment_values"
+            android:key="defFrag"
+            android:summary="Ustaw domyślny ekran widoczny po włączeniu aplikacji"
+            android:title="Ekran domyślny" />
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory android:title="Powiadomienia">
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="refreshWeekends"
+            android:summary="Weekend w znaczeniu piątek 16:00 do niedziela 16:00"
+            android:title="Odświeżaj w weekend" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="notifyAboutAttendances"
+            android:summary="Powiadomienia o spóźnieniach i nieobecnościach są zawsze włączone"
+            android:title="Powiadamiaj o obecnościach" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="notifyWithSound"
+            android:summary="Dotyczy wszystkich rodzajów powiadomień z dziennika"
+            android:title="Używaj dźwięku i wibracji" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_open_notification_settings"
+            android:title="Otwórz ustawienia powiadomień" />
+
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+        android:key="key_debug_options"
+        android:title="Programistyczne">
+        <android.support.v7.preference.Preference
+            android:key="key_open_github"
+            android:summary="Ten projekt jest w pełni OpenSource"
+            android:title="Otwórz github" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="getAllMarkGroups"
+            android:summaryOff="Wysyła parametr get_all_mark_groups=0"
+            android:summaryOn="Wysyła parametr get_all_mark_groups=1"
+            android:title="Pobieraj wszystkie tabelki" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_open_welcome_screen"
+            android:summary="Otwórz ponownie powitalny ekran"
+            android:title="Powitaj mnie ponownie" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="logEverySync"
+            android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/blackeagle.mobishit/syncs/"
+            android:title="Zapisuj ruch sieciowy" />
+
+        <android.support.v7.preference.EditTextPreference
+            android:defaultValue="213769"
+            android:hint="device_id"
+            android:inputType="numberSigned"
+            android:key="deviceId"
+            android:summary="Używaj innego deviceId przy łączeniu z serwerem"
+            android:title="Inne deviceId" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_random_device_id"
+            android:summary="Losuje na zasadzie (Random().nextInt() % 10000 + 50000) * 3"
+            android:title="Losuj deviceId" />
+    </android.support.v7.preference.PreferenceCategory>
+</android.support.v7.preference.PreferenceScreen>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText,UnusedAttribute"
+    android:padding="2dp">
+
+    <TextView
+        android:id="@+id/timetableTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/widget_background"
+        android:elevation="3dp"
+        android:gravity="center_horizontal"
+        android:maxLines="1"
+        android:padding="2dp"
+        android:text="Plan lekcji"
+        android:textColor="@color/widgetTextColorLight"
+        android:textSize="20sp"
+        tools:ignore="HardcodedText" />
+
+
+    <TextView
+        android:id="@+id/timetableSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:elevation="3dp"
+        android:gravity="center_horizontal"
+        android:maxLines="1"
+        android:padding="2dp"
+        android:textColor="@color/widgetTextColorLight"
+        android:textSize="18sp"
+        tools:text="Czwartek" />
+
+    <Button
+        android:id="@+id/errorBtn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="15dp"
+        android:text="Ten widget nie załadował się tak jak powinien\nMożesz go usunąć i dodać jeszcze raz"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/widgetListItemBackgroundLight"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="Nie ma lekcji w ten dzień"
+        android:textColor="@color/widgetTextColorDark"
+        android:textSize="20sp"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
+
+    <ListView
+        android:id="@+id/lessonsList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimaryDark"
+        android:paddingBottom="4dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp" />
+</LinearLayout>

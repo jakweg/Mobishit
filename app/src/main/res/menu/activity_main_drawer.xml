@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_marks"
+            android:icon="@drawable/nav_marks"
+            android:title="Oceny" />
+        <item
+            android:id="@+id/nav_timetable"
+            android:icon="@drawable/nav_timetable"
+            android:title="Plan lekcji" />
+        <item
+            android:id="@+id/nav_messages"
+            android:icon="@drawable/nav_messages"
+            android:title="Wiadomości" />
+    </group>
+
+
+    <item
+        android:id="@+id/nav_last_checked"
+        android:title="Inne">
+        <menu>
+            <item
+                android:id="@+id/nav_force_refresh"
+                android:icon="@drawable/nav_force_refresh"
+                android:title="Odśwież teraz" />
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/nav_settings"
+                android:title="Ustawienia" />
+            <!--
+            <item
+                android:id="@+id/nav_log_out"
+                android:icon="@drawable/nav_log_out"
+                android:title="Wyloguj się" />
+                -->
+
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@drawable/nav_info"
+                android:title="O aplikacji" />
+        </menu>
+    </item>
+
+</menu>

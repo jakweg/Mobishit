@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/nav_log_out"
+        android:shortcutDisabledMessage="@string/timetable"
+        android:shortcutId="timetable"
+        android:shortcutLongLabel="@string/timetable"
+        android:shortcutShortLabel="@string/timetable"
+        tools:ignore="UnusedAttribute">
+        <intent
+            android:action="showTimetable"
+            android:targetClass="blackeagle.mobishit.activity.MainActivity"
+            android:targetPackage="blackeagle.mobishit" />
+
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>
