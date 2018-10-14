@@ -12,7 +12,7 @@
 <li>Otwórz plik</li>
 <li>Zezwól na instalację spoza Google Play</li>
 <li>Zainstaluj aplikację Mobishit</li>
-<li>Wyłącz pozwolenie na instalację z poza Google Play (opcjonalnie)</li>
+<li>Wyłącz pozwolenie na instalację spoza Google Play (opcjonalnie)</li>
 <li>Otwórz aplikację i zaloguj się</li>
 <li>Gotowe – od teraz dostaniesz powiadomienia o nowych ocenach
 </ol>
