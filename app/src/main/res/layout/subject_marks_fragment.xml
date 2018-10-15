@@ -12,7 +12,8 @@
             android:layout_height="wrap_content"
             android:background="?backgroundLitherColor"
             android:elevation="5dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="UnusedAttribute">
 
 
             <LinearLayout
@@ -54,6 +55,7 @@
                 android:maxLines="1"
                 android:textSize="17sp"
                 android:transitionName="subjectName"
+                tools:ignore="UnusedAttribute"
                 tools:text="Edukacja dla bezpieczeństwa" />
 
             <TextView

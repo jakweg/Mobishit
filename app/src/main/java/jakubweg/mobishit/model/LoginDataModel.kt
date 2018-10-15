@@ -5,14 +5,15 @@ import android.app.Application
 import android.arch.lifecycle.MutableLiveData
 import android.support.v4.app.NotificationCompat
 import android.util.Log
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
+import com.google.gson.stream.JsonReader
 import jakubweg.mobishit.R
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
 import jakubweg.mobishit.helper.TimetableWidgetProvider
 import jakubweg.mobishit.helper.UpdateHelper
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
+import java.io.Reader
 
 class LoginDataModel(application: Application)
     : BaseViewModel(application) {
@@ -51,56 +52,13 @@ class LoginDataModel(application: Application)
     @SuppressLint("ApplySharedPref")
     override fun doInBackground() {
         try {
-            val prefs = MobiregPreferences.get(context)
-            val deviceId = prefs.deviceId
-
-            val isLoggingEnabled = prefs.logEverySync
-
-            UpdateHelper.makeLoggedConnection(
-                    inputToWrite = buildString {
-                        append("login=eparent")
-                        append("&pass=eparent")
-                        append("&device_id="); append(deviceId)
-                        append("&app_version=60")
-                        append("&parent_login="); append(loginName)
-                        append('.'); append(host)
-                        append("&parent_pass="); append(password)
-                        append("&view=ParentStudents")
-                    },
-                    host = host,
-                    deviceId = deviceId,
-                    logEverythingEnabled = isLoggingEnabled,
-                    dataDir = context.applicationInfo.dataDir
-            ).use { reader ->
-                JsonParser().parse(JsonReader(reader)).asJsonObject.also { jo ->
-                    when {
-                        jo.has("errno") ->
-                            mStatus.postValue(if (jo.get("errno")!!.asInt == 106)
-                                STATUS_FAILED_WRONG_INPUTS else STATUS_FAILED)
-
-                        jo.has("ParentStudents") -> {
-                            jo.get("ParentStudents").asJsonArray.also { arr ->
-                                if (arr.size() != 1)
-                                    throw IllegalStateException("ParentStudents array size is not 1")
-                                arr[0]!!.asJsonObject!!.apply {
-                                    val id = get("id")!!.asInt
-                                    val name = get("name")!!.asString
-                                    val surname = get("surname")!!.asString
-                                     val phone = get("phone")!!.asStringOrNull ?: ""
-                                    val sex = validateSex(get("sex")!!.asStringOrNull)
-
-                                    MobiregPreferences.get(context).also {
-                                        it.setUserData(id, name, surname, phone, sex, loginName, host, password)
-                                    }
-                                }
-                                TimetableWidgetProvider.requestInstantUpdate(context)
-                                mStatus.postValue(STATUS_SUCCESS)
-                            }
-                        }
-                        else -> throw IllegalStateException("Can't log in - no errno nor ParentStudents")
-                    }
-                }
+            val result = tryLoginWithHost()
+            when (result) {
+                STATUS_SUCCESS -> mStatus.postValue(STATUS_SUCCESS)
+                STATUS_FAILED_WRONG_INPUTS -> mStatus.postValue(tryLoginWithoutHost())
+                else -> mStatus.postValue(STATUS_FAILED)
             }
+
         } catch (e: Exception) {
             Log.d("LoginDataModel", "Error while logging in", e)
             NotificationHelper(context).apply {
@@ -114,6 +72,90 @@ class LoginDataModel(application: Application)
             }
             mStatus.postValue(STATUS_FAILED)
         }
+    }
+
+
+    private fun tryLoginWithHost(): Int {
+        val prefs = MobiregPreferences.get(context)
+        val deviceId = prefs.deviceId
+
+        val isLoggingEnabled = prefs.logEverySync
+
+        UpdateHelper.makeLoggedConnection(
+                inputToWrite = buildString {
+                    append("login=eparent")
+                    append("&pass=eparent")
+                    append("&device_id="); append(deviceId)
+                    append("&app_version=60")
+                    append("&parent_login="); append(loginName)
+                    append("."); append(host)
+                    append("&parent_pass="); append(password)
+                    append("&view=ParentStudents")
+                },
+                host = host,
+                deviceId = deviceId,
+                logEverythingEnabled = isLoggingEnabled,
+                dataDir = context.applicationInfo.dataDir
+        ).use { reader ->
+            return processLoginRequestOutput(reader, true)
+        }
+    }
+
+    private fun tryLoginWithoutHost(): Int {
+        val prefs = MobiregPreferences.get(context)
+        val deviceId = prefs.deviceId
+
+        val isLoggingEnabled = prefs.logEverySync
+
+        UpdateHelper.makeLoggedConnection(
+                inputToWrite = buildString {
+                    append("login=eparent")
+                    append("&pass=eparent")
+                    append("&device_id="); append(deviceId)
+                    append("&app_version=60")
+                    append("&parent_login="); append(loginName)
+                    append("&parent_pass="); append(password)
+                    append("&view=ParentStudents")
+                },
+                host = host,
+                deviceId = deviceId,
+                logEverythingEnabled = isLoggingEnabled,
+                dataDir = context.applicationInfo.dataDir
+        ).use { reader ->
+            return processLoginRequestOutput(reader, false)
+        }
+    }
+
+    private fun processLoginRequestOutput(reader: Reader, isWithHost: Boolean): Int {
+        JsonParser().parse(JsonReader(reader)).asJsonObject.also { jo ->
+            when {
+                jo.has("errno") ->
+                    return (if (jo.get("errno")!!.asInt == 106)
+                        STATUS_FAILED_WRONG_INPUTS else STATUS_FAILED)
+
+                jo.has("ParentStudents") -> {
+                    jo.get("ParentStudents").asJsonArray.also { arr ->
+                        if (arr.size() != 1)
+                            throw IllegalStateException("ParentStudents array size is not 1")
+                        arr[0]!!.asJsonObject!!.apply {
+                            val id = get("id")!!.asInt
+                            val name = get("name")!!.asString
+                            val surname = get("surname")!!.asString
+                            val phone = get("phone")!!.asStringOrNull ?: ""
+                            val sex = validateSex(get("sex")!!.asStringOrNull)
+
+                            MobiregPreferences.get(context).also {
+                                it.setUserData(id, name, surname, phone, sex, loginName, host, isWithHost, password)
+                            }
+                        }
+                        TimetableWidgetProvider.requestInstantUpdate(context)
+                        return STATUS_SUCCESS
+                    }
+                }
+                else -> throw IllegalStateException("Can't log in - no errno nor ParentStudents")
+            }
+        }
+        return STATUS_FAILED
     }
 
 

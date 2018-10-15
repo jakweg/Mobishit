@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp"
     tools:ignore="HardcodedText">
 
     <LinearLayout
@@ -26,8 +26,8 @@
         <ImageView
             android:id="@+id/imgAppIcon"
             android:elevation="4dp"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:contentDescription="Ikona aplikacji"
             android:src="@mipmap/ic_launcher_round"
             tools:ignore="UnusedAttribute" />
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:padding="5dp"
-            android:text="Aplikacja autorstwa użytkownika JakubekWeg.\nDziękuję p0358 za jej popularyzacje."
+            android:text="Aplikacja autorstwa użytkownika JakubekWeg.\nDziękuję:\n\u2022 p0358 za popularyzację aplikacji\n\u2022 Hoxton i Farel03 za umożliwienie naprawy błędu"
             android:textSize="16sp" />
 
         <TextView

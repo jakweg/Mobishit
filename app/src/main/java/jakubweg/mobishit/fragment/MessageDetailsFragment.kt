@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import jakubweg.mobishit.R
 import jakubweg.mobishit.db.MessageDao
 import jakubweg.mobishit.model.MessageDetailModel
 import java.lang.ref.WeakReference

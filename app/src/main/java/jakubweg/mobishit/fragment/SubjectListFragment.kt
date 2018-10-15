@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.EmptyAdapter

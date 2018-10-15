@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -17,6 +17,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.SettingsActivity
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.helper.MobiregPreferences
@@ -81,11 +82,11 @@ class LoginFragment : Fragment() {
 
             val emptyErrorMsg = "To pole nie może być puste"
 
-            val regex = Regex("^([a-zA-Z0-9_\\-]+)\\.([a-zA-Z0-9_\\-]+)+$")
+            val regex = Regex("^([a-zA-Z0-9_\\-]+)\\.([a-zA-Z0-9_\\-]+)$")
 
             when {
                 login.isEmpty() -> editLogin?.error = emptyErrorMsg
-                !regex.matches(login) -> editLogin?.error = "Nieprawidłowy login"
+                !regex.matches(login) -> editLogin?.error = "Nieprawidłowy login\nLogin musi kończyć się adresem hosta (np jakub.zsl-krakow)"
                 pass.isEmpty() -> editPass?.error = emptyErrorMsg
                 else -> {
                     val values = regex.matchEntire(login)!!.groupValues
@@ -108,6 +109,21 @@ class LoginFragment : Fragment() {
 
         btnAboutPrivacy?.setOnClickListener {
             makeAboutPrivacyDialog(it.context ?: return@setOnClickListener)
+        }
+        btnAboutPrivacy?.setOnLongClickListener {
+            val pass1 = editPass?.text?.toString() ?: "%null%"
+            AlertDialog.Builder(it.context)
+                    .setMessage("Pokazać hasło?\nMD5: [${MobiregPreferences.encryptPassword(pass1)}]")
+                    .setPositiveButton("tak") { dialog, _ ->
+                        dialog.dismiss()
+                        val pass = editPass?.text?.toString() ?: "%null%"
+                        AlertDialog.Builder(it.context)
+                                .setMessage("Wpisane hasło: [$pass]\nMD5: [${MobiregPreferences.encryptPassword(pass)}]")
+                                .show()
+                    }
+                    .show()
+
+            true
         }
     }
 

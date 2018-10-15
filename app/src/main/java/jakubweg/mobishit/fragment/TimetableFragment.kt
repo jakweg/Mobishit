@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.app.DatePickerDialog
 import android.arch.lifecycle.Observer
@@ -12,6 +12,7 @@ import android.support.v4.view.ViewPager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import jakubweg.mobishit.R
 import jakubweg.mobishit.model.TimetableModel
 import java.lang.ref.WeakReference
 import java.util.*

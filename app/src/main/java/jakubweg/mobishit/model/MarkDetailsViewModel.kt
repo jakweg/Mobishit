@@ -18,7 +18,8 @@ class MarkDetailsViewModel(application: Application) : BaseViewModel(application
     val mark = handleBackground(mMark).asImmutable
 
     override fun doInBackground() {
-        check(markId != 0)
+        if (markId == 0)
+            return
         val dao = AppDatabase.getAppDatabase(context).markDao
 
         mMark.postValue(dao.getMarkDetails(markId))

@@ -11,8 +11,8 @@
         tools:ignore="UnusedAttribute">
         <intent
             android:action="showTimetable"
-            android:targetClass="blackeagle.mobishit.activity.MainActivity"
-            android:targetPackage="blackeagle.mobishit" />
+            android:targetClass="jakubweg.mobishit.activity.MainActivity"
+            android:targetPackage="jakubweg.mobishit" />
 
         <categories android:name="android.shortcut.conversation" />
     </shortcut>

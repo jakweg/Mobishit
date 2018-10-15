@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -9,6 +9,7 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.Interpolator
 import android.widget.TextView
+import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import java.lang.ref.WeakReference

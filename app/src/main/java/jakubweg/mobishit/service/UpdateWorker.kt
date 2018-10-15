@@ -411,8 +411,8 @@ class UpdateWorker : Worker() {
                             else -> "Prawdopodobnie zmieniono hasło"
                         })
                         .setAutoCancel(true)
-                        .addAction(R.drawable.ic_edit, "Aktualizuj hasło", contentIntent)
                         .setCategory(NotificationCompat.CATEGORY_ERROR)
+                        .setSubText("Dotknij, aby je wpisać")
                         .setContentIntent(contentIntent)
         )
     }

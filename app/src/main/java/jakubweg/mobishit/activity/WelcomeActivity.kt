@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.widget.Toast
 import jakubweg.mobishit.R
-import jakubweg.mobishit.LoginFragment
-import jakubweg.mobishit.WelcomeFirstFragment
+import jakubweg.mobishit.fragment.LoginFragment
+import jakubweg.mobishit.fragment.WelcomeFirstFragment
 import jakubweg.mobishit.helper.MobiregPreferences
 
 class WelcomeActivity : ThemedActivity.FragmentActivity() {

@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.content.Intent
 import android.net.Uri
@@ -13,6 +13,7 @@ import android.view.animation.Animation
 import android.view.animation.RotateAnimation
 import android.view.animation.ScaleAnimation
 import android.widget.ImageView
+import jakubweg.mobishit.R
 
 
 class AboutFragment : Fragment() {

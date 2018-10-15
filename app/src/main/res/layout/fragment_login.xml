@@ -31,6 +31,13 @@
             android:textSize="17sp"
             tools:ignore="UnusedAttribute" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Login musi zawierać host po kropce np. jakub.zsl-krakow"
+            android:textSize="12sp" />
+
         <EditText
             android:id="@+id/editPass"
             android:layout_width="match_parent"

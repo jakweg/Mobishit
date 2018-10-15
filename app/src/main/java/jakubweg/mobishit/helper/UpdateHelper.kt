@@ -2,9 +2,9 @@ package jakubweg.mobishit.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
-import jakubweg.mobishit.db.*
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import jakubweg.mobishit.db.*
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -63,8 +63,7 @@ class UpdateHelper(private val context: Context) {
             append("&pass=eparent")
             append("&device_id="); append(preferences.deviceId)
             append("&app_version=60")
-            append("&parent_login="); append(preferences.login!!)
-            append('.'); append(preferences.host!!)
+            append("&parent_login="); append(preferences.loginAndHostIfNeeded)
             append("&parent_pass="); append(preferences.password)
             append("&start_date="); append(preferences.startDate)
             append("&end_date="); append(endDate)
@@ -104,8 +103,7 @@ class UpdateHelper(private val context: Context) {
                     append("&pass=eparent")
                     append("&device_id="); append(preferences.deviceId)
                     append("&app_version=60")
-                    append("&parent_login="); append(preferences.login)
-                    append('.'); append(preferences.host)
+                    append("&parent_login="); append(preferences.loginAndHostIfNeeded)
                     append("&parent_pass="); append(preferences.password)
                     append("&start_date="); append(preferences.startDate)
                     append("&end_date="); append(endDate)
@@ -230,7 +228,6 @@ class UpdateHelper(private val context: Context) {
 
 
     companion object {
-        @JvmStatic
         fun makeLoggedConnection(inputToWrite: String,
                                  host: String,
                                  deviceId: Int,
@@ -304,6 +301,7 @@ class UpdateHelper(private val context: Context) {
                             throw e
                         }
 
+                        connection.disconnect()
 
                         logger.write(inputAsString)
 

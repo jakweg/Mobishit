@@ -8,6 +8,12 @@ import jakubweg.mobishit.helper.DateHelper
 @Dao
 interface MarkDao {
 
+    companion object {
+        const val PARENT_TYPE_COUNT_BEST_MARK = 5
+        const val PARENT_TYPE_COUNT_AVERAGE = 3
+        const val PARENT_TYPE_UNKNOWN_USED_BY_KOCOL = 1
+    }
+
     class SubjectShortInfo(val id: Int, val name: String, val marksCount: Int)
 
     @Query("""SELECT Subjects.id, Subjects.name, COUNT(Marks.id) as marksCount FROM Marks
@@ -103,7 +109,7 @@ WHERE Marks.id IN (:markIds)""")
 
     class MarkDetails(val description: String, val markName: String?, val abbreviation: String?, val markPointsValue: Float?,
                       val columnName: String, val defaultWeight: Float?, val noCountToAverage: Boolean?, val countPointsWithoutBase: Boolean?,
-                      val markValueMax: Float?, val getDate: Long, val addTime: Long, val teacherName: String, val teacherSurname: String) {
+                      val markValueMax: Float?, val getDate: Long, val addTime: Long, val teacherName: String, val teacherSurname: String, val subjectName: String?) {
         @Ignore
         val formattedGetDate = DateHelper.millisToStringDate(getDate)
         @Ignore
@@ -112,7 +118,7 @@ WHERE Marks.id IN (:markIds)""")
 
     @Query("""SELECT MarkGroups.description, MarkScales.name AS markName, MarkScales.abbreviation, Marks.markValue AS markPointsValue,
          MarkKinds.name AS columnName, MarkKinds.defaultWeight, MarkScales.noCountToAverage, MarkGroups.countPointsWithoutBase,
-         MarkGroups.markValueMax, Marks.getDate, Marks.addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname
+         MarkGroups.markValueMax, Marks.getDate, Marks.addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname, Subjects.name AS subjectName
 FROM Marks
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
 INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId

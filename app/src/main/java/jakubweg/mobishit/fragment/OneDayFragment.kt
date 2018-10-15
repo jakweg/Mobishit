@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
@@ -15,6 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import jakubweg.mobishit.R
 import jakubweg.mobishit.db.EventDao
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.model.OneDayModel

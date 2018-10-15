@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -15,6 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.model.SubjectsMarkModel
@@ -97,9 +98,13 @@ class SubjectsMarkFragment : Fragment() {
     private fun setUpMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
         view!!.findViewById<RecyclerView>(R.id.marksList).apply {
             adapter = MarkAdapter(context, marks) { item, view ->
+                val subjectName = this@SubjectsMarkFragment
+                        .view!!.findViewById<TextView>(R.id.subject_name)!!
+
                 (activity as? DoublePanelActivity?)?.applyNewDetailsFragment(
-                        view, MarkDetailsFragment.newInstance(item.id, item.description,
-                        ViewCompat.getTransitionName(view)))
+                        view, subjectName, MarkDetailsFragment.newInstance(item.id,
+                        item.description, ViewCompat.getTransitionName(view),
+                        subjectName.text.toString(), ViewCompat.getTransitionName(subjectName)))
             }
         }
     }

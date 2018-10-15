@@ -94,7 +94,7 @@
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="logEverySync"
-            android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/blackeagle.mobishit/syncs/"
+            android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/jakubweg.mobishit/syncs/"
             android:title="Zapisuj ruch sieciowy" />
 
         <android.support.v7.preference.EditTextPreference

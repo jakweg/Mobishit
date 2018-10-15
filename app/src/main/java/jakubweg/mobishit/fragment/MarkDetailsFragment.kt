@@ -1,4 +1,4 @@
-package jakubweg.mobishit
+package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
@@ -12,19 +12,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import jakubweg.mobishit.R
 import jakubweg.mobishit.model.MarkDetailsViewModel
 
 class MarkDetailsFragment : Fragment() {
     companion object {
-        @JvmStatic
-        fun newInstance(markId: Int) = newInstance(markId, "", null)
+        fun newInstance(markId: Int) = newInstance(markId, null, null, null, null)
 
-        @JvmStatic
-        fun newInstance(markId: Int, markDescription: String, transitionName: String?) = MarkDetailsFragment().apply {
+        fun newInstance(markId: Int,
+                        description: String?,
+                        descriptionTransitionName: String?,
+                        subjectName: String?,
+                        subjectTransitionName: String?) = MarkDetailsFragment().apply {
             arguments = Bundle().also {
                 it.putInt("markId", markId)
-                it.putString("description", markDescription)
-                it.putString("transitionName", transitionName)
+                it.putString("description", description)
+                it.putString("descriptionTransitionName", descriptionTransitionName)
+                it.putString("subjectName", subjectName)
+                it.putString("subjectTransitionName", subjectTransitionName)
             }
         }
     }
@@ -46,9 +51,15 @@ class MarkDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val model = ViewModelProviders.of(this).get(MarkDetailsViewModel::class.java)
 
-        view.findViewById<TextView>(R.id.textMarkName).also {
-            ViewCompat.setTransitionName(it, arguments!!["transitionName"] as String?)
-            it.text = arguments!!["description"] as String
+        arguments!!.apply {
+            view.findViewById<TextView>(R.id.textSubjectName).also {
+                //ViewCompat.setTransitionName(it, getString("subjectTransitionName") ?: "")
+                it.text = getString("subjectName") ?: ""
+            }
+            view.findViewById<TextView>(R.id.textMarkName).also {
+                ViewCompat.setTransitionName(it, getString("descriptionTransitionName") ?: "")
+                it.text = getString("description") ?: ""
+            }
         }
 
         val markId = arguments!!.getInt("markId", -1)
@@ -77,19 +88,7 @@ class MarkDetailsFragment : Fragment() {
                     findViewById<View>(R.id.markNoPointsLayout).visibility = View.GONE
                 }
 
-
-                /*(view as ViewGroup).apply {
-                    forEachChildWithTag(when {
-                        hasPointsValues -> "pointsMark"
-                        hasScaleMarkInfo -> "scaleMark"
-                        else -> throw UnsupportedOperationException()
-                    }) { view ->
-                        view.visibility = View.VISIBLE
-                    }
-                }
-                */
-
-
+                //findViewById<TextView>(R.id.textSubjectName).text = it.subjectName
                 findViewById<TextView>(R.id.textMarkName).text = it.description
                 findViewById<TextView>(R.id.textMarkColumn).text = it.columnName
 

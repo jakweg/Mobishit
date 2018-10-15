@@ -1,9 +1,9 @@
 package jakubweg.mobishit.db
 
 import android.graphics.Color
-import jakubweg.mobishit.helper.DateHelper
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import jakubweg.mobishit.helper.DateHelper
 
 class DataCreator {
     companion object {
@@ -247,6 +247,10 @@ class DataCreator {
             var countPointsWithoutBase = false
             var markValueMin: Int? = null
             var markValueMax: Int? = null
+            var parentId: Int? = null
+            var parentType: Int? = null
+            var isParent = false
+            var visibility: Int? = null
             jr.beginObject()
             while (jr.hasNext()) {
                 when (jr.nextName()) {
@@ -259,13 +263,19 @@ class DataCreator {
                     "description" -> description = jr.nextString()!!
                     "mark_type" -> markType = jr.nextInt()
                     "count_points_without_base" -> countPointsWithoutBase = jr.nextInt() != 0
+                    "parent_id" -> parentId = jr.nextIntOrNull()
+                    "visibility" -> visibility = jr.nextInt()
+                    "parent_type" -> parentType = jr.nextIntOrNull()
+                    "is_parent" -> isParent = jr.nextInt() != 0
                     "mark_value_range_min" -> markValueMin = jr.nextIntOrNull()
                     "mark_value_range_max" -> markValueMax = jr.nextIntOrNull()
                     else -> jr.skipValue()
                 }
             }
             jr.endObject()
-            return MarkGroup(id, markKindId, markScaleGroupId, eventTypeTermId, abbreviation, description, markType, position, countPointsWithoutBase, markValueMin, markValueMax)
+            return MarkGroup(id, markKindId, markScaleGroupId, eventTypeTermId, abbreviation,
+                    description, markType, position, countPointsWithoutBase, markValueMin, markValueMax,
+                    parentId, parentType, isParent, visibility)
         }
 
 
