@@ -18,6 +18,7 @@ import android.widget.*
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.helper.AverageCalculator
 import jakubweg.mobishit.model.SubjectsMarkModel
 
 class SubjectsMarkFragment : Fragment() {
@@ -96,10 +97,10 @@ class SubjectsMarkFragment : Fragment() {
     }
 
     private fun setUpMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
-        view!!.findViewById<RecyclerView>(R.id.marksList).apply {
+        view?.findViewById<RecyclerView>(R.id.marksList)?.apply {
             adapter = MarkAdapter(context, marks) { item, view ->
                 val subjectName = this@SubjectsMarkFragment
-                        .view!!.findViewById<TextView>(R.id.subject_name)!!
+                        .view?.findViewById<TextView>(R.id.subject_name) ?: return@MarkAdapter
 
                 (activity as? DoublePanelActivity?)?.applyNewDetailsFragment(
                         view, subjectName, MarkDetailsFragment.newInstance(item.id,
@@ -109,17 +110,8 @@ class SubjectsMarkFragment : Fragment() {
         }
     }
 
-    private fun setUpAveragesInfo(average: MarkDao.AverageCalculationResult) {
-        val averageText = average.run {
-            if (gotPointsSum != null && baseSum != null)
-                "Zdobyte punkty: $gotPointsSum na $baseSum czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
-            else if (weightedAverage != null)
-                "Twoja średnia ważona wynosi ${String.format("%.2f", weightedAverage)}"
-            else
-                "Brak danych"
-        }
-
-        view!!.findViewById<TextView>(R.id.averageInfoText).text = averageText
+    private fun setUpAveragesInfo(average: AverageCalculator.AverageCalculationResult) {
+        view!!.findViewById<TextView>(R.id.averageInfoText).text = average.averageText
     }
 
     private fun onTermChanged() {

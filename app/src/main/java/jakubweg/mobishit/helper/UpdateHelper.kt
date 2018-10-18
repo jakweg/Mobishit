@@ -13,18 +13,28 @@ import java.util.*
 
 class UpdateHelper(private val context: Context) {
 
-    var isFirstTime = false
+    private var isFirstTime = false
     var newMarks = mutableListOf<MarkData>()
     var newMessages = mutableListOf<MessageData>()
     var newAttendances = mutableListOf<AttendanceData>()
     var newEvents = mutableListOf<EventData>()
+    var deletedMarks = mutableListOf<MarkDao.DeletedMarkData>()
 
 
     private var onNewMark: (MarkData) -> Unit = { }
     private var onNewMessage: (MessageData) -> Unit = { }
     private var onNewAttendance: (AttendanceData) -> Unit = { }
     private var onNewEvents: (EventData) -> Unit = { }
+    private var onDeleteMark: (MarkData) -> Unit = { }
 
+
+    val isAnythingNew
+        get() = isFirstTime ||
+                newMarks.isNotEmpty() ||
+                newMessages.isNotEmpty() ||
+                newAttendances.isNotEmpty() ||
+                newEvents.isNotEmpty() ||
+                deletedMarks.isNotEmpty()
 
     private var saveEverySyncEnabled = false
 
@@ -54,6 +64,7 @@ class UpdateHelper(private val context: Context) {
         onNewMessage = { }
         onNewAttendance = { }
         onNewEvents = { }
+        onDeleteMark = { }
 
 
         isFirstTime = true
@@ -74,6 +85,8 @@ class UpdateHelper(private val context: Context) {
         }
     }
 
+    private val database by lazy { AppDatabase.getAppDatabase(context) }
+
     @SuppressLint("ApplySharedPref")
     private fun makeUpdateNotFirstTime() {
 
@@ -86,6 +99,7 @@ class UpdateHelper(private val context: Context) {
         newMessages.clear()
         newAttendances.clear()
         newEvents.clear()
+        deletedMarks.clear()
 
         onNewMessage = { newMessages.add(it) }
         onNewMark = { newMarks.add(it) }
@@ -95,6 +109,9 @@ class UpdateHelper(private val context: Context) {
                     (data.status == EventDao.STATUS_SCHEDULED &&
                             data.substitution.let { it == EventDao.SUBSTITUTION_NEW_LESSON || it == EventDao.SUBSTITUTION_OLD_LESSON }))
                 newEvents.add(data)
+        }
+        onDeleteMark = {
+            deletedMarks.add(database.markDao.getDeletedMarkInfo(it.id))
         }
 
         makeLoggedConnection(
@@ -137,33 +154,33 @@ class UpdateHelper(private val context: Context) {
                     }
                     beginArray()
                     when (name) {
-                        "Teachers" -> forEachInArray { insertElementToDao(dao, DataCreator.teacher(it)) }
-                        "Rooms" -> forEachInArray { insertElementToDao(dao, DataCreator.roomData(it)) }
-                        "Terms" -> forEachInArray { insertElementToDao(dao, DataCreator.termData(it)) }
-                        "Subjects" -> forEachInArray { insertElementToDao(dao, DataCreator.subjectData(it)) }
-                        "Groups" -> forEachInArray { insertElementToDao(dao, DataCreator.groupData(it)) }
-                        "GroupTerms" -> forEachInArray { insertElementToDao(dao, DataCreator.groupTerm(it)) }
-                        "MarkScaleGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.markScaleGroup(it)) }
-                        "MarkScales" -> forEachInArray { insertElementToDao(dao, DataCreator.markScale(it)) }
-                        "MarkDivisionGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.markDivisionGroup(it)) }
-                        "MarkKinds" -> forEachInArray { insertElementToDao(dao, DataCreator.markKind(it)) }
-                        "MarkGroupGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.markGroupGroup(it)) }
-                        "MarkGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.markGroup(it)) }
-                        "EventTypes" -> forEachInArray { insertElementToDao(dao, DataCreator.eventType(it)) }
-                        "EventTypeTeachers" -> forEachInArray { insertElementToDao(dao, DataCreator.eventTypeTeacher(it)) }
-                        "EventTypeTerms" -> forEachInArray { insertElementToDao(dao, DataCreator.eventTypeTerm(it)) }
-                        "EventTypeGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.eventTypeGroup(it)) }
-                        "Events" -> forEachInArray { insertElementToDao(dao, DataCreator.eventData(it)) }
-                        "EventIssues" -> forEachInArray { insertElementToDao(dao, DataCreator.eventIssue(it)) }
-                        "EventEvents" -> forEachInArray { insertElementToDao(dao, DataCreator.eventEvent(it)) }
-                        "AttendanceTypes" -> forEachInArray { insertElementToDao(dao, DataCreator.attendanceType(it)) }
-                        "Attendances" -> forEachInArray { insertElementToDao(dao, DataCreator.attendanceData(it)) }
-                        "Marks" -> forEachInArray { insertElementToDao(dao, DataCreator.markData(it)) }
-                        "UserReprimands" -> forEachInArray { insertElementToDao(dao, DataCreator.userReprimand(it)) }
-                        "StudentGroups" -> forEachInArray { insertElementToDao(dao, DataCreator.studentGroup(it)) }
-                        "EventTypeSchedules" -> forEachInArray { insertElementToDao(dao, DataCreator.eventTypeSchedule(it)) }
-                        "Lessons" -> forEachInArray { insertElementToDao(dao, DataCreator.lessonData(it)) }
-                        "Messages" -> forEachInArray { insertElementToDao(dao, DataCreator.messageData(it)) }
+                        "Teachers" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.teacher(it) } }
+                        "Rooms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.roomData(it) } }
+                        "Terms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.termData(it) } }
+                        "Subjects" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.subjectData(it) } }
+                        "Groups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.groupData(it) } }
+                        "GroupTerms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.groupTerm(it) } }
+                        "MarkScaleGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markScaleGroup(it) } }
+                        "MarkScales" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markScale(it) } }
+                        "MarkDivisionGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markDivisionGroup(it) } }
+                        "MarkKinds" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markKind(it) } }
+                        "MarkGroupGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markGroupGroup(it) } }
+                        "MarkGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markGroup(it) } }
+                        "EventTypes" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventType(it) } }
+                        "EventTypeTeachers" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeTeacher(it) } }
+                        "EventTypeTerms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeTerm(it) } }
+                        "EventTypeGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeGroup(it) } }
+                        "Events" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventData(it) } }
+                        "EventIssues" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventIssue(it) } }
+                        "EventEvents" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventEvent(it) } }
+                        "AttendanceTypes" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.attendanceType(it) } }
+                        "Attendances" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.attendanceData(it) } }
+                        "Marks" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markData(it) } }
+                        "UserReprimands" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.userReprimand(it) } }
+                        "StudentGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.studentGroup(it) } }
+                        "EventTypeSchedules" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeSchedule(it) } }
+                        "Lessons" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.lessonData(it) } }
+                        "Messages" -> forEachInArray { insertElementToDao<Any>(dao, it) { DataCreator.messageData(it) } }
                         "Settings" -> {
                             beginObject()
                             while (nextName() != "time")
@@ -208,7 +225,20 @@ class UpdateHelper(private val context: Context) {
         }
     }
 
-    private fun insertElementToDao(dao: MainDao, element: Any) {
+    private inline fun <reified T> insertElementToDao(dao: MainDao, jsonReader: JsonReader, creator: () -> T) {
+        val element = try {
+            creator.invoke()
+        } catch (deleted: DataCreator.ObjectDeletedNotifier) {
+            when (deleted.item) {
+                is MarkData -> onDeleteMark.invoke(deleted.item)
+            }
+            dao.deleteAny(deleted.item)
+            return
+        } finally {
+            if (jsonReader.peek() == JsonToken.END_OBJECT)
+                jsonReader.endObject()
+        }
+
         when (element) {
             is MarkData -> {
                 dao.insert(element); onNewMark.invoke(element)
@@ -222,10 +252,9 @@ class UpdateHelper(private val context: Context) {
             is EventData -> {
                 dao.insert(element); onNewEvents.invoke(element)
             }
-            else -> dao.insertAny(element)
+            else -> dao.insertAny(element as Any)
         }
     }
-
 
     companion object {
         fun makeLoggedConnection(inputToWrite: String,

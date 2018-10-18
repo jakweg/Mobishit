@@ -1,9 +1,6 @@
 package jakubweg.mobishit.db
 
-import android.arch.persistence.room.Dao
-import android.arch.persistence.room.Insert
-import android.arch.persistence.room.OnConflictStrategy
-import android.arch.persistence.room.Transaction
+import android.arch.persistence.room.*
 
 
 @Dao
@@ -121,6 +118,125 @@ interface MainDao {
             is EventTypeSchedule -> insert(value)
             is LessonData -> insert(value)
             is MessageData -> insert(value)
+            else -> throw IllegalArgumentException()
+        }
+    }
+
+
+    // deletions
+
+    /*@Transaction
+    private fun deleteEntity(db: AppDatabase,tableName: String, id: Int) {
+        db.query("DELETE FROM ? WHERE id = ?", arrayOf(tableName, id))
+    }*/
+
+    @Delete
+    fun delete(value: Teacher)
+
+    @Delete
+    fun delete(value: RoomData)
+
+    @Delete
+    fun delete(value: TermData)
+
+    @Delete
+    fun delete(value: SubjectData)
+
+    @Delete
+    fun delete(value: GroupData)
+
+    @Delete
+    fun delete(value: GroupTerm)
+
+    @Delete
+    fun delete(value: MarkScaleGroup)
+
+    @Delete
+    fun delete(value: MarkScale)
+
+    @Delete
+    fun delete(value: MarkDivisionGroup)
+
+    @Delete
+    fun delete(value: MarkKind)
+
+    @Delete
+    fun delete(value: MarkGroupGroup)
+
+    @Delete
+    fun delete(value: MarkGroup)
+
+    @Delete
+    fun delete(value: EventType)
+
+    @Delete
+    fun delete(value: EventTypeTeacher)
+
+    @Delete
+    fun delete(value: EventTypeTerm)
+
+    @Delete
+    fun delete(value: EventTypeGroup)
+
+    @Delete
+    fun delete(value: EventData)
+
+    @Delete
+    fun delete(value: EventIssue)
+
+    @Delete
+    fun delete(value: EventEvent)
+
+    @Delete
+    fun delete(value: AttendanceType)
+
+    @Delete
+    fun delete(value: AttendanceData)
+
+    @Delete
+    fun delete(value: MarkData)
+
+    @Delete
+    fun delete(value: StudentGroup)
+
+    @Delete
+    fun delete(value: EventTypeSchedule)
+
+    @Delete
+    fun delete(value: LessonData)
+
+    @Delete
+    fun delete(value: MessageData)
+
+    @Transaction
+    fun deleteAny(value: Any) {
+        when (value) {
+            is Teacher -> delete(value)
+            is RoomData -> delete(value)
+            is TermData -> delete(value)
+            is SubjectData -> delete(value)
+            is GroupData -> delete(value)
+            is GroupTerm -> delete(value)
+            is MarkScaleGroup -> delete(value)
+            is MarkScale -> delete(value)
+            is MarkDivisionGroup -> delete(value)
+            is MarkKind -> delete(value)
+            is MarkGroupGroup -> delete(value)
+            is MarkGroup -> delete(value)
+            is EventType -> delete(value)
+            is EventTypeTeacher -> delete(value)
+            is EventTypeTerm -> delete(value)
+            is EventTypeGroup -> delete(value)
+            is EventData -> delete(value)
+            is EventIssue -> delete(value)
+            is EventEvent -> delete(value)
+            is AttendanceType -> delete(value)
+            is AttendanceData -> delete(value)
+            is MarkData -> delete(value)
+            is StudentGroup -> delete(value)
+            is EventTypeSchedule -> delete(value)
+            is LessonData -> delete(value)
+            is MessageData -> delete(value)
             else -> throw IllegalArgumentException()
         }
     }

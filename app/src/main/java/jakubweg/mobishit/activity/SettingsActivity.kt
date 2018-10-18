@@ -1,6 +1,9 @@
 package jakubweg.mobishit.activity
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -16,6 +19,7 @@ import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.Toast
 import jakubweg.mobishit.R
+import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.UpdateWorker
@@ -181,6 +185,32 @@ class SettingsActivity : DoublePanelActivity() {
             }
 
             findPreference("key_debug_options")?.isVisible = prefs.isDeveloper
+
+            findPreference("key_copy_db")?.setOnPreferenceClickListener {
+                AppDatabase.getAppDatabase(it.context).close()
+
+                try {
+                    val chars = "0123456789abcdef"
+                    val bytes = it.context.getDatabasePath("mobireg.db").readBytes()
+                    val result = StringBuilder(bytes.size * 2)
+
+                    bytes.forEach { byte ->
+                        val i = byte.toInt()
+                        result.append(chars[i shr 4 and 0x0f])
+                        result.append(chars[i and 0x0f])
+                    }
+
+                    (it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)
+                            ?.primaryClip = ClipData.newPlainText("MOBIREG DATABASE", result.toString())
+                    Toast.makeText(it.context, "Gotowe, można wklejać", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(it.context, "Wystąpił błąd", Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
+                }
+
+                AppDatabase.getAppDatabase(it.context)
+                false
+            }
         }
 
         private val openNotificationSettingsIntent

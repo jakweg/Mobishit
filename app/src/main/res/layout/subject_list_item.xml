@@ -17,20 +17,15 @@
         android:textSize="17sp"
         tools:text="Matematyka" />
 
-    <!--<TextView
-        android:layout_marginTop="4dp"
+    <TextView
+        android:id="@+id/average_text"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
-
-
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:id="@+id/markCount"
-        tools:text="Liczba ocen: 4"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />!-->
+        tools:text="Średnia: 4,23" />
 
     <View
         android:layout_width="match_parent"

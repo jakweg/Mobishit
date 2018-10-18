@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import jakubweg.mobishit.R
+import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.model.MarkDetailsViewModel
 
 class MarkDetailsFragment : Fragment() {
@@ -53,7 +54,7 @@ class MarkDetailsFragment : Fragment() {
 
         arguments!!.apply {
             view.findViewById<TextView>(R.id.textSubjectName).also {
-                //ViewCompat.setTransitionName(it, getString("subjectTransitionName") ?: "")
+                ViewCompat.setTransitionName(it, getString("subjectTransitionName") ?: "")
                 it.text = getString("subjectName") ?: ""
             }
             view.findViewById<TextView>(R.id.textMarkName).also {
@@ -88,7 +89,7 @@ class MarkDetailsFragment : Fragment() {
                     findViewById<View>(R.id.markNoPointsLayout).visibility = View.GONE
                 }
 
-                //findViewById<TextView>(R.id.textSubjectName).text = it.subjectName
+                findViewById<TextView>(R.id.textSubjectName).text = it.subjectName
                 findViewById<TextView>(R.id.textMarkName).text = it.description
                 findViewById<TextView>(R.id.textMarkColumn).text = it.columnName
 
@@ -106,17 +107,20 @@ class MarkDetailsFragment : Fragment() {
                         ?: 0f)
                 findViewById<TextView>(R.id.textMarkIsCountToBase).text = if (it.countPointsWithoutBase == false) "Tak" else "Nie"
 
-
+                findViewById<TextView>(R.id.textParentType).apply {
+                    visibility = if (it.parentType == null) View.GONE else View.VISIBLE
+                    text = when (it.parentType) {
+                        null -> ""
+                        MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
+                        MarkDao.PARENT_TYPE_COUNT_BEST_MARK -> "Liczy się lepsza ocena"
+                        else -> "Nieznana (${it.parentType})"
+                    }
+                }
                 findViewById<TextView>(R.id.textMarkGetDate).text = it.formattedGetDate
                 findViewById<TextView>(R.id.textMarkAddTime).text = it.formattedAddTime
                 findViewById<TextView>(R.id.textMarkTeacherName).text = "${it.teacherName} ${it.teacherSurname}"
             }
         })
-    }
-
-    private inline fun ViewGroup.forEachChildWithTag(tag: Any, function: (View) -> Unit) {
-        for (i in 0 until childCount)
-            getChildAt(i).also { if (it.tag == tag) function.invoke(it) }
     }
 }
 

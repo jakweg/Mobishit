@@ -6,6 +6,10 @@ import com.google.gson.stream.JsonToken
 import jakubweg.mobishit.helper.DateHelper
 
 class DataCreator {
+    class ObjectDeletedNotifier(
+            val item: Any,
+            val objectId: Int) : Exception()
+
     companion object {
         fun teacher(jr: JsonReader): Teacher {
             var id = 0
@@ -13,17 +17,22 @@ class DataCreator {
             var surname = ""
             var login = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "surname" -> surname = jr.nextString()!!
                     "login" -> login = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return Teacher(id, name, surname, login)
+
+            return Teacher(id, name, surname, login).also {
+                if (isDeleted)
+                    throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -32,16 +41,20 @@ class DataCreator {
             var name = ""
             var description = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "description" -> description = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return RoomData(id, name, description)
+
+            return RoomData(id, name, description).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -52,6 +65,7 @@ class DataCreator {
             var startDate = ""
             var endDate = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -59,11 +73,14 @@ class DataCreator {
                     "type" -> type = jr.nextString()!!
                     "start_date" -> startDate = jr.nextString()!!
                     "end_date" -> endDate = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return TermData(id, name, type, DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate))
+
+            return TermData(id, name, type, DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate)).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -72,16 +89,20 @@ class DataCreator {
             var name = ""
             var abbr = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "abbr" -> abbr = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return SubjectData(id, name, abbr)
+
+            return SubjectData(id, name, abbr).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -92,6 +113,7 @@ class DataCreator {
             var type = ""
             var abbr = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -99,11 +121,14 @@ class DataCreator {
                     "parents_id" -> parentId = jr.nextInt()
                     "abbr" -> abbr = jr.nextString()!!
                     "type" -> type = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return GroupData(id, name, parentId, type, abbr)
+
+            return GroupData(id, name, parentId, type, abbr).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -112,16 +137,20 @@ class DataCreator {
             var groupsId = 0
             var termId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupsId = jr.nextInt()
                     "terms_id" -> termId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return GroupTerm(id, groupsId, termId)
+
+            return GroupTerm(id, groupsId, termId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -129,15 +158,19 @@ class DataCreator {
             var id = 0
             var name = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkScaleGroup(id, name)
+
+            return MarkScaleGroup(id, name).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -149,6 +182,7 @@ class DataCreator {
             var markValue = 0f
             var noCountToAverage = false
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -157,11 +191,14 @@ class DataCreator {
                     "abbreviation" -> abbr = jr.nextString()!!
                     "mark_value" -> markValue = jr.nextDouble().toFloat()
                     "no_count_to_average" -> noCountToAverage = jr.nextInt() != 0
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkScale(id, markScaleGroupId, abbr, name, markValue, noCountToAverage)
+
+            return MarkScale(id, markScaleGroupId, abbr, name, markValue, noCountToAverage).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -173,6 +210,7 @@ class DataCreator {
             var rangeMax = 0f
             var markScaleGroupId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -181,11 +219,14 @@ class DataCreator {
                     "type" -> type = jr.nextInt()
                     "range_min" -> rangeMin = jr.nextDouble().toFloat()
                     "range_max" -> rangeMax = jr.nextDouble().toFloat()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkDivisionGroup(id, name, type, rangeMin, rangeMax, markScaleGroupId)
+
+            return MarkDivisionGroup(id, name, type, rangeMin, rangeMax, markScaleGroupId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -199,6 +240,7 @@ class DataCreator {
             var position = 0
             var cssStyle = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -209,11 +251,14 @@ class DataCreator {
                     "default_weigth" -> defaultWeight = jr.nextIntOrNull()
                     "position" -> position = jr.nextInt()
                     "css_style" -> cssStyle = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkKind(id, name, abbreviation, defaultMarkType, defaultMarkScaleGroupId, defaultWeight, position, cssStyle)
+
+            return MarkKind(id, name, abbreviation, defaultMarkType, defaultMarkScaleGroupId, defaultWeight, position, cssStyle).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -222,16 +267,20 @@ class DataCreator {
             var name = ""
             var position = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "position" -> position = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkGroupGroup(id, name, position)
+
+            return MarkGroupGroup(id, name, position).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -249,9 +298,9 @@ class DataCreator {
             var markValueMax: Int? = null
             var parentId: Int? = null
             var parentType: Int? = null
-            var isParent = false
             var visibility: Int? = null
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -266,16 +315,18 @@ class DataCreator {
                     "parent_id" -> parentId = jr.nextIntOrNull()
                     "visibility" -> visibility = jr.nextInt()
                     "parent_type" -> parentType = jr.nextIntOrNull()
-                    "is_parent" -> isParent = jr.nextInt() != 0
                     "mark_value_range_min" -> markValueMin = jr.nextIntOrNull()
                     "mark_value_range_max" -> markValueMax = jr.nextIntOrNull()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
+
             return MarkGroup(id, markKindId, markScaleGroupId, eventTypeTermId, abbreviation,
                     description, markType, position, countPointsWithoutBase, markValueMin, markValueMax,
-                    parentId, parentType, isParent, visibility)
+                    parentId, parentType, false, visibility).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -283,15 +334,19 @@ class DataCreator {
             var id = 0
             var subjectId: Int? = null
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "subjects_id" -> subjectId = jr.nextIntOrNull()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventType(id, subjectId)
+
+            return EventType(id, subjectId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -300,16 +355,20 @@ class DataCreator {
             var teacherId = 0
             var eventTypeId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "teachers_id" -> teacherId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventTypeTeacher(id, teacherId, eventTypeId)
+
+            return EventTypeTeacher(id, teacherId, eventTypeId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -318,16 +377,20 @@ class DataCreator {
             var termId = 0
             var eventTypeId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "terms_id" -> termId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventTypeTerm(id, termId, eventTypeId)
+
+            return EventTypeTerm(id, termId, eventTypeId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -336,16 +399,20 @@ class DataCreator {
             var groupId = 0
             var eventTypeId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventTypeGroup(id, groupId, eventTypeId)
+
+            return EventTypeGroup(id, groupId, eventTypeId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -363,6 +430,7 @@ class DataCreator {
             var termId = 0
             var lessonGroupId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -377,11 +445,15 @@ class DataCreator {
                     "terms_id" -> termId = jr.nextInt()
                     "lesson_groups_id" -> lessonGroupId = jr.nextInt()
                     "substitution" -> substitution = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventData(id, name, DateHelper.stringDateToMillis(date), number, normalizeTime(startTime), normalizeTime(endTime), roomId, eventTypeId, status, substitution, termId, lessonGroupId)
+
+            return EventData(id, name, DateHelper.stringDateToMillis(date), number, normalizeTime(startTime),
+                    normalizeTime(endTime), roomId, eventTypeId, status, substitution, termId, lessonGroupId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
         private fun normalizeTime(time: String): String {
@@ -396,17 +468,21 @@ class DataCreator {
             var issueId = 0
             var eventTypeId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events_id" -> eventId = jr.nextInt()
                     "issues_id" -> issueId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventIssue(id, eventId, issueId, eventTypeId)
+
+            return EventIssue(id, eventId, issueId, eventTypeId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -415,16 +491,20 @@ class DataCreator {
             var event1Id = 0
             var event2Id = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events1_id" -> event1Id = jr.nextInt()
                     "events2_id" -> event2Id = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventEvent(id, event1Id, event2Id)
+
+            return EventEvent(id, event1Id, event2Id).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -436,6 +516,7 @@ class DataCreator {
             var countAs = ""
             var type = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -444,11 +525,14 @@ class DataCreator {
                     "style" -> style = jr.nextString()!!
                     "count_as" -> countAs = jr.nextString()!!
                     "type" -> type = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return AttendanceType(id, name, abbreviation, getStyleColor(style), countAs, type)
+
+            return AttendanceType(id, name, abbreviation, getStyleColor(style), countAs, type).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
         private val regex = Regex(".*background-color:[ ]?#([a-fA-F0-9]{6}).*")
@@ -467,16 +551,20 @@ class DataCreator {
             var eventId = 0
             var typeId = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events_id" -> eventId = jr.nextInt()
                     "types_id" -> typeId = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return AttendanceData(id, eventId, typeId)
+
+            return AttendanceData(id, eventId, typeId).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -489,6 +577,7 @@ class DataCreator {
             var getDate = ""
             var addTime = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -498,11 +587,14 @@ class DataCreator {
                     "teacher_users_id" -> teacherId = jr.nextInt()
                     "get_date" -> getDate = jr.nextString()!!
                     "add_time" -> addTime = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return MarkData(id, markGroupId, markScaleId, teacherId, markValue, DateHelper.stringDateToMillis(getDate), DateHelper.stringTimeToMillis(addTime))
+
+            return MarkData(id, markGroupId, markScaleId, teacherId, markValue, DateHelper.stringDateToMillis(getDate), DateHelper.stringTimeToMillis(addTime)).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -513,6 +605,7 @@ class DataCreator {
             var addTime = ""
             var content = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -520,12 +613,15 @@ class DataCreator {
                     "kinds_id" -> kindId = jr.nextInt()
                     "addtime" -> addTime = jr.nextString()!!
                     "content" -> content = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
+
             return MessageData(1000_000 + id, kindId, DateHelper.stringTimeToMillis(addTime),
-                    teacherId, null, content, 0L)
+                    teacherId, null, content, 0L).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -534,16 +630,20 @@ class DataCreator {
             var groupId = 0
             var number = 0
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupId = jr.nextInt()
                     "number" -> number = jr.nextInt()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return StudentGroup(id, groupId, number)
+
+            return StudentGroup(id, groupId, number).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -554,6 +654,7 @@ class DataCreator {
             var name = ""
             var number = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -561,11 +662,14 @@ class DataCreator {
                     "schedules_id" -> scheduleId = jr.nextInt()
                     "number" -> number = jr.nextString()!!
                     "name" -> name = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return EventTypeSchedule(id, eventTypeId, scheduleId, name, number)
+
+            return EventTypeSchedule(id, eventTypeId, scheduleId, name, number).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -575,17 +679,21 @@ class DataCreator {
             var startTime = ""
             var endTime = ""
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "lesson_number" -> lessonNumber = jr.nextInt()
                     "start_time" -> startTime = jr.nextString()!!
                     "end_time" -> endTime = jr.nextString()!!
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
-            return LessonData(id, lessonNumber, startTime, endTime)
+
+            return LessonData(id, lessonNumber, startTime, endTime).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 
@@ -597,6 +705,7 @@ class DataCreator {
             var content = ""
             var readTime: String? = null
             jr.beginObject()
+            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -605,13 +714,16 @@ class DataCreator {
                     "title" -> title = jr.nextString()!!
                     "content" -> content = jr.nextString()!!
                     "read_time" -> readTime = jr.nextStringOrNull()
+                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
-            jr.endObject()
+
             return MessageData(id, MessageDao.KIND_JUST_MESSAGE,
                     DateHelper.stringTimeToMillis(sendTime), senderId,
-                    title, content, DateHelper.stringTimeToMillis(readTime))
+                    title, content, DateHelper.stringTimeToMillis(readTime)).also {
+                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
+            }
         }
 
 

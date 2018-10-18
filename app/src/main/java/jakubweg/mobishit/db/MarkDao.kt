@@ -1,7 +1,8 @@
 package jakubweg.mobishit.db
 
-import android.arch.persistence.room.*
-import jakubweg.mobishit.BuildConfig
+import android.arch.persistence.room.Dao
+import android.arch.persistence.room.Ignore
+import android.arch.persistence.room.Query
 import jakubweg.mobishit.helper.DateHelper
 
 @Suppress("FunctionName")
@@ -14,9 +15,12 @@ interface MarkDao {
         const val PARENT_TYPE_UNKNOWN_USED_BY_KOCOL = 1
     }
 
-    class SubjectShortInfo(val id: Int, val name: String, val marksCount: Int)
+    class SubjectShortInfo(val id: Int, val name: String) {
+        @Ignore
+        var averageText: String = ""
+    }
 
-    @Query("""SELECT Subjects.id, Subjects.name, COUNT(Marks.id) as marksCount FROM Marks
+    @Query("""SELECT Subjects.id, Subjects.name FROM Marks
                     INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
                     INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
                     INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
@@ -30,8 +34,18 @@ interface MarkDao {
     fun getTerms(): List<TermShortInfo>
 
 
+    class MarkShortInfo(val id: Int, val description: String, val abbreviation: String?, markScaleValue: Float?,
+                        defaultWeight: Float?, noCountToAverage: Boolean?, markPointsValue: Float?,
+                        countPointsWithoutBase: Boolean?, markValueMax: Float?, val termId: Int,
+                        parentType: Int?, parentId: Int?, markGroupId: Int) :
+            MarkAverageShortInfo(markScaleValue, parentType, parentId, markGroupId, defaultWeight, noCountToAverage,
+                    markPointsValue, countPointsWithoutBase, markValueMax)
+
     @Query("""SELECT
-                        Marks.id, MarkGroups.description, MarkScales.abbreviation, MarkScales.markValue AS 'markScaleValue', MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue', MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax, Terms.id AS 'termId'
+                        Marks.id, MarkGroups.description, MarkScales.abbreviation, MarkScales.markValue AS 'markScaleValue',
+                        MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue',
+                        MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax, Terms.id AS 'termId',
+                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId
                     FROM Marks
                     LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
                     INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
@@ -41,57 +55,28 @@ interface MarkDao {
                     INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
                     INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
                     WHERE Subjects.id = :subjectId""")
-    fun _obtainMarksToTempTable(subjectId: Int): List<MarkShortData>
+    fun getMarksBySubject(subjectId: Int): List<MarkShortInfo>
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
-    fun _insertMarksToTempTable(values: List<MarkShortData>)
-
-    @Query("DELETE FROM Temp_Marks")
-    fun _deleteTempTable()
-
-    class AverageCalculationResult(val weightedAverage: Float?, val gotPointsSum: Float?, val baseSum: Float?)
+    open class MarkAverageShortInfo(val markScaleValue: Float?, val parentType: Int?, val parentId: Int?, val markGroupId: Int,
+                                    val defaultWeight: Float?, val noCountToAverage: Boolean?, val markPointsValue: Float?,
+                                    val countPointsWithoutBase: Boolean?, val markValueMax: Float?)
 
     @Query("""SELECT
-                        SUM(Temp_Marks.markScaleValue * Temp_Marks.defaultWeight) / SUM(Temp_Marks.defaultWeight) AS weightedAverage,
-                        SUM(Temp_Marks.markPointsValue) AS gotPointsSum,
-                        SUM(Temp_Marks.markValueMax * NOT Temp_Marks.countPointsWithoutBase) AS baseSum
-                    FROM Temp_Marks WHERE (Temp_Marks.noCountToAverage IS NULL OR Temp_Marks.noCountToAverage = 0) AND Temp_Marks.termId = :termId""")
-    fun _calculateAverageFromTempTableByTerm(termId: Int): AverageCalculationResult
-
-    @Query("""SELECT
-                        SUM(Temp_Marks.markScaleValue * Temp_Marks.defaultWeight) / SUM(Temp_Marks.defaultWeight) AS weightedAverage,
-                        SUM(Temp_Marks.markPointsValue) AS gotPointsSum,
-                        SUM(Temp_Marks.markValueMax * NOT Temp_Marks.countPointsWithoutBase) AS baseSum
-                    FROM Temp_Marks WHERE Temp_Marks.noCountToAverage IS NULL OR Temp_Marks.noCountToAverage = 0""")
-    fun _calculateAverageFromTempTableForAll(): AverageCalculationResult
-
-
-    class MarkShortInfo(val id: Int, val description: String, val abbreviation: String?, val markPointsValue: Float?)
-
-    @Query("SELECT Temp_Marks.id, Temp_Marks.description, Temp_Marks.abbreviation, Temp_Marks.markPointsValue FROM Temp_Marks WHERE Temp_Marks.termId = :termId")
-    fun _getMarksFromTempTableByTerm(termId: Int): List<MarkShortInfo>
-
-    @Query("SELECT Temp_Marks.id, Temp_Marks.description, Temp_Marks.abbreviation, Temp_Marks.markPointsValue FROM Temp_Marks")
-    fun _getAllMarksFromTempTable(): List<MarkShortInfo>
-
-    @Transaction
-    fun getMarksBySubjectAndTerm(subjectId: Int, termId: Int?): Pair<AverageCalculationResult, List<MarkShortInfo>> {
-        _deleteTempTable()
-        _insertMarksToTempTable(_obtainMarksToTempTable(subjectId))
-        val result =
-                if (termId == null) Pair(_calculateAverageFromTempTableForAll(), _getAllMarksFromTempTable())
-                else Pair(_calculateAverageFromTempTableByTerm(termId), _getMarksFromTempTableByTerm(termId))
-        if (!BuildConfig.DEBUG) _deleteTempTable()
-        return result
-    }
-
-    @Query("""SELECT
-                        :markId AS id, MarkGroups.description, MarkScales.abbreviation, Marks.markValue AS markPointsValue
+                        MarkScales.markValue AS 'markScaleValue',
+                        MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue',
+                        MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax,
+                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId
                     FROM Marks
                     LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
                     INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
-                    WHERE Marks.id = :markId LIMIT 1""")
-    fun getMarkShortInfo(markId: Int): MarkShortInfo
+                    INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+                    INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+                    INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+                    INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
+                    INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
+                    WHERE Subjects.id = :subjectId AND Terms.id = :termId""")
+    fun getMarksBySubjectAndTerm(termId: Int, subjectId: Int): List<MarkAverageShortInfo>
+
 
     class MarkShortInfoWithSubject(val id: Int, val description: String, val abbreviation: String?, val markPointsValue: Float?, val subjectName: String)
 
@@ -109,7 +94,8 @@ WHERE Marks.id IN (:markIds)""")
 
     class MarkDetails(val description: String, val markName: String?, val abbreviation: String?, val markPointsValue: Float?,
                       val columnName: String, val defaultWeight: Float?, val noCountToAverage: Boolean?, val countPointsWithoutBase: Boolean?,
-                      val markValueMax: Float?, val getDate: Long, val addTime: Long, val teacherName: String, val teacherSurname: String, val subjectName: String?) {
+                      val markValueMax: Float?, val getDate: Long, val addTime: Long, val teacherName: String, val teacherSurname: String,
+                      val subjectName: String?, val parentType: Int?) {
         @Ignore
         val formattedGetDate = DateHelper.millisToStringDate(getDate)
         @Ignore
@@ -117,8 +103,9 @@ WHERE Marks.id IN (:markIds)""")
     }
 
     @Query("""SELECT MarkGroups.description, MarkScales.name AS markName, MarkScales.abbreviation, Marks.markValue AS markPointsValue,
-         MarkKinds.name AS columnName, MarkKinds.defaultWeight, MarkScales.noCountToAverage, MarkGroups.countPointsWithoutBase,
-         MarkGroups.markValueMax, Marks.getDate, Marks.addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname, Subjects.name AS subjectName
+         MarkKinds.name AS columnName, MarkKinds.defaultWeight, noCountToAverage, countPointsWithoutBase,
+         markValueMax, getDate, addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname,
+         Subjects.name AS subjectName, parentType
 FROM Marks
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
 INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
@@ -130,4 +117,16 @@ INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
 INNER JOIN Teachers ON Teachers.id = Marks.teacherId
 WHERE Marks.id = :markId LIMIT 1""")
     fun getMarkDetails(markId: Int): MarkDetails
+
+
+    class DeletedMarkData(val description: String?, val abbreviation: String?, val subjectName: String)
+
+    @Query("""SELECT MarkGroups.description, MarkScales.abbreviation, Subjects.name as subjectName FROM Marks
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+WHERE Marks.id = :id LIMIT 1""")
+    fun getDeletedMarkInfo(id: Int): DeletedMarkData
 }

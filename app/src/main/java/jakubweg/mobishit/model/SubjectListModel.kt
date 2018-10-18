@@ -5,6 +5,8 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.helper.AverageCalculator
+import jakubweg.mobishit.helper.MobiregPreferences
 
 class SubjectListModel(application: Application)
     : BaseViewModel(application) {
@@ -17,6 +19,12 @@ class SubjectListModel(application: Application)
     override fun doInBackground() {
         val dao = AppDatabase.getAppDatabase(context).markDao
 
-        mSubjects.postValue(dao.getSubjectsWithUsersMarks())
+        val termId = MobiregPreferences.get(context).lastSelectedTerm
+
+        mSubjects.postValue(dao.getSubjectsWithUsersMarks().apply {
+            forEach {
+                it.averageText = AverageCalculator.calculateAverage(context, termId, it.id).shortAverageText
+            }
+        })
     }
 }

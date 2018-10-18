@@ -88,16 +88,14 @@ class UpdateWorker : Worker() {
             notificationHelper.createNotificationChannels()
             if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
                 makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
+                makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
                 makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
                 makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
                 makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
             }
 
 
-            notifyUpdated(applicationContext, updateHelper.newMarks.size
-                    + updateHelper.newMessages.size
-                    + updateHelper.newAttendances.size > 0
-                    || updateHelper.isFirstTime)
+            notifyUpdated(applicationContext, updateHelper.isAnythingNew)
 
             TimetableWidgetProvider.requestInstantUpdate(applicationContext)
 
@@ -161,6 +159,33 @@ class UpdateWorker : Worker() {
                         .setContentIntent(PendingIntent.getActivity(applicationContext, ids[index], contentIntent, 0))
                 notificationHelper.postNotification(ids[index], notification)
             }
+        }
+    }
+
+    private fun makeNotificationsForDeletedMarks(notificationHelper: NotificationHelper, prefs: MobiregPreferences, list: MutableList<MarkDao.DeletedMarkData>) {
+        if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_MARKS))
+            return
+
+        val ids = notificationHelper.getNotificationIds(list.size)
+        val notification = NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_MARKS)
+                .setSmallIcon(R.drawable.ic_remove)
+                .setAutoCancel(true)
+                .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+                .setCategory(NotificationCompat.CATEGORY_SOCIAL)!!
+                .setDefaultsIf(prefs.notifyWithSound)
+
+        list.forEachIndexed { index, it ->
+            notification.setContentTitle("Usunięto ocenę z ${it.subjectName}")
+            if (it.description != null) {
+                if (it.abbreviation != null)
+                    notification.setContentText("Pozbyto się ${it.abbreviation} za ${it.description}")
+                else
+                    notification.setContentText("Pozbyto sie oceny za ${it.description}")
+            } else {
+                notification.setContentText("Ktoś usunął ci ocenę")
+            }
+
+            notificationHelper.postNotification(ids[index], notification)
         }
     }
 
@@ -233,15 +258,6 @@ class UpdateWorker : Worker() {
                 }
             }
         }
-
-        /*dao.getAttendanceInfoByIds(
-                list.split(100).forEach {
-                    it.map { it.id }
-                    , canNotifyAboutAttendance).apply {
-                    val notificationIds = notificationHelper.getNotificationIds(size)
-
-                }
-                }*/
     }
 
     private fun makeNotificationsForEvents(notificationHelper: NotificationHelper, dao: EventDao, prefs: MobiregPreferences, list: MutableList<EventData>) {

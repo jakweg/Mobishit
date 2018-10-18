@@ -97,6 +97,11 @@
             android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/jakubweg.mobishit/syncs/"
             android:title="Zapisuj ruch sieciowy" />
 
+        <android.support.v7.preference.Preference
+            android:key="key_copy_db"
+            android:summary="Kopiuje do schowka bazę danych (nie zawiera loginu ani hasła)"
+            android:title="Skopiuj bazę danych" />
+
         <android.support.v7.preference.EditTextPreference
             android:defaultValue="213769"
             android:hint="device_id"

@@ -79,7 +79,7 @@ class SubjectListFragment : Fragment() {
             list[position].also {
                 holder.subjectName.text = it.name
                 ViewCompat.setTransitionName(holder.subjectName, "sn$position")
-                //holder.marksCount.text = "Liczba ocen: ${it.marksCount}"
+                holder.averageText.text = it.averageText
             }
         }
 
@@ -91,7 +91,7 @@ class SubjectListFragment : Fragment() {
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val subjectName = v.findViewById<TextView>(R.id.subject_name)!!
-            //val marksCount = v.findViewById<TextView>(R.id.markCount)!!
+            val averageText = v.findViewById<TextView>(R.id.average_text)!!
 
             init {
                 v.setOnClickListener { onViewClicked(adapterPosition, subjectName) }

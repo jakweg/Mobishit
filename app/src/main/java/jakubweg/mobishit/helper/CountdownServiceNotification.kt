@@ -184,7 +184,11 @@ abstract class CountdownServiceNotification private constructor(context: Context
 
         // ---- brefore
         override fun initBeforeLessons(firstLesson: EventDao.CountdownServiceLesson, nowSeconds: Int) {
-            mTempText = " \u2022 ${firstLesson.roomName}"
+            mTempText = if (firstLesson.roomName != null)
+                " \u2022 ${firstLesson.roomName}"
+            else
+                ""
+
             mBuilder.setContentTitle("Dziś zaczniesz z ${firstLesson.name?.takeUnless { it.isBlank() }
                     ?: "pewną lekcją"}")
             resetProgress()
@@ -195,7 +199,7 @@ abstract class CountdownServiceNotification private constructor(context: Context
         }
 
         override fun setBeforeLessonsSecond(remain: Int) {
-            if (showSubText) {
+            if (showSubText || mTempText.isEmpty()) {
                 mBuilder.setContentText(formatTime('P', remain))
             } else {
                 mBuilder.setContentText(formatTime('P', remain) + mTempText)

@@ -110,21 +110,6 @@ class LoginFragment : Fragment() {
         btnAboutPrivacy?.setOnClickListener {
             makeAboutPrivacyDialog(it.context ?: return@setOnClickListener)
         }
-        btnAboutPrivacy?.setOnLongClickListener {
-            val pass1 = editPass?.text?.toString() ?: "%null%"
-            AlertDialog.Builder(it.context)
-                    .setMessage("Pokazać hasło?\nMD5: [${MobiregPreferences.encryptPassword(pass1)}]")
-                    .setPositiveButton("tak") { dialog, _ ->
-                        dialog.dismiss()
-                        val pass = editPass?.text?.toString() ?: "%null%"
-                        AlertDialog.Builder(it.context)
-                                .setMessage("Wpisane hasło: [$pass]\nMD5: [${MobiregPreferences.encryptPassword(pass)}]")
-                                .show()
-                    }
-                    .show()
-
-            true
-        }
     }
 
     private fun makeAboutPrivacyDialog(context: Context) {

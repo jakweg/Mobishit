@@ -1,5 +1,6 @@
 package jakubweg.mobishit.db
 
+import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
@@ -41,7 +42,7 @@ class MarkKind(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, v
 class MarkGroupGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val position: Int)
 
 @Entity(tableName = "MarkGroups")
-class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, val parent: Boolean, val visibility: Int?)
+class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, @ColumnInfo(name = "parent") val isParent: Boolean, val visibility: Int?)
 
 @Entity(tableName = "EventTypes")
 class EventType(@PrimaryKey(autoGenerate = true) val id: Int, val subjectId: Int?)
