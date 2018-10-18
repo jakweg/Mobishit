@@ -59,7 +59,10 @@ interface MarkDao {
 
     open class MarkAverageShortInfo(val markScaleValue: Float?, val parentType: Int?, val parentId: Int?, val markGroupId: Int,
                                     val defaultWeight: Float?, val noCountToAverage: Boolean?, val markPointsValue: Float?,
-                                    val countPointsWithoutBase: Boolean?, val markValueMax: Float?)
+                                    val countPointsWithoutBase: Boolean?, val markValueMax: Float?) {
+        @Ignore
+        var hasCalculatedAverage = false
+    }
 
     @Query("""SELECT
                         MarkScales.markValue AS 'markScaleValue',

@@ -23,7 +23,7 @@ class SubjectListModel(application: Application)
 
         mSubjects.postValue(dao.getSubjectsWithUsersMarks().apply {
             forEach {
-                it.averageText = AverageCalculator.calculateAverage(context, termId, it.id).shortAverageText
+                it.averageText = AverageCalculator.calculateAverage(context, termId, it.id).averageText
             }
         })
     }
