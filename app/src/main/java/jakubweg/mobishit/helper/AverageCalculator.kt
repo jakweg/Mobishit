@@ -44,7 +44,7 @@ class AverageCalculator private constructor() {
             return calculateAverage(marks)
         }
 
-        fun calculateAverage(marks: List<MarkDao.MarkAverageShortInfo>?): AverageCalculator.AverageCalculationResult {
+        private fun calculateAverage(marks: List<MarkDao.MarkAverageShortInfo>?): AverageCalculator.AverageCalculationResult {
             if (marks == null) throw NullPointerException()
             return AverageCalculator().calculateAverage(marks)
         }
@@ -62,7 +62,7 @@ class AverageCalculator private constructor() {
 
         val shortAverageText by lazy(LazyThreadSafetyMode.NONE) {
             if (gotPointsSum != 0f || baseSum != 0f)
-                "$gotPointsSum/$baseSum pkt. (${(gotPointsSum / baseSum * 100f).toInt()}%)"
+                "$gotPointsSum/$baseSum\n${(gotPointsSum / baseSum * 100f).toInt()}%"
             else if (weightedAverage > 0f)
                 String.format("%.2f", weightedAverage)
             else

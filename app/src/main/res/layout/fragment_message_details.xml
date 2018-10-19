@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?backgroundLitherColor"
+        android:background="?backgroundSecondaryColor"
         android:elevation="5dp"
         android:orientation="vertical"
         tools:ignore="UnusedAttribute">

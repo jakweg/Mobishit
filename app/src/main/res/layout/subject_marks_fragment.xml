@@ -1,80 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:ignore="HardcodedText"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="match_parent">
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?backgroundSecondaryColor"
+        android:elevation="5dp"
+        android:orientation="vertical"
+        tools:ignore="UnusedAttribute">
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?backgroundLitherColor"
-            android:elevation="5dp"
-            android:orientation="vertical"
-            tools:ignore="UnusedAttribute">
+            android:minHeight="45dp"
+            android:orientation="horizontal">
 
+            <TextView
+                android:layout_width="0px"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="3"
+                android:maxLines="1"
+                android:text="Semestr:"
+                android:textSize="16sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <FrameLayout
+                android:layout_width="0px"
                 android:layout_height="wrap_content"
-                android:minHeight="45dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0px"
-                    android:layout_height="match_parent"
-                    android:layout_margin="10dp"
-                    android:layout_weight="3"
-                    android:maxLines="1"
-                    android:text="Semestr:"
-                    android:textSize="16sp" />
+                android:layout_weight="7">
 
                 <Spinner
                     android:id="@+id/termsSpinner"
-                    android:layout_width="0px"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="7"
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
                     tools:listitem="@layout/subject_list_item" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#AAA" />
-
-            <TextView
-                android:id="@+id/subject_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:maxLines="1"
-                android:textSize="17sp"
-                android:transitionName="subjectName"
-                tools:ignore="UnusedAttribute"
-                tools:text="Edukacja dla bezpieczeństwa" />
-
-            <TextView
-                android:id="@+id/averageInfoText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:padding="5dp"
-                android:text="Obliczanie..."
-                android:textSize="16sp"
-                tools:text="Zdobyte punkty: 128/130 (99%)" />
+            </FrameLayout>
 
         </LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/marksList"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:listitem="@layout/mark_list_item" />
+            android:layout_height="1dp"
+            android:background="#AAA" />
+
+        <TextView
+            android:id="@+id/subject_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:maxLines="1"
+            android:textSize="17sp"
+            android:transitionName="subjectName"
+            tools:ignore="UnusedAttribute"
+            tools:text="Edukacja dla bezpieczeństwa" />
+
+        <TextView
+            android:id="@+id/averageInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="5dp"
+            android:text="Obliczanie..."
+            android:textSize="16sp"
+            tools:text="Zdobyte punkty: 128/130 (99%)" />
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/marksList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        tools:listitem="@layout/mark_list_item" />
 
 </LinearLayout>

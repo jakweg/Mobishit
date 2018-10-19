@@ -66,7 +66,6 @@ class MarkDetailsFragment : Fragment() {
         val markId = arguments!!.getInt("markId", -1)
 
         model.init(markId)
-
         model.mark.observe(this, Observer {
             it ?: return@Observer
 
@@ -107,15 +106,18 @@ class MarkDetailsFragment : Fragment() {
                         ?: 0f)
                 findViewById<TextView>(R.id.textMarkIsCountToBase).text = if (it.countPointsWithoutBase == false) "Tak" else "Nie"
 
-                findViewById<TextView>(R.id.textParentType).apply {
-                    visibility = if (it.parentType == null) View.GONE else View.VISIBLE
-                    text = when (it.parentType) {
-                        null -> ""
-                        MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
-                        MarkDao.PARENT_TYPE_COUNT_BEST_MARK -> "Liczy się lepsza ocena"
-                        else -> "Nieznana (${it.parentType})"
-                    }
+                val parentTypeVisibility = if (it.parentType == null) View.GONE else View.VISIBLE
+                findViewById<View>(R.id.layoutParentType).visibility = parentTypeVisibility
+                findViewById<View>(R.id.separatorParentType).visibility = parentTypeVisibility
+
+                findViewById<TextView>(R.id.textParentType)
+                        .text = when (it.parentType) {
+                    null -> ""
+                    MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
+                    MarkDao.PARENT_TYPE_COUNT_BEST_MARK -> "Liczy się lepsza ocena"
+                    else -> "Nieznana (${it.parentType})"
                 }
+
                 findViewById<TextView>(R.id.textMarkGetDate).text = it.formattedGetDate
                 findViewById<TextView>(R.id.textMarkAddTime).text = it.formattedAddTime
                 findViewById<TextView>(R.id.textMarkTeacherName).text = "${it.teacherName} ${it.teacherSurname}"

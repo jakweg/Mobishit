@@ -18,6 +18,8 @@ interface MarkDao {
     class SubjectShortInfo(val id: Int, val name: String) {
         @Ignore
         var averageText: String = ""
+        @Ignore
+        var subjectsMarks = listOf<String?>()
     }
 
     @Query("""SELECT Subjects.id, Subjects.name FROM Marks
@@ -132,4 +134,13 @@ INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
 WHERE Marks.id = :id LIMIT 1""")
     fun getDeletedMarkInfo(id: Int): DeletedMarkData
+
+    @Query("""SELECT IFNULL(MarkScales.abbreviation, Marks.markValue) FROM Marks
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+WHERE Subjects.id = :subjectId ORDER BY Marks.addTime DESC""")
+    fun getMarkTitlesBySubject(subjectId: Int): List<String?>
 }

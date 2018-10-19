@@ -1,6 +1,6 @@
 {
-  "VERSION_CODE": 2,
-  "VERSION_NAME": "1.0.1",
+  "VERSION_CODE": 3,
+  "VERSION_NAME": "1.1",
   "URL": "https://github.com/JakubekWeg/Mobishit/blob/master/app/release/mobishit.apk?raw=true",
-  "WHATS_NEW": "Co nowego:\nPoprawiono błędy z logowaniem WRESZCIE!\nDodano nazwę przedmiotu w widoku oceny\nZapoczątkowano obsługę poprawionych ocen (jeszcze nie są poprawnie liczone średnie)"
+  "WHATS_NEW": "Co nowego?\nDodano podgląd ocen i średnich na ekranie przedmiotów\nNaprawiono obliczanie średnich z poprawami\nDodano obsługę usuwania obiektów np. ocen\nPoprawiono inne błedy"
 }

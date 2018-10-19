@@ -6,6 +6,8 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewCompat
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +18,9 @@ import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.model.SubjectListModel
+import jakubweg.mobishit.view.MarksListView
 import java.lang.ref.WeakReference
+
 
 class SubjectListFragment : Fragment() {
     companion object {
@@ -36,6 +40,9 @@ class SubjectListFragment : Fragment() {
         viewModel.subjects.observe(this,
                 InternalObserver(mainList))
 
+        val dividerItemDecoration = DividerItemDecoration(mainList.context,
+                (mainList.layoutManager as LinearLayoutManager).orientation)
+        mainList.addItemDecoration(dividerItemDecoration)
         if (mainList.adapter == null)
             mainList.adapter = EmptyAdapter("Ładowanie danych...")
 
@@ -80,6 +87,7 @@ class SubjectListFragment : Fragment() {
                 holder.subjectName.text = it.name
                 ViewCompat.setTransitionName(holder.subjectName, "sn$position")
                 holder.averageText.text = it.averageText
+                holder.markList.setDisplayedMarks(it.subjectsMarks)
             }
         }
 
@@ -92,6 +100,7 @@ class SubjectListFragment : Fragment() {
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val subjectName = v.findViewById<TextView>(R.id.subject_name)!!
             val averageText = v.findViewById<TextView>(R.id.average_text)!!
+            val markList = v.findViewById<MarksListView>(R.id.marks_list)!!
 
             init {
                 v.setOnClickListener { onViewClicked(adapterPosition, subjectName) }

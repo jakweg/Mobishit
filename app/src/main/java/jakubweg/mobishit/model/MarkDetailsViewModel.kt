@@ -11,9 +11,8 @@ class MarkDetailsViewModel(application: Application) : BaseViewModel(application
     private var markId = 0
     fun init(markId: Int) {
         require(markId != 0)
-        if (this.markId == markId) return
-        check(markId != 0)
         this.markId = markId
+        cancelLastTask()
     }
 
     private val mMark = MutableLiveData<MarkDao.MarkDetails>()

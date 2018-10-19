@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:orientation="vertical">
+    android:padding="8dp">
 
     <TextView
-        android:layout_margin="10dp"
         android:id="@+id/subject_name"
-        android:layout_width="match_parent"
+        android:layout_width="0px"
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:textSize="17sp"
+        android:paddingBottom="2dp"
+        app:layout_constraintEnd_toStartOf="@id/average_text"
+        app:layout_constraintStart_toStartOf="parent"
         tools:text="Matematyka" />
+
+    <jakubweg.mobishit.view.MarksListView
+        android:id="@+id/marks_list"
+        android:layout_width="0px"
+        android:layout_height="18sp"
+        app:layout_constraintEnd_toStartOf="@id/average_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/subject_name" />
 
     <TextView
         android:id="@+id/average_text"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="4dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="-10dp"
-        android:layout_width="match_parent"
-        tools:text="Średnia: 4,23" />
+        android:layout_width="wrap_content"
+        android:layout_height="0px"
+        android:gravity="end|center_vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="23/25\n69%" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#AAA" />
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
