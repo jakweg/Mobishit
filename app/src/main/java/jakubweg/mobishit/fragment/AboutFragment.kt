@@ -76,7 +76,7 @@ class AboutFragment : Fragment() {
 
     private fun sendMessage() {
         AlertDialog.Builder(context ?: return)
-                .setMessage("Jak chcesz się skontaktować?")
+                .setTitle("Jak chcesz się ze mną skontaktować?")
                 .setPositiveButton("Messenger") { i, _ -> i.dismiss(); openLink("https://m.me/jakweg") }
                 .setNeutralButton("Mail") { i, _ -> i.dismiss(); openSendEmail() }
                 .show()

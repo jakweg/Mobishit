@@ -116,7 +116,7 @@ class MarkDetailsFragment : Fragment() {
                     MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
                     MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
                     MarkDao.PARENT_TYPE_COUNT_LAST -> "Liczy się ostatnia ocena"
-                    else -> "Nieznana (${it.parentType})"
+                    else -> "Nieznana (${it.parentType})\nProszę zgłoś to programiście Mobishit"
                 }
 
                 findViewById<TextView>(R.id.textMarkGetDate).text = it.formattedGetDate

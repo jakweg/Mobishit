@@ -87,8 +87,9 @@ class AverageCalculator private constructor() {
             else {
                 val parentId = mark.parentId ?: mark.markGroupId
                 val matchingMarks = marks.filter {
-                    it.parentId == parentId ||
-                            it.markGroupId == parentId
+                    !it.hasCalculatedAverage &&
+                            (it.parentId == parentId ||
+                                    it.markGroupId == parentId)
                 }
                 when (mark.parentType) {
                     MarkDao.PARENT_TYPE_COUNT_AVERAGE ->
@@ -138,24 +139,23 @@ class AverageCalculator private constructor() {
         var baseSum = 0f
         var gotPointsSum = 0f
         var pointsMarksSum = 0
-        marks.filter { !it.hasCalculatedAverage }
-                .forEach { mark ->
-                    mark.hasCalculatedAverage = true
-                    mark.apply {
-                        if (markScaleValue != null && noCountToAverage != null) {
-                            val weight = (defaultWeight ?: 1f)
-                            averageValue += markScaleValue * weight
-                            weightSum += weight
+        marks.forEach { mark ->
+            mark.hasCalculatedAverage = true
+            mark.apply {
+                if (markScaleValue != null && noCountToAverage != null) {
+                    val weight = (defaultWeight ?: 1f)
+                    averageValue += markScaleValue * weight
+                    weightSum += weight
 
-                        } else if (countPointsWithoutBase != null &&
-                                markPointsValue != null &&
-                                markValueMax != null) {
-                            gotPointsSum += markPointsValue
-                            baseSum += markValueMax
-                            pointsMarksSum++
-                        }
-                    }
+                } else if (countPointsWithoutBase != null &&
+                        markPointsValue != null &&
+                        markValueMax != null) {
+                    gotPointsSum += markPointsValue
+                    baseSum += markValueMax
+                    pointsMarksSum++
                 }
+            }
+        }
 
         this.averageSum += averageValue
         this.averageWeight += weightSum
@@ -168,7 +168,6 @@ class AverageCalculator private constructor() {
     private fun handleParentCountBest(marks: List<MarkDao.MarkAverageShortInfo>) {
         handleMarkWithoutParent(
                 marks
-                        .filter { !it.hasCalculatedAverage }
                         .apply { forEach { it.hasCalculatedAverage = true } }
                         .maxBy {
                             when {
@@ -180,6 +179,9 @@ class AverageCalculator private constructor() {
     }
 
     private fun handleParentCountLast(marks: List<MarkDao.MarkAverageShortInfo>) {
-        handleMarkWithoutParent(marks.maxBy { it.addTime } ?: return, true)
+        handleMarkWithoutParent(marks
+                .apply { forEach { it.hasCalculatedAverage = true } }
+                .maxBy { it.addTime }
+                ?: return, true)
     }
 }

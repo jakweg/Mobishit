@@ -10,10 +10,10 @@ import jakubweg.mobishit.helper.DateHelper
 interface MarkDao {
 
     companion object {
-        const val PARENT_TYPE_COUNT_BEST = 5
-        const val PARENT_TYPE_COUNT_AVERAGE = 3
-        const val PARENT_TYPE_COUNT_LAST = 2
         const val PARENT_TYPE_UNKNOWN_USED_BY_KOCOL = 1
+        const val PARENT_TYPE_COUNT_LAST = 2
+        const val PARENT_TYPE_COUNT_AVERAGE = 3
+        const val PARENT_TYPE_COUNT_BEST = 5
     }
 
     class SubjectShortInfo(val id: Int, val name: String) {

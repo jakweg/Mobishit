@@ -8,7 +8,6 @@ import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.service.CountdownService
-import jakubweg.mobishit.service.UpdateWorker
 import java.security.MessageDigest
 import java.util.*
 
@@ -17,8 +16,6 @@ class MobiregPreferences private constructor(
         private val pref: SharedPreferences
 ) {
     companion object {
-        private const val CURRENT_APP_SETTINGS_VERSION = 2
-
         fun get(context: Context) = MobiregPreferences(context.applicationContext,
                 context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!)
 
@@ -41,25 +38,7 @@ class MobiregPreferences private constructor(
     }
 
     init {
-        val version = pref.getInt("version", 0)
-        if (version != CURRENT_APP_SETTINGS_VERSION) {
-            pref.edit().putInt("version", CURRENT_APP_SETTINGS_VERSION).apply()
-            when (version) {
-                0 -> handleVersionUpdateFrom1(context)
-            }
-        }
-    }
-
-    private fun handleVersionUpdateFrom1(context: Context) {
-        AppDatabase.deleteDatabase(context)
-        pref.edit()
-                .remove("lastEndDate")
-                .remove("startDate")
-                .remove("endDate")
-                .remove("lastCheck")
-                .remove("lmt")
-                .apply()
-        UpdateWorker.requestUpdates(context)
+        SettingsMigrationHelper.onSettingsLoaded(pref, context)
     }
 
     @Suppress("NOTHING_TO_INLINE")

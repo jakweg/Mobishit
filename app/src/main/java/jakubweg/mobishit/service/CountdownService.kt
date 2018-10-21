@@ -12,7 +12,6 @@ import android.content.IntentFilter
 import android.os.*
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
-import android.util.Log
 import android.widget.Toast
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.EventDao
@@ -30,7 +29,10 @@ class CountdownService : Service() {
 
         fun startIfNeeded(context: Context) {
             val prefs = MobiregPreferences.get(context)
-            if (!prefs.run { isSignedIn && runCountdownService })
+            if (!prefs.run {
+                        isSignedIn && runCountdownService &&
+                                nextAllowedCountdownServiceStart <= Calendar.getInstance()!!.timeInMillis
+                    })
                 return
 
             val dao = AppDatabase.getAppDatabase(context).eventDao
@@ -96,6 +98,7 @@ class CountdownService : Service() {
             }.timeInMillis
             MobiregPreferences.get(this)
                     .nextAllowedCountdownServiceStart = nextStartMillis
+            Toast.makeText(this, "Odliczanie pokaże się jutro", Toast.LENGTH_SHORT).show()
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -109,8 +112,6 @@ class CountdownService : Service() {
 
 
         val prefs = MobiregPreferences.get(this)
-        Log.d("xXD", "x\n${Calendar.getInstance().timeInMillis}\n${prefs.nextAllowedCountdownServiceStart}" +
-                "\n${prefs.nextAllowedCountdownServiceStart <= Calendar.getInstance().timeInMillis}\n")
         if (prefs.run {
                     isSignedIn && runCountdownService &&
                             nextAllowedCountdownServiceStart <= Calendar.getInstance().timeInMillis
