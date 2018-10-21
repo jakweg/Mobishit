@@ -138,6 +138,7 @@ class SettingsActivity : DoublePanelActivity() {
                     val context = requireContext()
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (value) {
+                            prefs.nextAllowedCountdownServiceStart = 0L
                             CountdownService.start(context)
                         } else {
                             CountdownService.stop(context)

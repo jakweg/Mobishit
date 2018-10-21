@@ -228,4 +228,8 @@ class MobiregPreferences private constructor(
     var seenWelcomeActivity
         get() = pref.getBoolean("seenWA", false)
         set(value) = pref.edit().putBoolean("seenWA", value).apply()
+
+    var nextAllowedCountdownServiceStart
+        get() = pref.getLong("nAllowedCDSstart", 0L)
+        set(value) = pref.edit().putLong("nAllowedCDSstart", value).apply()
 }

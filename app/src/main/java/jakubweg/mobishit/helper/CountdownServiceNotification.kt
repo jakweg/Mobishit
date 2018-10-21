@@ -12,10 +12,10 @@ import android.support.v4.content.ContextCompat
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.EventDao
+import jakubweg.mobishit.service.CountdownService
 
 abstract class CountdownServiceNotification private constructor(context: Context) {
     companion object {
-        @JvmStatic
         fun create(context: Context): CountdownServiceNotification {
             return NotificationServiceImpl(context)
         }
@@ -34,6 +34,12 @@ abstract class CountdownServiceNotification private constructor(context: Context
     init {
         mHelper.createNotificationChannels()
         mNotificationId = mHelper.getNotificationId()
+    }
+
+    protected val cancelTodayIntent by lazy(LazyThreadSafetyMode.NONE) {
+        PendingIntent.getService(mHelper.context, 1, Intent(mHelper.context, CountdownService::class.java).also {
+            it.putExtra("cancelToday", true)
+        }, PendingIntent.FLAG_UPDATE_CURRENT)!!
     }
 
     private fun getTimetablePendingIntent(context: Context): PendingIntent {
@@ -213,6 +219,11 @@ abstract class CountdownServiceNotification private constructor(context: Context
             mBuilder.setContentTitle("Trwa ${lesson.name?.takeIf { it.isNotBlank() }
                     ?: "pewna lekcja"}")
 
+            if (lesson.endSeconds - lesson.startSeconds > 45 * 60) {
+                mBuilder.mActions.clear()
+                mBuilder.addAction(R.drawable.ic_timer_off, "Ukryj dzisiaj", cancelTodayIntent)
+            }
+
             if (showSubText) {
                 mBuilder.setSubText(buildListFromNotNullObjects(lesson.name, lesson.roomName))
             } else {
@@ -240,6 +251,11 @@ abstract class CountdownServiceNotification private constructor(context: Context
         override fun initBetweenLessons(previousLesson: EventDao.CountdownServiceLesson,
                                         nextLesson: EventDao.CountdownServiceLesson,
                                         nowSeconds: Int) {
+            if (nextLesson.startSeconds - previousLesson.endSeconds > 30 * 60) {
+                mBuilder.mActions.clear()
+                mBuilder.addAction(R.drawable.ic_timer_off, "Ukryj dzisiaj", cancelTodayIntent)
+            }
+
             if (showSubText) {
                 mBuilder.setContentTitle("Wkrótce ${nextLesson.name}")
                 mBuilder.setSubText(if (nextLesson.roomName != null)

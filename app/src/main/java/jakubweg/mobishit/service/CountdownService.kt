@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.os.*
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
+import android.util.Log
 import android.widget.Toast
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.EventDao
@@ -58,10 +59,10 @@ class CountdownService : Service() {
         private fun getServicePendingIntent(context: Context, requestCode: Int): PendingIntent {
             return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
                 PendingIntent.getService(
-                        context.applicationContext, requestCode, Intent(context, CountdownService::class.java), 0)!!
+                        context.applicationContext, requestCode, Intent(context, CountdownService::class.java), PendingIntent.FLAG_UPDATE_CURRENT)!!
             else
                 PendingIntent.getForegroundService(
-                        context.applicationContext, requestCode, Intent(context, CountdownService::class.java), 0)!!
+                        context.applicationContext, requestCode, Intent(context, CountdownService::class.java), PendingIntent.FLAG_UPDATE_CURRENT)!!
         }
     }
 
@@ -85,6 +86,20 @@ class CountdownService : Service() {
 
     private var nextDelayMillis = 0L
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.getBooleanExtra("cancelToday", false) == true) {
+            requestStop(false)
+            nextStartMillis = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, 1)
+                set(Calendar.HOUR_OF_DAY, 1)
+                set(Calendar.MINUTE, 0)
+            }.timeInMillis
+            MobiregPreferences.get(this)
+                    .nextAllowedCountdownServiceStart = nextStartMillis
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onCreate() {
         super.onCreate()
         LocalBroadcastManager.getInstance(this)
@@ -92,8 +107,14 @@ class CountdownService : Service() {
 
         startForeground(notification.notificationId, notification.postSelf())
 
+
         val prefs = MobiregPreferences.get(this)
-        if (prefs.run { isSignedIn && runCountdownService }
+        Log.d("xXD", "x\n${Calendar.getInstance().timeInMillis}\n${prefs.nextAllowedCountdownServiceStart}" +
+                "\n${prefs.nextAllowedCountdownServiceStart <= Calendar.getInstance().timeInMillis}\n")
+        if (prefs.run {
+                    isSignedIn && runCountdownService &&
+                            nextAllowedCountdownServiceStart <= Calendar.getInstance().timeInMillis
+                }
                 && !NotificationHelper(this).isChannelMuted(NotificationHelper.CHANNEL_COUNTDOWN)) {
             beforeLessonsMinutes = prefs.beforeLessonsMinutes
 

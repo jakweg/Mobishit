@@ -33,7 +33,7 @@ class AboutFragment : Fragment() {
             openGithub()
         }
         view.findViewById<View>(R.id.btnReportError)!!.setOnClickListener {
-            reportError()
+            sendMessage()
         }
         view.findViewById<View>(R.id.btnUsedLibs)!!.setOnClickListener {
             showUsedLibs()
@@ -67,10 +67,22 @@ class AboutFragment : Fragment() {
     }
 
     private fun openGithub() {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/JakubekWeg/Mobishit")))
+        openLink("https://github.com/JakubekWeg/Mobishit")
     }
 
-    private fun reportError() {
+    private fun openLink(uri: String) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+    }
+
+    private fun sendMessage() {
+        AlertDialog.Builder(context ?: return)
+                .setMessage("Jak chcesz się skontaktować?")
+                .setPositiveButton("Messenger") { i, _ -> i.dismiss(); openLink("https://m.me/jakweg") }
+                .setNeutralButton("Mail") { i, _ -> i.dismiss(); openSendEmail() }
+                .show()
+    }
+
+    private fun openSendEmail() {
         val activity = this.activity ?: return
         val intent = ShareCompat.IntentBuilder
                 .from(activity)
