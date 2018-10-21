@@ -114,7 +114,8 @@ class MarkDetailsFragment : Fragment() {
                         .text = when (it.parentType) {
                     null -> ""
                     MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
-                    MarkDao.PARENT_TYPE_COUNT_BEST_MARK -> "Liczy się lepsza ocena"
+                    MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
+                    MarkDao.PARENT_TYPE_COUNT_LAST -> "Liczy się ostatnia ocena"
                     else -> "Nieznana (${it.parentType})"
                 }
 

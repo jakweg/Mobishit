@@ -84,27 +84,26 @@ class AverageCalculator private constructor() {
         marks.forEach { mark ->
             if (mark.parentType == null)
                 handleMarkWithoutParent(mark)
-            else
+            else {
+                val parentId = mark.parentId ?: mark.markGroupId
+                val matchingMarks = marks.filter {
+                    it.parentId == parentId ||
+                            it.markGroupId == parentId
+                }
                 when (mark.parentType) {
-                    MarkDao.PARENT_TYPE_COUNT_AVERAGE -> {
-                        val parentId = mark.parentId ?: mark.markGroupId
-                        handleParentCountAverage(marks.filter {
-                            it.parentId == parentId ||
-                                    it.markGroupId == parentId
-                        })
-                    }
-                    MarkDao.PARENT_TYPE_COUNT_BEST_MARK -> {
-                        val parentId = mark.parentId ?: mark.markGroupId
-                        handleParentCountBest(marks.filter {
-                            it.parentId == parentId ||
-                                    it.markGroupId == parentId
-                        })
-                    }
+                    MarkDao.PARENT_TYPE_COUNT_AVERAGE ->
+                        handleParentCountAverage(matchingMarks)
+                    MarkDao.PARENT_TYPE_COUNT_BEST ->
+                        handleParentCountBest(matchingMarks)
+                    MarkDao.PARENT_TYPE_COUNT_LAST ->
+                        handleParentCountLast(matchingMarks)
+
                     else -> {
                         Log.i("AverageCalculator", "unknown parent type (${mark.parentType})")
                         handleMarkWithoutParent(mark)
                     }
                 }
+            }
         }
 
 
@@ -178,5 +177,9 @@ class AverageCalculator private constructor() {
                                 else -> Float.MIN_VALUE
                             }
                         } ?: return, true)
+    }
+
+    private fun handleParentCountLast(marks: List<MarkDao.MarkAverageShortInfo>) {
+        handleMarkWithoutParent(marks.maxBy { it.addTime } ?: return, true)
     }
 }

@@ -10,8 +10,9 @@ import jakubweg.mobishit.helper.DateHelper
 interface MarkDao {
 
     companion object {
-        const val PARENT_TYPE_COUNT_BEST_MARK = 5
+        const val PARENT_TYPE_COUNT_BEST = 5
         const val PARENT_TYPE_COUNT_AVERAGE = 3
+        const val PARENT_TYPE_COUNT_LAST = 2
         const val PARENT_TYPE_UNKNOWN_USED_BY_KOCOL = 1
     }
 
@@ -39,15 +40,15 @@ interface MarkDao {
     class MarkShortInfo(val id: Int, val description: String, val abbreviation: String?, markScaleValue: Float?,
                         defaultWeight: Float?, noCountToAverage: Boolean?, markPointsValue: Float?,
                         countPointsWithoutBase: Boolean?, markValueMax: Float?, val termId: Int,
-                        parentType: Int?, parentId: Int?, markGroupId: Int) :
+                        parentType: Int?, parentId: Int?, markGroupId: Int, addTime: Long) :
             MarkAverageShortInfo(markScaleValue, parentType, parentId, markGroupId, defaultWeight, noCountToAverage,
-                    markPointsValue, countPointsWithoutBase, markValueMax)
+                    markPointsValue, countPointsWithoutBase, markValueMax, addTime)
 
     @Query("""SELECT
                         Marks.id, MarkGroups.description, MarkScales.abbreviation, MarkScales.markValue AS 'markScaleValue',
                         MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue',
                         MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax, Terms.id AS 'termId',
-                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId
+                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId, addTime
                     FROM Marks
                     LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
                     INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
@@ -61,7 +62,7 @@ interface MarkDao {
 
     open class MarkAverageShortInfo(val markScaleValue: Float?, val parentType: Int?, val parentId: Int?, val markGroupId: Int,
                                     val defaultWeight: Float?, val noCountToAverage: Boolean?, val markPointsValue: Float?,
-                                    val countPointsWithoutBase: Boolean?, val markValueMax: Float?) {
+                                    val countPointsWithoutBase: Boolean?, val markValueMax: Float?, val addTime: Long) {
         @Ignore
         var hasCalculatedAverage = false
     }
@@ -70,7 +71,7 @@ interface MarkDao {
                         MarkScales.markValue AS 'markScaleValue',
                         MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue',
                         MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax,
-                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId
+                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId, addTime
                     FROM Marks
                     LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
                     INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
