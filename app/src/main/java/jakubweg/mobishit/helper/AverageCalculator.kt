@@ -6,6 +6,7 @@ import android.util.Log
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.MarkDao
 
+@Suppress("NOTHING_TO_INLINE")
 class AverageCalculator private constructor() {
 
     companion object {
@@ -37,10 +38,11 @@ class AverageCalculator private constructor() {
             return Triple(terms, marksMap, averagesMap)
         }
 
-        fun calculateAverage(context: Context, termId: Int, subjectId: Int):
+
+        fun calculateAverageBySubject(context: Context, subjectId: Int):
                 AverageCalculationResult {
             val dao = AppDatabase.getAppDatabase(context).markDao
-            val marks = dao.getMarksBySubjectAndTerm(termId, subjectId)
+            val marks = dao.getMarksBySubjectAndNotTerm(subjectId)
             return calculateAverage(marks)
         }
 
@@ -52,21 +54,41 @@ class AverageCalculator private constructor() {
 
     class AverageCalculationResult(val weightedAverage: Float, val gotPointsSum: Float, val baseSum: Float) {
         val averageText by lazy(LazyThreadSafetyMode.NONE) {
-            if (gotPointsSum != 0f || baseSum != 0f)
-                "Zdobyte punkty: $gotPointsSum na $baseSum czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
-            else if (weightedAverage > 0f)
-                "Twoja średnia ważona wynosi ${String.format("%.2f", weightedAverage)}"
-            else
-                "Brak danych"
+            val hasPoints = gotPointsSum > 0f || baseSum > 0f
+            val hasWeightedAverage = weightedAverage > 0f
+            when {
+                hasPoints && hasWeightedAverage ->
+                    "Średnia: ${String.format("%.2f", weightedAverage)}\n" +
+                            "Zdobyte punkty: $gotPointsSum na $baseSum " +
+                            "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+                hasPoints ->
+                    "Zdobyte punkty: $gotPointsSum na $baseSum " +
+                            "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+                hasWeightedAverage ->
+                    "Twoja średnia ważona wynosi ${String.format("%.2f", weightedAverage)}"
+
+                else -> "Brak danych"
+            }
         }
 
         val shortAverageText by lazy(LazyThreadSafetyMode.NONE) {
-            if (gotPointsSum != 0f || baseSum != 0f)
-                "$gotPointsSum/$baseSum\n${(gotPointsSum / baseSum * 100f).toInt()}%"
-            else if (weightedAverage > 0f)
-                String.format("%.2f", weightedAverage)
-            else
-                ""
+            val hasPoints = gotPointsSum > 0f || baseSum > 0f
+            val hasWeightedAverage = weightedAverage > 0f
+            when {
+                hasPoints && hasWeightedAverage ->
+                    "${String.format("%.2f", weightedAverage)}\n" +
+                            "$gotPointsSum/$baseSum ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+                hasPoints ->
+                    "$gotPointsSum/$baseSum\n${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+                hasWeightedAverage ->
+                    String.format("%.2f", weightedAverage)
+
+                else -> ""
+            }
         }
     }
 
@@ -80,8 +102,7 @@ class AverageCalculator private constructor() {
         baseSum = 0f
         gotPointsSum = 0f
 
-        marks.forEach { it.hasCalculatedAverage = false }
-        marks.forEach { mark ->
+        marks.markEveryNotUsed().forEach { mark ->
             if (mark.parentType == null)
                 handleMarkWithoutParent(mark)
             else {
@@ -98,10 +119,13 @@ class AverageCalculator private constructor() {
                         handleParentCountBest(matchingMarks)
                     MarkDao.PARENT_TYPE_COUNT_LAST ->
                         handleParentCountLast(matchingMarks)
-
+                    MarkDao.PARENT_TYPE_COUNT_EVERY ->
+                        handleParentCountEvery(matchingMarks)
+                    MarkDao.PARENT_TYPE_COUNT_WORSE ->
+                        handleParentCountWorse(matchingMarks)
                     else -> {
                         Log.i("AverageCalculator", "unknown parent type (${mark.parentType})")
-                        handleMarkWithoutParent(mark)
+                        //handleMarkWithoutParent(mark) //don't you can't calculate this, so don't even try
                     }
                 }
             }
@@ -168,8 +192,21 @@ class AverageCalculator private constructor() {
     private fun handleParentCountBest(marks: List<MarkDao.MarkAverageShortInfo>) {
         handleMarkWithoutParent(
                 marks
-                        .apply { forEach { it.hasCalculatedAverage = true } }
+                        .markEveryUsed()
                         .maxBy {
+                            when {
+                                it.markScaleValue != null -> it.markScaleValue
+                                it.markPointsValue != null -> it.markPointsValue
+                                else -> Float.MIN_VALUE
+                            }
+                        } ?: return, true)
+    }
+
+    private fun handleParentCountWorse(marks: List<MarkDao.MarkAverageShortInfo>) {
+        handleMarkWithoutParent(
+                marks
+                        .markEveryUsed()
+                        .minBy {
                             when {
                                 it.markScaleValue != null -> it.markScaleValue
                                 it.markPointsValue != null -> it.markPointsValue
@@ -183,5 +220,22 @@ class AverageCalculator private constructor() {
                 .apply { forEach { it.hasCalculatedAverage = true } }
                 .maxBy { it.addTime }
                 ?: return, true)
+    }
+
+    private fun handleParentCountEvery(marks: List<MarkDao.MarkAverageShortInfo>) {
+        marks.forEach { handleMarkWithoutParent(it) }
+    }
+
+
+    private inline fun List<MarkDao.MarkAverageShortInfo>.markEveryUsed()
+            : List<MarkDao.MarkAverageShortInfo> {
+        forEach { it.hasCalculatedAverage = true }
+        return this
+    }
+
+    private inline fun List<MarkDao.MarkAverageShortInfo>.markEveryNotUsed()
+            : List<MarkDao.MarkAverageShortInfo> {
+        forEach { it.hasCalculatedAverage = false }
+        return this
     }
 }

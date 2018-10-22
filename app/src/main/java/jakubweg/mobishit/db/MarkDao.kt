@@ -10,9 +10,10 @@ import jakubweg.mobishit.helper.DateHelper
 interface MarkDao {
 
     companion object {
-        const val PARENT_TYPE_UNKNOWN_USED_BY_KOCOL = 1
+        const val PARENT_TYPE_COUNT_EVERY = 1
         const val PARENT_TYPE_COUNT_LAST = 2
         const val PARENT_TYPE_COUNT_AVERAGE = 3
+        const val PARENT_TYPE_COUNT_WORSE = 4 //lol, i don't know why xD
         const val PARENT_TYPE_COUNT_BEST = 5
     }
 
@@ -82,6 +83,22 @@ interface MarkDao {
                     INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
                     WHERE Subjects.id = :subjectId AND Terms.id = :termId""")
     fun getMarksBySubjectAndTerm(termId: Int, subjectId: Int): List<MarkAverageShortInfo>
+
+    @Query("""SELECT
+                        MarkScales.markValue AS 'markScaleValue',
+                        MarkKinds.defaultWeight, MarkScales.noCountToAverage, Marks.markValue AS 'markPointsValue',
+                        MarkGroups.countPointsWithoutBase, MarkGroups.markValueMax,
+                        parentType, MarkGroups.parentId, MarkGroups.id AS markGroupId, addTime
+                    FROM Marks
+                    LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+                    INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+                    INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+                    INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+                    INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+                    INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
+                    INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
+                    WHERE Subjects.id = :subjectId""")
+    fun getMarksBySubjectAndNotTerm(subjectId: Int): List<MarkAverageShortInfo>
 
 
     class MarkShortInfoWithSubject(val id: Int, val description: String, val abbreviation: String?, val markPointsValue: Float?, val subjectName: String)

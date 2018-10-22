@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:padding="5dp"
-            android:text="Aplikacja autorstwa użytkownika JakubekWeg.\nDziękuję:\n\u2022 p0358 za popularyzację aplikacji\n\u2022 Hoxton i Farel03 za umożliwienie naprawy błędu"
+            android:text="Aplikacja autorstwa użytkownika JakubekWeg.\nDziękuję:\n\u2022 p0358 za popularyzację aplikacji\n\u2022 Hoxton i Farel03 za umożliwienie naprawy krytycznego błędu\n\u2022 wielu innym, których nie zdołam wypisać a pomogli  "
             android:textSize="16sp" />
 
         <TextView
@@ -62,21 +62,28 @@
                 android:text="Otwórz Githuba" />
 
             <Button
-                android:id="@+id/btnReportError"
+                android:id="@+id/btnUsedLibs"
+                android:layout_height="wrap_content"
                 style="@style/Base.Widget.AppCompat.Button.Borderless"
                 android:layout_width="0px"
-                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Zgłoś błąd/sugestię" />
+                android:text="Wykorzystane biblioteki" />
+
         </LinearLayout>
 
-
         <Button
-            android:id="@+id/btnUsedLibs"
+            android:id="@+id/btnReportError"
             style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:text="Masz jakąś sugestię lub znalazłaś/eś błąd? - skontaktuj się ze mną!" />
+
+        <TextView
+            android:id="@+id/textVersionInfo"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Wykorzystane biblioteki" />
+            android:layout_marginTop="15dp"
+            android:gravity="center"
+            android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>

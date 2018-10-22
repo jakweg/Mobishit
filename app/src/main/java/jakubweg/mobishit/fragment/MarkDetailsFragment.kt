@@ -113,9 +113,11 @@ class MarkDetailsFragment : Fragment() {
                 findViewById<TextView>(R.id.textParentType)
                         .text = when (it.parentType) {
                     null -> ""
+                    MarkDao.PARENT_TYPE_COUNT_EVERY -> "Liczy się każda ocena"
                     MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z obu ocen"
-                    MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
                     MarkDao.PARENT_TYPE_COUNT_LAST -> "Liczy się ostatnia ocena"
+                    MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
+                    MarkDao.PARENT_TYPE_COUNT_WORSE -> "Liczy się gorsza ocena"
                     else -> "Nieznana (${it.parentType})\nProszę zgłoś to programiście Mobishit"
                 }
 

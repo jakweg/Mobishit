@@ -1,5 +1,6 @@
 package jakubweg.mobishit.fragment
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -12,8 +13,12 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
 import android.view.animation.ScaleAnimation
+import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
+import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.helper.MobiregPreferences
 
 
 class AboutFragment : Fragment() {
@@ -28,18 +33,32 @@ class AboutFragment : Fragment() {
     private var clicks = 0
     private var isAnimating = false
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        view.findViewById<TextView>(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
+
+
         view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
             openGithub()
         }
-        view.findViewById<View>(R.id.btnReportError)!!.setOnClickListener {
-            sendMessage()
+        view.findViewById<Button>(R.id.btnReportError)!!.apply {
+            val ending = when (MobiregPreferences.get(context ?: return).sex) {
+                "M" -> "eś"
+                "K" -> "aś"
+                else -> "aś/eś"
+            }
+
+            text = "Masz jakąś sugestię lub znalazł$ending błąd? - skontaktuj się ze mną!"
+
+            setOnClickListener {
+                sendMessage()
+            }
         }
         view.findViewById<View>(R.id.btnUsedLibs)!!.setOnClickListener {
             showUsedLibs()
         }
         view.findViewById<ImageView>(R.id.imgAppIcon)!!.apply {
-            setOnClickListener { view->
+            setOnClickListener { view ->
                 if (isAnimating) return@setOnClickListener
                 if (clicks++ >= 10) {
                     clicks = 0
@@ -47,10 +66,11 @@ class AboutFragment : Fragment() {
                             Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f).also {
                         it.duration = 1000
                         it.setAnimationListener(object : Animation.AnimationListener {
-                            override fun onAnimationRepeat(animation: Animation?) { }
+                            override fun onAnimationRepeat(animation: Animation?) {}
                             override fun onAnimationEnd(animation: Animation?) {
                                 isAnimating = false
                             }
+
                             override fun onAnimationStart(animation: Animation?) {
                                 isAnimating = true
                             }

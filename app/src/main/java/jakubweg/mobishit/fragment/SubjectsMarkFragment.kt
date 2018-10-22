@@ -14,6 +14,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.*
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
@@ -41,7 +42,8 @@ class SubjectsMarkFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(R.layout.subject_marks_fragment, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
+            : View? = inflater.inflate(R.layout.fragment_subject_marks, container, false)
 
     private val viewModel by lazy { ViewModelProviders.of(this)[SubjectsMarkModel::class.java] }
 
@@ -98,6 +100,9 @@ class SubjectsMarkFragment : Fragment() {
 
     private fun setUpMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
         view?.findViewById<RecyclerView>(R.id.marksList)?.apply {
+            startAnimation(AlphaAnimation(0f, 1f).also {
+                it.duration = 400L
+            })
             adapter = MarkAdapter(context, marks) { item, view ->
                 val subjectName = this@SubjectsMarkFragment
                         .view?.findViewById<TextView>(R.id.subject_name) ?: return@MarkAdapter
