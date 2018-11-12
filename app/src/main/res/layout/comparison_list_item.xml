@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    tools:ignore="RtlHardcoded,UnusedAttribute"
+    tools:layout_height="70dp">
+
+    <TextView
+        android:id="@+id/subject_name"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@id/avg_person"
+        android:gravity="center_vertical"
+        tools:text="Matematyka" />
+
+    <TextView
+        android:id="@+id/avg_person"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/avg_class"
+        android:gravity="center"
+        android:minWidth="50dp"
+        android:padding="4dp"
+        tools:drawableTint="?android:textColorPrimary"
+        tools:drawableTop="@drawable/ic_person"
+        tools:text="3,25\ntop 10" />
+
+
+    <TextView
+        android:id="@+id/avg_class"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/avg_school"
+        android:gravity="center"
+        android:minWidth="50dp"
+        android:padding="4dp"
+        tools:drawableTint="?android:textColorPrimary"
+        tools:drawableTop="@drawable/ic_group"
+        tools:text="3,25\ntop 10" />
+
+
+    <TextView
+        android:id="@+id/avg_school"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:minWidth="50dp"
+        android:padding="4dp"
+        tools:drawableTint="?android:textColorPrimary"
+        tools:drawableTop="@drawable/ic_school"
+        tools:text="3,25\ntop 10" />
+</RelativeLayout>

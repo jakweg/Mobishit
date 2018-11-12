@@ -10,4 +10,12 @@
     <dimen name="separatorWithMarkList">4dp</dimen>
     <dimen name="textSizeMarkList">14sp</dimen>
     <dimen name="roundSizeMarkList">4dp</dimen>
+    <dimen name="mark_element_size">46dp</dimen>
+    <dimen name="mark_corner_radius">32dp</dimen>
+    <dimen name="markItemHorizontalMargin">6dp</dimen>
+    <dimen name="big_mark_size">50dp</dimen>
+    <dimen name="mark_details_bg_corner_radius">12dp</dimen>
+    <dimen name="mark_details_element_vertical_margin">8dp</dimen>
+    <dimen name="mark_details_element_right_margin">16dp</dimen>
+    <dimen name="comparison_img_size">24dp</dimen>
 </resources>

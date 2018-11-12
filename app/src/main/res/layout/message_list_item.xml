@@ -6,7 +6,15 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground"
-    android:orientation="vertical">
+    android:orientation="horizontal">
+
+    <View
+        android:id="@+id/messageColor"
+        android:layout_width="10dp"
+        android:layout_height="match_parent"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        tools:background="#006600" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,9 +41,4 @@
             android:textSize="13sp"
             tools:text="Od Jan Kowalski w dniu 30.02.2018 15:34" />
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#AAA" />
 </LinearLayout>

@@ -3,27 +3,31 @@ package jakubweg.mobishit.fragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.database.DataSetObserver
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.IntRange
 import android.support.transition.TransitionInflater
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewCompat
+import android.support.v7.widget.AppCompatImageButton
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.*
+import android.widget.TextView
 import jakubweg.mobishit.R
-import jakubweg.mobishit.activity.DoublePanelActivity
+import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
-import jakubweg.mobishit.helper.AverageCalculator
+import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.ThemeHelper
 import jakubweg.mobishit.model.SubjectsMarkModel
 
-class SubjectsMarkFragment : Fragment() {
+
+class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedListener {
     companion object {
+
         fun newInstance(subjectId: Int, subjectName: String, viewTransitionName: String?) = SubjectsMarkFragment().apply {
             arguments = Bundle().also {
                 it.putInt("subjectId", subjectId)
@@ -48,6 +52,9 @@ class SubjectsMarkFragment : Fragment() {
     private val viewModel by lazy { ViewModelProviders.of(this)[SubjectsMarkModel::class.java] }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (ThemeHelper.isLightThemeSet(context!!))
+            view.findViewById<AppCompatImageButton>(R.id.btnViewOptions)?.setImageResource(R.drawable.ic_sort_with_black)
+
         val (subjectId, subjectName, transitionName) =
                 arguments!!.run {
                     Triple(getInt("subjectId"), getString("subjectName")!!, getString("transitionName")
@@ -56,46 +63,34 @@ class SubjectsMarkFragment : Fragment() {
 
         viewModel.init(subjectId)
 
-
         val subjectNameText = view.findViewById<TextView>(R.id.subject_name)!!
         subjectNameText.text = subjectName
         ViewCompat.setTransitionName(subjectNameText, transitionName)
 
-        viewModel.terms.observe(this, Observer {
+        view.findViewById<View>(R.id.btnViewOptions)?.setOnClickListener { _ ->
+            MarksViewOptionsFragment
+                    .newInstance()
+                    .showSelf(activity)
+                    .setOptionsListener(this)
+        }
+
+        viewModel.marks.observe(this, Observer {
             it ?: return@Observer
-            setUpTermsSpinner(it)
+            onTermChanged()
         })
     }
 
-    private fun setUpTermsSpinner(terms: List<MarkDao.TermShortInfo>) {
-        view!!.findViewById<Spinner>(R.id.termsSpinner).also { spinner ->
-            spinner.adapter = TermSpinnerAdapter(context!!, terms)
-
-            val listener = object : AdapterView.OnItemSelectedListener {
-                override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-
-                var ignoreNext = false
-
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    if (ignoreNext) {
-                        ignoreNext = false
-                        return
-                    }
-                    if (viewModel.selectedTermId == id.toInt())
-                        return
-                    viewModel.selectedTermId = id.toInt()
-                    onTermChanged()
-                }
-            }
-
-            if (viewModel.selectedTermId != 0) {
-                listener.ignoreNext = true
-                spinner.setSelection(terms.indexOfFirst { it.id == viewModel.selectedTermId })
-                onTermChanged()
-            }
-
-            spinner.onItemSelectedListener = listener
+    override fun onTermChanged() {
+        MobiregPreferences.get(context ?: return).apply {
+            val termId = lastSelectedTerm
+            setUpMarksAdapter(viewModel.marks.value?.get(termId) ?: return)
+            setUpAveragesInfo(viewModel.averages.value?.get(termId) ?: return)
         }
+    }
+
+
+    override fun onOtherOptionsChanged() {
+        viewModel.requestMarksAgain()
     }
 
     private fun setUpMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
@@ -103,70 +98,39 @@ class SubjectsMarkFragment : Fragment() {
             startAnimation(AlphaAnimation(0f, 1f).also {
                 it.duration = 400L
             })
-            adapter = MarkAdapter(context, marks) { item, view ->
-                val subjectName = this@SubjectsMarkFragment
-                        .view?.findViewById<TextView>(R.id.subject_name) ?: return@MarkAdapter
-
-                (activity as? DoublePanelActivity?)?.applyNewDetailsFragment(
-                        view, subjectName, MarkDetailsFragment.newInstance(item.id,
-                        item.description, ViewCompat.getTransitionName(view),
-                        subjectName.text.toString(), ViewCompat.getTransitionName(subjectName)))
+            adapter = MarkAdapter(context, marks) { item ->
+                MarkDetailsFragment.newInstance(item.id).showSelf(activity as? MainActivity)
             }
         }
     }
 
-    private fun setUpAveragesInfo(average: AverageCalculator.AverageCalculationResult) {
+    private fun setUpAveragesInfo(average: AverageCacheData) {
         view!!.findViewById<TextView>(R.id.averageInfoText).text = average.averageText
     }
 
-    private fun onTermChanged() {
-        setUpMarksAdapter(viewModel.marks.value?.get(viewModel.selectedTermId) ?: return)
-        setUpAveragesInfo(viewModel.averages.value?.get(viewModel.selectedTermId) ?: return)
-    }
-
-    private class TermSpinnerAdapter(private val context: Context, private val terms: List<MarkDao.TermShortInfo>) : SpinnerAdapter {
-
-        override fun isEmpty() = terms.isEmpty()
-        override fun getCount() = terms.size
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val view = convertView ?: TextView(context).apply {
-                layoutParams = AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT)
-                val termsItemPadding = context.resources.getDimensionPixelSize(R.dimen.terms_item_padding)
-                setPadding(termsItemPadding, termsItemPadding, termsItemPadding, termsItemPadding)
-                textSize = 16f //sp
-            }
-            (view as TextView).text = terms[position].name
-            return view
-        }
-
-        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup?) = getView(position, convertView, parent)
-
-
-        override fun getItemViewType(position: Int) = 0
-        override fun getViewTypeCount() = 1
-        override fun hasStableIds() = true
-
-
-        override fun getItem(position: Int) = null
-        override fun getItemId(position: Int) = terms[position].id.toLong()
-
-        /*private val observers = mutableListOf<DataSetObserver?>()
-        override fun registerDataSetObserver(observer: DataSetObserver?) { observers.add(observer); }
-        override fun unregisterDataSetObserver(observer: DataSetObserver?) { observers.remove(observer) }*/
-
-        override fun registerDataSetObserver(observer: DataSetObserver?) = Unit
-        override fun unregisterDataSetObserver(observer: DataSetObserver?) = Unit
-
-
-    }
-
-    private class MarkAdapter(context: Context, private val list: List<MarkDao.MarkShortInfo>,
-                              var onMarkClickListener: ((MarkDao.MarkShortInfo, View) -> Unit)? = null)
+    class MarkAdapter(context: Context,
+                      private val list: List<MarkDao.MarkShortInfo>,
+                      private var onMarkClickListener: ((MarkDao.MarkShortInfo) -> Unit)? = null)
         : RecyclerView.Adapter<MarkAdapter.ViewHolder>() {
         private val inflater = LayoutInflater.from(context)!!
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(inflater.inflate(R.layout.mark_list_item, parent, false))
+        companion object {
+            const val TYPE_SINGLE = 0
+            const val TYPE_PARENT_FIRST = 1
+            const val TYPE_PARENT_MIDDLE = 2
+            const val TYPE_PARENT_LAST = 3
+        }
+
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            return ViewHolder(inflater.inflate(when (viewType) {
+                TYPE_SINGLE -> R.layout.mark_single_list_item
+                TYPE_PARENT_FIRST -> R.layout.mark_parent_first_list_item
+                TYPE_PARENT_LAST -> R.layout.mark_parent_last_list_item
+                TYPE_PARENT_MIDDLE -> R.layout.mark_parent_middle_list_item
+                else -> throw IllegalStateException()
+            }, parent, false))
+        }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also { info ->
@@ -174,16 +138,18 @@ class SubjectsMarkFragment : Fragment() {
                 ViewCompat.setTransitionName(holder.markTitle, "ma$position")
                 holder.markValue.text = when {
                     info.abbreviation != null -> info.abbreviation
-                    info.markPointsValue != null -> info.markPointsValue.toString() trimEndToLength 4
+                    info.markPointsValue >= 0 -> info.markPointsValue.toString() trimEndToLength 4
                     else -> "Wut?"
                 }
             }
         }
 
+        override fun getItemViewType(position: Int) = list[position].viewType
+
         override fun getItemCount() = list.size
 
-        private fun onItemClicked(position: Int, view: View) {
-            onMarkClickListener?.invoke(list[position], view)
+        private fun onItemClicked(position: Int) {
+            onMarkClickListener?.invoke(list[position])
         }
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -191,7 +157,7 @@ class SubjectsMarkFragment : Fragment() {
             val markValue = v.findViewById<TextView>(R.id.markValue)!!
 
             init {
-                v.setOnClickListener { onItemClicked(adapterPosition, markTitle) }
+                v.setOnClickListener { onItemClicked(adapterPosition) }
             }
         }
 

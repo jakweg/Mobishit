@@ -17,13 +17,13 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.Toolbar
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import androidx.work.State
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkStatus
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.fragment.*
@@ -39,10 +39,15 @@ import java.util.*
 class MainActivity : DoublePanelActivity() {
 
     companion object {
+        const val ACTION_REFRESH_NOW = "refreshNow"
+
         const val ACTION_SHOW_MARK = "showMark"
         const val ACTION_SHOW_MESSAGE = "showMessage"
         const val ACTION_SHOW_TIMETABLE = "showTimetable"
-        const val ACTION_REFRESH_NOW = "refreshNow"
+        const val ACTION_SHOW_PREFERENCES = "showPreferences"
+        const val ACTION_SHOW_COMPARISONS = "showComparisons"
+        const val ACTION_UPDATE_PASSWORD = "upPass"
+        const val ACTION_ABOUT_APP = "about"
 
         const val FRAGMENT_MARKS = "mk"
         const val FRAGMENT_TIMETABLE = "tt"
@@ -51,10 +56,9 @@ class MainActivity : DoublePanelActivity() {
 
     private var isInForeground = false
     private var currentSelectedNavigationItemId = 0 //R.id.nav_marks
-    private var ignoreNextNavigationSelectionChange = false
-    private var updateWorkStatus: LiveData<List<WorkStatus>>? = null
+    private var updateWorkStatus: LiveData<List<WorkInfo>>? = null
 
-    private lateinit var snackbar: SnackbarController
+    lateinit var snackbar: SnackbarController
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var toolbar: Toolbar
@@ -171,8 +175,11 @@ class MainActivity : DoublePanelActivity() {
         return when (currentSelectedNavigationItemId) {
             R.id.nav_marks -> SubjectListFragment.newInstance()
             R.id.nav_timetable -> TimetableFragment.newInstance()
+            R.id.nav_tests -> TestsFragment.newInstance()
+            R.id.nav_comparisons -> ComparisonsFragment.newInstance()
             R.id.nav_messages -> MessagesListFragment.newInstance()
             R.id.nav_about -> AboutFragment.newInstance()
+            R.id.nav_settings -> GeneralPreferenceFragment.newInstance()
             else -> null
         }
     }
@@ -210,10 +217,18 @@ class MainActivity : DoublePanelActivity() {
                 ?.onChooseDateClicked()
     }
 
-    private fun onRefreshStateChanged(status: WorkStatus) {
+    private fun onUpdatePasswordRequested() {
+        (supportFragmentManager
+                ?.fragments
+                ?.first { it is GeneralPreferenceFragment }
+                as? GeneralPreferenceFragment?)
+                ?.showUpdatePasswordDialog()
+    }
+
+    private fun onRefreshStateChanged(status: WorkInfo) {
         when (status.state) {
-            State.RUNNING -> showIndefiniteSnackbar("Ładowanie danych…")
-            State.ENQUEUED -> snackbar.cancelCurrentIfIndefinite()
+            WorkInfo.State.RUNNING -> showIndefiniteSnackbar("Ładowanie danych…")
+            WorkInfo.State.ENQUEUED -> snackbar.cancelCurrentIfIndefinite()
             else -> Unit
         }
     }
@@ -223,19 +238,32 @@ class MainActivity : DoublePanelActivity() {
         snackbar.show(request)
     }
 
-    private fun switchNavigationTo(newNavigationId: Int, setIgnoreNextSelectionTrue: Boolean = true) {
-        navigationView.menu?.findItem(newNavigationId)?.also {
-            currentSelectedNavigationItemId = newNavigationId
-            if (!it.isChecked) {
-                adjustToSelectedNavItem(currentSelectedNavigationItemId)
-                if (setIgnoreNextSelectionTrue)
-                    ignoreNextNavigationSelectionChange = true
-                it.isChecked = true
-                requestNewMainFragment()
+    private fun switchNavigationTo(newNavigationId: Int) {
+        navigationView.menu?.forEachMenuItem(MenuItem.OnMenuItemClickListener { it ->
+            if (it.itemId == newNavigationId) {
+                currentSelectedNavigationItemId = newNavigationId
+                if (!it.isChecked) {
+                    adjustToSelectedNavItem(currentSelectedNavigationItemId)
+                    it.isChecked = true
+                    requestNewMainFragment()
+                }
+            } else {
+                it.isChecked = false
             }
-        }
+            return@OnMenuItemClickListener false
+        })
     }
 
+    private fun Menu.forEachMenuItem(func: MenuItem.OnMenuItemClickListener) {
+        val size = this.size()
+        for (i in 0 until size) {
+            val item = getItem(i)
+            func.onMenuItemClick(item)
+
+            if (item.hasSubMenu())
+                item.subMenu?.forEachMenuItem(func)
+        }
+    }
     private var handledDefaultIntent = false
     override fun onNewIntent(intent: Intent?) {
         setIntent(intent)
@@ -244,18 +272,33 @@ class MainActivity : DoublePanelActivity() {
             when (intent.action ?: "") {
                 "", Intent.ACTION_MAIN -> handleDefaultFragment()
                 ACTION_SHOW_TIMETABLE -> {
-                    switchNavigationTo(R.id.nav_timetable, false)
+                    switchNavigationTo(R.id.nav_timetable)
                 }
                 ACTION_SHOW_MARK -> {
-                    switchNavigationTo(R.id.nav_marks, false)
-                    applyNewDetailsFragment(MarkDetailsFragment.newInstance(id))
+                    switchNavigationTo(R.id.nav_marks)
+                    MarkDetailsFragment.newInstance(id).showSelf(this)
+                }
+                ACTION_SHOW_COMPARISONS -> {
+                    switchNavigationTo(R.id.nav_comparisons)
                 }
                 ACTION_SHOW_MESSAGE -> {
-                    switchNavigationTo(R.id.nav_messages, false)
-                    applyNewDetailsFragment(MessageDetailsFragment.newInstance(id))
+                    switchNavigationTo(R.id.nav_messages)
+                    MessageDetailsFragment.newInstance(id).showSelf(this)
                 }
                 ACTION_REFRESH_NOW -> {
                     requestUpdatesNow()
+                }
+                ACTION_SHOW_PREFERENCES -> {
+                    switchNavigationTo(R.id.nav_settings)
+                }
+                ACTION_UPDATE_PASSWORD -> {
+                    switchNavigationTo(R.id.nav_settings)
+                    navigationView.postDelayed({
+                        onUpdatePasswordRequested()
+                    }, 500L)
+                }
+                ACTION_ABOUT_APP -> {
+                    switchNavigationTo(R.id.nav_about)
                 }
             }
         }
@@ -271,7 +314,7 @@ class MainActivity : DoublePanelActivity() {
             FRAGMENT_TIMETABLE -> R.id.nav_timetable
             FRAGMENT_MESSAGES -> R.id.nav_messages
             else -> R.id.nav_marks
-        }, false)
+        })
     }
 
     private fun requestUpdatesNow() {
@@ -283,35 +326,35 @@ class MainActivity : DoublePanelActivity() {
 
     private fun adjustToSelectedNavItem(itemId: Int) {
         when (itemId) {
-            R.id.nav_marks, R.id.nav_messages, R.id.nav_about -> {
-                chooseDateItem.isVisible = false
-            }
             R.id.nav_timetable -> {
                 chooseDateItem.isVisible = true
             }
+            else -> {
+                chooseDateItem.isVisible = false
+            }
+
         }
 
         toolbar.title = when (itemId) {
             R.id.nav_marks -> "Oceny"
-            R.id.nav_messages -> "Wiadomości"
+            R.id.nav_messages -> "Wiadomości i uwagi"
             R.id.nav_timetable -> "Plan lekcji"
+            R.id.nav_comparisons -> "Porównania"
+            R.id.nav_tests -> "Sprawdziany"
             R.id.nav_about -> "O aplikacji"
+            R.id.nav_settings -> "Ustawienia"
             else -> return
         }
     }
 
     private fun handleNavigationItemSelection(itemId: Int) {
         when (itemId) {
-            R.id.nav_marks, R.id.nav_messages, R.id.nav_timetable, R.id.nav_about -> {
+            R.id.nav_marks, R.id.nav_messages, R.id.nav_timetable, R.id.nav_comparisons, R.id.nav_about, R.id.nav_settings, R.id.nav_tests -> {
                 currentSelectedNavigationItemId = itemId
                 requestNewMainFragment()
             }
             R.id.nav_force_refresh -> {
                 requestUpdatesNow()
-            }
-            //R.id.nav_log_out -> { MobiregPreferences.get(this).logout(this) }
-            R.id.nav_settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
             }
         }
     }
@@ -322,15 +365,17 @@ class MainActivity : DoublePanelActivity() {
     private class MainActivityNavigationListener(mainActivity: MainActivity) : NavigationView.OnNavigationItemSelectedListener {
         private val activity = WeakReference<MainActivity>(mainActivity)
 
-        override fun onNavigationItemSelected(it: MenuItem): Boolean {
+        override fun onNavigationItemSelected(item: MenuItem): Boolean {
             return activity.get()?.run {
-                adjustToSelectedNavItem(it.itemId)
+                navigationView.menu
+                        ?.forEachMenuItem(MenuItem.OnMenuItemClickListener {
+                            it.isChecked = it.itemId == item.itemId
+                            false
+                        })
 
-                if (ignoreNextNavigationSelectionChange) {
-                    ignoreNextNavigationSelectionChange = false
-                    return@run true
-                }
-                navigationView.postDelayed({ handleNavigationItemSelection(it.itemId) }, 500L)
+                adjustToSelectedNavItem(item.itemId)
+
+                navigationView.postDelayed({ handleNavigationItemSelection(item.itemId) }, 500L)
 
                 drawerLayout.closeDrawer(GravityCompat.START)
                 true
@@ -391,12 +436,12 @@ class MainActivity : DoublePanelActivity() {
         : AsyncTask<Unit, Unit, Unit>() {
         private val mWeakActivity = WeakReference<MainActivity>(activity)
 
-        private var updateWorkStatus: LiveData<List<WorkStatus>>? = null
+        private var updateWorkStatus: LiveData<List<WorkInfo>>? = null
 
         override fun doInBackground(vararg params: Unit?) {
             CountdownService.startIfNeeded(mWeakActivity.get() ?: return)
             updateWorkStatus = WorkManager.getInstance()
-                    .getStatusesForUniqueWork(UpdateWorker.UNIQUE_WORK_NAME)
+                    .getWorkInfosForUniqueWorkLiveData(UpdateWorker.UNIQUE_WORK_NAME)
         }
 
         override fun onPostExecute(result: Unit?) {

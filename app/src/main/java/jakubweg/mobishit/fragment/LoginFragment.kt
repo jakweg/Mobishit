@@ -3,7 +3,6 @@ package jakubweg.mobishit.fragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -18,11 +17,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import jakubweg.mobishit.R
-import jakubweg.mobishit.activity.SettingsActivity
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.model.LoginDataModel
 import jakubweg.mobishit.service.AppUpdateWorker
+import jakubweg.mobishit.service.FcmServerNotifierWorker
 import jakubweg.mobishit.service.UpdateWorker
 
 class LoginFragment : Fragment() {
@@ -37,12 +36,12 @@ class LoginFragment : Fragment() {
     private val viewModel by lazy {
         ViewModelProviders.of(this)[LoginDataModel::class.java]
     }
-
     private inline val editLogin: TextView? get() = view?.findViewById(R.id.editLogin)
     private inline val editPass: TextView? get() = view?.findViewById(R.id.editPass)
     private inline val confirmBtn: View? get() = view?.findViewById(R.id.confirmBtn)
     private inline val progressBar: ProgressBar? get() = view?.findViewById(R.id.progressbar)
     private inline val noInternetText: View? get() = view?.findViewById(R.id.noInternetText)
+
     private inline val btnAboutPrivacy: View? get() = view?.findViewById(R.id.btnAboutPrivacy)
 
     private fun toast(msg: CharSequence) {
@@ -63,11 +62,34 @@ class LoginFragment : Fragment() {
                     toast("Błędny login lub hasło")
                 }
                 LoginDataModel.STATUS_WORKING -> disableViews()
+                LoginDataModel.STATUS_CHOOSE_STUDENT -> {
+                    val users = viewModel.users
+                    if (users.size == 1) {
+                        users.first().apply {
+                            MobiregPreferences.get(activity!!)
+                                    .setUserData(studentId, name, surname, phone, sex, login, host, hasHostInLogin, pass)
+                        }
+                        viewModel.setStatusSuccess()
+                    } else {
+                        AlertDialog.Builder(activity ?: return@Observer)
+                                .setCancelable(false)
+                                .setTitle("Jak się nazywasz?")
+                                .setItems(Array(users.size) { users[it].run { "$name $surname" } }) { _, pos ->
+                                    users[pos].run {
+                                        MobiregPreferences.get(activity!!)
+                                                .setUserData(studentId, name, surname, phone, sex, login, host, hasHostInLogin, pass)
+                                    }
+                                    viewModel.setStatusSuccess()
+                                }
+                                .show()
+                    }
+                }
                 LoginDataModel.STATUS_SUCCESS -> {
                     (activity as? WelcomeActivity?)?.apply {
                         UpdateWorker.requestUpdates(this)
                         MobiregPreferences.get(this).seenWelcomeActivity = true
                         AppUpdateWorker.requestChecks()
+                        FcmServerNotifierWorker.requestPeriodicServerNotifications()
                         applyFragment(AfterLoginFragment.newInstance())
                     }
                 }
@@ -86,7 +108,7 @@ class LoginFragment : Fragment() {
 
             when {
                 login.isEmpty() -> editLogin?.error = emptyErrorMsg
-                !regex.matches(login) -> editLogin?.error = "Nieprawidłowy login\nLogin musi kończyć się adresem hosta (np jakub.zsl-krakow)"
+                !regex.matches(login) -> editLogin?.error = "Login musi kończyć się adresem hosta (np jakub.zsl-krakow)"
                 pass.isEmpty() -> editPass?.error = emptyErrorMsg
                 else -> {
                     val values = regex.matchEntire(login)!!.groupValues
@@ -101,12 +123,6 @@ class LoginFragment : Fragment() {
             }
         }
 
-        confirmBtn?.setOnLongClickListener {
-            startActivity(Intent(it.context ?: return@setOnLongClickListener true
-                    , SettingsActivity::class.java))
-            true
-        }
-
         btnAboutPrivacy?.setOnClickListener {
             makeAboutPrivacyDialog(it.context ?: return@setOnClickListener)
         }
@@ -117,11 +133,10 @@ class LoginFragment : Fragment() {
                 .setTitle("O przetwarzaniu danych")
                 .setMessage("""Zacznijmy od tego, że aplikacja jest otwartoźródłowa, więc samemu możesz sprawdzić jak działa.
                     |Twoje hasło jest haszowane (bezpowrotnie) metodą MD5 w momencie dotknięcia przycisku Zaloguj się.
-                    |W takiej formie jest wysyłane bezpośrednio do serwera mobireg.pl połączeniem https i nigdzie indziej.
+                    |W takiej formie jest wysyłane bezpośrednio do serwera mobireg.pl połączeniem https.
                     |Jeżeli logowanie zakończy się sukcesem zarówno login jak i hasło (zahaszowane) są zapisywane w pliku dostępnym tylko dla tej aplikacji.
                     |Dane te są używane w przyszłości do synchronizacji danych z serwerem.
                     |Baza danych uzyskana od mobirega jest przechowywana lokalnie i dostępna tylko dla tej aplikacji.
-                    |Nie są zbierane żadne dane statystyczne.
                 """.trimMargin())
                 .setPositiveButton("Rozumiem") { dialog, _ -> dialog.dismiss() }
                 .show()

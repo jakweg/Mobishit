@@ -7,8 +7,9 @@ import jakubweg.mobishit.R
 import jakubweg.mobishit.fragment.LoginFragment
 import jakubweg.mobishit.fragment.WelcomeFirstFragment
 import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.service.FcmServerNotifierWorker
 
-class WelcomeActivity : ThemedActivity.FragmentActivity() {
+class WelcomeActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,5 +34,12 @@ class WelcomeActivity : ThemedActivity.FragmentActivity() {
                 .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_in)
                 .replace(R.id.fragment_container, fragment)
                 .commitAllowingStateLoss()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (MobiregPreferences.get(this).run { isSignedIn && allowedInstantNotifications }
+                && intent?.getBooleanExtra("isPreview", false) == false)
+            FcmServerNotifierWorker.requestPeriodicServerNotifications()
     }
 }

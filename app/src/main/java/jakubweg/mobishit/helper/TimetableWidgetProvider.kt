@@ -118,7 +118,7 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                 val intent = PendingIntent.getActivity(context, 0,
                         Intent(context, MainActivity::class.java), 0)
 
-                rv.setTextViewText(R.id.errorBtn, "Nie zalogowano do mobirega, kliknij aby się zalogować")
+                rv.setTextViewText(R.id.errorBtn, "Nie zalogowano do Mobirega, kliknij aby się zalogować")
                 rv.setOnClickPendingIntent(R.id.errorBtn, intent)
             }
 

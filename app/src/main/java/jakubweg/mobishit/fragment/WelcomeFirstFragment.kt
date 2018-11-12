@@ -54,8 +54,8 @@ class WelcomeFirstFragment : Fragment() {
         animation.repeatMode = Animation.REVERSE
         adjective.startAnimation(animation)
 
-        view.findViewById<View>(R.id.btnFinish).setOnClickListener {
-            (it.context as? WelcomeActivity?)?.applyFragment(LoginFragment.newInstance())
+        view.findViewById<View>(R.id.btnFinish)?.setOnClickListener {
+            (activity as? WelcomeActivity?)?.applyFragment(LoginFragment.newInstance())
         }
     }
 }

@@ -4,10 +4,13 @@ import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewCompat
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -69,6 +72,9 @@ class MessagesListFragment : Fragment() {
                         (context!! as? DoublePanelActivity)?.applyNewDetailsFragment(
                                 view, MessageDetailsFragment.newInstance(id, title, ViewCompat.getTransitionName(view)))
                     }
+                val dividerItemDecoration = DividerItemDecoration(context,
+                        (layoutManager as LinearLayoutManager).orientation)
+                addItemDecoration(dividerItemDecoration)
             }
         }
     }
@@ -88,7 +94,13 @@ class MessagesListFragment : Fragment() {
                 holder.messageInfo.text = "${it.sender} \u2022 ${DateHelper.millisToStringTime(it.sendTime)}"
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                     holder.messageTitle.transitionName = "me$position"
-
+                holder.colorView.setBackgroundColor(when (it.kind) {
+                    MessageDao.KIND_JUST_MESSAGE -> Color.LTGRAY
+                    MessageDao.KIND_NEUTRAL_REPRIMAND -> Color.DKGRAY
+                    MessageDao.KIND_NEGATIVE_REPRIMAND -> -6750208
+                    MessageDao.KIND_POSITIVE_REPRIMAND -> -16751104
+                    else -> Color.LTGRAY
+                })
             }
         }
 
@@ -102,6 +114,7 @@ class MessagesListFragment : Fragment() {
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val messageTitle = v.findViewById<TextView>(R.id.messageTitle)!!
             val messageInfo = v.findViewById<TextView>(R.id.messageInfo)!!
+            val colorView = v.findViewById<View>(R.id.messageColor)!!
 
             init {
                 v.setOnClickListener { onItemClicked(adapterPosition, messageTitle.text, messageTitle) }

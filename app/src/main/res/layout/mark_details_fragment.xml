@@ -1,430 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="200dp"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+    tools:ignore="HardcodedText">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        tools:ignore="HardcodedText">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:id="@+id/contentLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="6dp"
+            android:orientation="horizontal">
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/markValue"
+                style="@style/Base.TextAppearance.AppCompat.Title"
+                android:layout_width="@dimen/big_mark_size"
+                android:layout_height="@dimen/big_mark_size"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:background="@drawable/big_mark_bg"
+                android:gravity="center"
+                android:padding="6dp"
+                app:autoSizeTextType="uniform"
+                tools:text="4+" />
 
-                <TextView
-                    android:id="@+id/textSubjectName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:maxLines="1"
-                    android:textSize="17sp"
-                    tools:text="Matematyka" />
-            </FrameLayout>
-
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/markTitle"
+                style="@style/Base.TextAppearance.AppCompat.Subhead"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2.5"
-                    android:gravity="center_vertical"
-                    android:text="Opis:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textMarkName"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="7.5"
-                    android:gravity="center_vertical"
-                    android:textSize="16sp"
-                    tools:text="Sprawdzian-mole" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2.5"
-                    android:gravity="center_vertical"
-                    android:text="Kolumna:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textMarkColumn"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="7.5"
-                    android:textSize="16sp"
-                    tools:text="Ocena - waga 2" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-
-            <LinearLayout
-                android:id="@+id/markNoPointsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2.5"
-                        android:gravity="center_vertical"
-                        android:text="Ocena:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkScaleValue"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="7.5"
-                        android:textSize="16sp"
-                        tools:text="bardzo dobry (5)" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2.5"
-                        android:gravity="center_vertical"
-                        android:text="Waga:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkWeight"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="7.5"
-                        android:textSize="16sp"
-                        tools:text="2" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="5"
-                        android:gravity="center_vertical"
-                        android:text="Wliczana do średniej:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkIsCountToAverage"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="5"
-                        android:textSize="16sp"
-                        tools:text="Tak" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:id="@+id/markPointsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2.5"
-                        android:gravity="center_vertical"
-                        android:text="Wartość:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkPointsValue"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="7.5"
-                        android:textSize="16sp"
-                        tools:text="bardzo dobry (5)" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2.5"
-                        android:gravity="center_vertical"
-                        android:text="Baza:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkMaxPoints"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="7.5"
-                        android:textSize="16sp"
-                        tools:text="2" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="5"
-                        android:gravity="center_vertical"
-                        android:text="Wliczana do bazy:"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/textMarkIsCountToBase"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="5"
-                        android:textSize="16sp"
-                        tools:text="Tak" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="#AAAA" />
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="4"
-                    android:gravity="center_vertical"
-                    android:text="Data otrzymania:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textMarkGetDate"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="6"
-                    android:textSize="16sp"
-                    tools:text="2017-10-19" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="4"
-                    android:gravity="center_vertical"
-                    android:text="Data wpisania:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textMarkAddTime"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="6"
-                    android:textSize="16sp"
-                    tools:text="2017-10-19 22:33:13" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-            <LinearLayout
-                android:id="@+id/layoutParentType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="4"
-                    android:gravity="center_vertical"
-                    android:text="Typ poprawy:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textParentType"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="6"
-                    android:textSize="16sp"
-                    tools:text="Liczy się najlepsza ocena" />
-            </LinearLayout>
-
-            <View
-                android:id="@+id/separatorParentType"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="4"
-                    android:gravity="center_vertical"
-                    android:text="Nauczyciel:"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/textMarkTeacherName"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="6"
-                    android:textSize="16sp"
-                    tools:text="Jan Kowalski" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="#AAAA" />
+                android:layout_gravity="center_vertical"
+                android:layout_margin="8dp"
+                tools:text="Sprawdzian z geometrii analitycznej"
+                tools:textSize="17sp" />
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/loadingCircle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            tools:visibility="gone" />
-    </FrameLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="?separatorColor" />
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:ignore="RtlHardcoded">
+
+            <TextView
+                android:id="@+id/markColumnText"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                android:text="Kolumna"
+                app:layout_constraintBottom_toBottomOf="@id/markColumnValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markColumnValue" />
+
+            <TextView
+                android:id="@+id/markColumnValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markColumnText"
+                app:layout_constraintRight_toRightOf="parent"
+                tools:text="Ocena - waga 1" />
+
+            <TextView
+                android:id="@+id/markMarkText"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                app:layout_constraintBottom_toBottomOf="@id/markMarkValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markMarkValue"
+                tools:text="Ocena" />
+
+            <TextView
+                android:id="@+id/markMarkValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markMarkText"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/markColumnValue"
+                tools:text="bardzo dobry" />
+
+
+            <TextView
+                android:id="@+id/markWeightText"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                app:layout_constraintBottom_toBottomOf="@id/markWeightValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markWeightValue"
+                tools:text="Waga" />
+
+            <TextView
+                android:id="@+id/markWeightValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markWeightText"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/markMarkValue"
+                tools:text="3" />
+
+
+            <TextView
+                android:id="@+id/markCountToAverageText"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                app:layout_constraintBottom_toBottomOf="@id/markCountToAverageValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markCountToAverageValue"
+                tools:text="Wliczana do średniej" />
+
+            <TextView
+                android:id="@+id/markCountToAverageValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markCountToAverageText"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/markWeightValue"
+                tools:text="Tak" />
+
+            <View
+                android:id="@+id/separator1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?separatorColor"
+                app:layout_constraintTop_toBottomOf="@id/markCountToAverageValue" />
+
+            <TextView
+                android:id="@+id/markParentTypeInfo"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                android:text="Typ poprawy"
+                app:layout_constraintBottom_toBottomOf="@id/markParentTypeValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markParentTypeValue" />
+
+            <TextView
+                android:id="@+id/markParentTypeValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="12dp"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markParentTypeInfo"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/separator1"
+                tools:text="Liczona jest średnia z ocen" />
+
+
+            <TextView
+                android:id="@+id/markGetDateInfo"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                android:text="Dodano"
+                app:layout_constraintBottom_toBottomOf="@id/markGetDateValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markGetDateValue" />
+
+            <TextView
+                android:id="@+id/markGetDateValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markGetDateInfo"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/markParentTypeValue"
+                tools:text="11-11-2018 15:21:48" />
+
+
+            <TextView
+                android:id="@+id/markTeacherInfo"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="40dp"
+                android:maxLines="1"
+                android:text="Wpisane przez"
+                app:layout_constraintBottom_toBottomOf="@id/markTeacherValue"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="@id/markTeacherValue" />
+
+            <TextView
+                android:id="@+id/markTeacherValue"
+                style="@style/Base.TextAppearance.AppCompat.Small"
+                android:layout_width="0px"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="@dimen/mark_details_element_right_margin"
+                android:gravity="right"
+                android:paddingTop="@dimen/mark_details_element_vertical_margin"
+                android:paddingBottom="@dimen/mark_details_element_vertical_margin"
+                app:layout_constraintLeft_toRightOf="@id/markTeacherInfo"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/markGetDateValue"
+                tools:text="Jan Kowalski" />
+
+
+        </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
 </ScrollView>

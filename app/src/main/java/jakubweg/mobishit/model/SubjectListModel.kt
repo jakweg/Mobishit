@@ -3,29 +3,18 @@ package jakubweg.mobishit.model
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import jakubweg.mobishit.db.AppDatabase
-import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.helper.AverageCalculator
 
 class SubjectListModel(application: Application)
     : BaseViewModel(application) {
 
-    private val mSubjects = MutableLiveData<List<MarkDao.SubjectShortInfo>>()
-    val subjects: LiveData<List<MarkDao.SubjectShortInfo>>
+    private val mSubjects = MutableLiveData<List<AverageCacheData>>()
+    val subjects: LiveData<List<AverageCacheData>>
         get() =
         handleBackground(mSubjects).asImmutable
 
     override fun doInBackground() {
-        val dao = AppDatabase.getAppDatabase(context).markDao
-
-        //val termId = MobiregPreferences.get(context).lastSelectedTerm
-
-        mSubjects.postValue(dao.getSubjectsWithUsersMarks().apply {
-            forEach {
-                it.averageText = AverageCalculator
-                        .calculateAverageBySubject(context, it.id).shortAverageText
-                it.subjectsMarks = dao.getMarkTitlesBySubject(it.id)
-            }
-        })
+        mSubjects.postValue(AverageCalculator.getOrCreateAverageCacheData(context))
     }
 }

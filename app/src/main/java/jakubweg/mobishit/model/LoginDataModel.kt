@@ -11,7 +11,6 @@ import com.google.gson.stream.JsonReader
 import jakubweg.mobishit.R
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
-import jakubweg.mobishit.helper.TimetableWidgetProvider
 import jakubweg.mobishit.helper.UpdateHelper
 import java.io.Reader
 
@@ -23,15 +22,21 @@ class LoginDataModel(application: Application)
         const val STATUS_WORKING = 1
         const val STATUS_FAILED = 3
         const val STATUS_FAILED_WRONG_INPUTS = 4
-        const val STATUS_SUCCESS = 5
-
+        const val STATUS_CHOOSE_STUDENT = 5
+        const val STATUS_SUCCESS = 6
     }
+
+    class UserData(val studentId: Int, val login: String, val host: String,
+                   val pass: String, val hasHostInLogin: Boolean, val name: String,
+                   val surname: String, val sex: String, val phone: String)
 
     private val mStatus = MutableLiveData<Int>()
             .apply { value = STATUS_NOT_WORKING }
 
 
     val status get() = mStatus.asImmutable
+
+    var users = mutableListOf<UserData>()
 
     private var loginName = ""
     private var host = ""
@@ -45,8 +50,12 @@ class LoginDataModel(application: Application)
         handleBackground()
     }
 
-    fun performLogin() {
+    fun setStatusSuccess() {
         mStatus.value = STATUS_SUCCESS
+    }
+
+    fun performLogin() {
+        setStatusSuccess()
     }
 
     @SuppressLint("ApplySharedPref")
@@ -54,7 +63,7 @@ class LoginDataModel(application: Application)
         try {
             val result = tryLoginWithHost()
             when (result) {
-                STATUS_SUCCESS -> mStatus.postValue(STATUS_SUCCESS)
+                STATUS_SUCCESS, STATUS_CHOOSE_STUDENT -> mStatus.postValue(result)
                 STATUS_FAILED_WRONG_INPUTS -> mStatus.postValue(tryLoginWithoutHost())
                 else -> mStatus.postValue(STATUS_FAILED)
             }
@@ -128,6 +137,8 @@ class LoginDataModel(application: Application)
 
     private fun processLoginRequestOutput(reader: Reader, isWithHost: Boolean): Int {
         JsonParser().parse(JsonReader(reader)).asJsonObject.also { jo ->
+            val users = mutableListOf<UserData>()
+
             when {
                 jo.has("errno") ->
                     return (if (jo.get("errno")!!.asInt == 106)
@@ -135,21 +146,22 @@ class LoginDataModel(application: Application)
 
                 jo.has("ParentStudents") -> {
                     jo.get("ParentStudents").asJsonArray.also { arr ->
-                        if (arr.size() != 1)
-                            throw IllegalStateException("ParentStudents array size is not 1")
-                        arr[0]!!.asJsonObject!!.apply {
-                            val id = get("id")!!.asInt
-                            val name = get("name")!!.asString
-                            val surname = get("surname")!!.asString
-                            val phone = get("phone")!!.asStringOrNull ?: ""
-                            val sex = validateSex(get("sex")!!.asStringOrNull)
+                        arr.forEach {
+                            it.asJsonObject!!.apply {
+                                val id = get("id")!!.asInt
+                                val name = get("name")!!.asString
+                                val surname = get("surname")!!.asString
+                                val phone = get("phone")!!.asStringOrNull ?: ""
+                                val sex = validateSex(get("sex")!!.asStringOrNull)
 
-                            MobiregPreferences.get(context).also {
-                                it.setUserData(id, name, surname, phone, sex, loginName, host, isWithHost, password)
+                                /*MobiregPreferences.get(context).also {
+                                    it.setUserData(id, name, surname, phone, sex, loginName, host, isWithHost, password)} */
+                                users.add(UserData(id, loginName, host, password, isWithHost, name, surname, sex, phone))
                             }
                         }
-                        TimetableWidgetProvider.requestInstantUpdate(context)
-                        return STATUS_SUCCESS
+
+                        this.users = users
+                        return STATUS_CHOOSE_STUDENT
                     }
                 }
                 else -> throw IllegalStateException("Can't log in - no errno nor ParentStudents")

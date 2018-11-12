@@ -1,6 +1,7 @@
 package jakubweg.mobishit.db
 
 import android.graphics.Color
+import com.google.gson.JsonElement
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import jakubweg.mobishit.helper.DateHelper
@@ -16,6 +17,7 @@ class DataCreator {
             var name = ""
             var surname = ""
             var login = ""
+            var sex = ""
             jr.beginObject()
             var isDeleted = false
             while (jr.hasNext()) {
@@ -24,12 +26,13 @@ class DataCreator {
                     "name" -> name = jr.nextString()!!
                     "surname" -> surname = jr.nextString()!!
                     "login" -> login = jr.nextString()!!
+                    "sex" -> sex = jr.nextStringOrNull() ?: ""
                     "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
 
-            return Teacher(id, name, surname, login).also {
+            return Teacher(id, name, surname, login, sex).also {
                 if (isDeleted)
                     throw ObjectDeletedNotifier(it, it.id)
             }
@@ -324,7 +327,7 @@ class DataCreator {
 
             return MarkGroup(id, markKindId, markScaleGroupId, eventTypeTermId, abbreviation,
                     description, markType, position, countPointsWithoutBase, markValueMin, markValueMax,
-                    parentId, parentType, false, visibility).also {
+                    parentId, parentType, visibility).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
             }
         }
@@ -727,18 +730,20 @@ class DataCreator {
         }
 
 
-        private fun JsonReader.nextStringOrNull() = if (peek() == JsonToken.NULL) {
-            nextNull(); null
-        } else nextString()
-
-        private fun JsonReader.nextIntOrNull() = if (peek() == JsonToken.NULL) {
-            nextNull(); null
-        } else nextInt()
-
-        private fun JsonReader.nextFloatOrNull() = if (peek() == JsonToken.NULL) {
-            nextNull(); null
-        } else nextDouble().toFloat()
     }
 
 }
 
+fun JsonReader.nextStringOrNull() = if (peek() == JsonToken.NULL) {
+    nextNull(); null
+} else nextString()
+
+fun JsonReader.nextIntOrNull() = if (peek() == JsonToken.NULL) {
+    nextNull(); null
+} else nextInt()
+
+fun JsonReader.nextFloatOrNull() = if (peek() == JsonToken.NULL) {
+    nextNull(); null
+} else nextDouble().toFloat()
+
+val JsonElement?.asStringOrNull get() = if (this == null || isJsonNull) null else asString!!

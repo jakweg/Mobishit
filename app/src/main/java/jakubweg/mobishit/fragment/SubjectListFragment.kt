@@ -15,7 +15,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.model.SubjectListModel
 import jakubweg.mobishit.view.MarksListView
@@ -49,11 +49,11 @@ class SubjectListFragment : Fragment() {
     }
 
     private class InternalObserver(v: RecyclerView)
-        : Observer<List<MarkDao.SubjectShortInfo>> {
+        : Observer<List<AverageCacheData>> {
 
         private val mainList = WeakReference<RecyclerView>(v)
 
-        override fun onChanged(it: List<MarkDao.SubjectShortInfo>?) {
+        override fun onChanged(it: List<AverageCacheData>?) {
             val mainList = this.mainList.get() ?: return
             if (it?.isEmpty() != false)
                 mainList.adapter = EmptyAdapter("Brak przedmiotów z których masz oceny")
@@ -61,7 +61,8 @@ class SubjectListFragment : Fragment() {
                 mainList.adapter = SubjectAdapter(mainList.context!!, it).apply {
                     onSubjectClicked = { subject, view, _ ->
                         (mainList.context as? DoublePanelActivity)
-                                ?.applyNewDetailsFragment(view, SubjectsMarkFragment.newInstance(subject.id, subject.name,
+                                ?.applyNewDetailsFragment(view, SubjectsMarkFragment.newInstance(
+                                        subject.subjectId, subject.subjectName ?: "",
                                         ViewCompat.getTransitionName(view)))
                     }
                 }
@@ -73,7 +74,8 @@ class SubjectListFragment : Fragment() {
         = ViewModelProviders.of(this).get(SubjectListModel::class.java)
 
 
-    private class SubjectAdapter(context: Context, private val list: List<MarkDao.SubjectShortInfo>)
+    private class SubjectAdapter(context: Context,
+                                 private val list: List<AverageCacheData>)
         : RecyclerView.Adapter<SubjectAdapter.ViewHolder>() {
 
         private val inflater = LayoutInflater.from(context)!!
@@ -84,14 +86,14 @@ class SubjectListFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also {
-                holder.subjectName.text = it.name
+                holder.subjectName.text = it.subjectName
                 ViewCompat.setTransitionName(holder.subjectName, "sn$position")
-                holder.averageText.text = it.averageText
-                holder.markList.setDisplayedMarks(it.subjectsMarks)
+                holder.averageText.text = it.shortAverageText
+                holder.markList.setDisplayedMarks(it.getMarksList())
             }
         }
 
-        var onSubjectClicked: ((MarkDao.SubjectShortInfo, View, Int) -> Unit)? = null
+        var onSubjectClicked: ((AverageCacheData, View, Int) -> Unit)? = null
 
         private fun onViewClicked(pos: Int, view: View) {
             onSubjectClicked?.invoke(list[pos], view, pos)

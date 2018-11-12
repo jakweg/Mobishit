@@ -38,7 +38,7 @@ class AboutFragment : Fragment() {
         view.findViewById<TextView>(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
 
 
-        view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
+        view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener { _ ->
             openGithub()
         }
         view.findViewById<Button>(R.id.btnReportError)!!.apply {
@@ -97,8 +97,9 @@ class AboutFragment : Fragment() {
     private fun sendMessage() {
         AlertDialog.Builder(context ?: return)
                 .setTitle("Jak chcesz się ze mną skontaktować?")
-                .setPositiveButton("Messenger") { i, _ -> i.dismiss(); openLink("https://m.me/jakweg") }
-                .setNeutralButton("Mail") { i, _ -> i.dismiss(); openSendEmail() }
+                .setPositiveButton("Messenger") { _, _ -> openLink("https://m.me/jakweg") }
+                .setNeutralButton("Telegram") { _, _ -> openLink("https://t.me/jakweg") }
+                .setNegativeButton("Mail") { _, _ -> openSendEmail() }
                 .show()
     }
 
@@ -118,13 +119,17 @@ class AboutFragment : Fragment() {
     private fun showUsedLibs() {
         AlertDialog.Builder(activity ?: return)
                 .setTitle("Użyte biblioteki")
-                .setMessage("""Support librarys from Google:
+                .setMessage("""Support libraries from Google:
                     |• support
                     |• appcompat
                     |• constraint-layout
                     |• design
                     |• recyclerview
                     |• preference
+                    |
+                    |Firebase components from Google:
+                    |• core
+                    |• messaging
                     |
                     |Architecture components from Google:
                     |• room

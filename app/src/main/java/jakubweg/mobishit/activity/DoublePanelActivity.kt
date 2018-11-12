@@ -11,7 +11,7 @@ import android.view.View
 import jakubweg.mobishit.R
 
 @SuppressLint("Registered")
-abstract class DoublePanelActivity : ThemedActivity.FragmentActivity() {
+abstract class DoublePanelActivity : FragmentActivity() {
 
     abstract val mainFragmentContainerId: Int
 
@@ -62,19 +62,6 @@ abstract class DoublePanelActivity : ThemedActivity.FragmentActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                 addSharedElement(sharedView, sharedView.transitionName)
             replace(secondFragmentContainerId, fragment)
-            addToBackStack(null)
-            commitAllowingStateLoss()
-        }
-    }
-
-    fun applyNewDetailsFragment(sh1: View, sh2: View, frag: Fragment) {
-        supportFragmentManager.beginTransaction().apply {
-            setCustomAnimations(R.anim.fragment_enter, R.anim.fade_out, R.anim.fade_in, R.anim.fragment_exit)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                addSharedElement(sh1, sh1.transitionName)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                addSharedElement(sh2, sh2.transitionName)
-            replace(secondFragmentContainerId, frag)
             addToBackStack(null)
             commitAllowingStateLoss()
         }

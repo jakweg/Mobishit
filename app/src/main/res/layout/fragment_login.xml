@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent">
 
     <LinearLayout
@@ -52,27 +53,31 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end">
+            android:gravity="end|center_vertical">
 
             <TextView
                 android:id="@+id/noInternetText"
                 android:layout_width="0px"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:layout_weight="2"
-                android:padding="10dp"
+                android:gravity="center"
                 android:text="Brak połączenia z internetem"
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-            <Button
+            <android.support.design.button.MaterialButton
                 android:id="@+id/confirmBtn"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginLeft="3dp"
-                android:layout_marginRight="3dp"
-                android:text="Zaloguj się" />
+                android:layout_gravity="end|center_vertical"
+                android:layout_margin="8dp"
+                android:text="Zaloguj się"
+                android:textColor="#FFF"
+                app:backgroundTint="@color/colorPrimary"
+                app:cornerRadius="16dp"
+                tools:ignore="UnusedAttribute" />
         </LinearLayout>
 
         <ProgressBar

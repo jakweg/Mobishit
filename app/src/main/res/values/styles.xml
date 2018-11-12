@@ -1,11 +1,12 @@
 <resources>
     <attr name="backgroundSecondaryColor" format="color" />
+    <attr name="separatorColor" format="color" />
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowBackground">@android:color/white</item>
         <item name="backgroundSecondaryColor">#F5F5F5</item>
     </style>
 
@@ -20,16 +21,43 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/black</item>
+        <item name="android:windowBackground">@android:color/black</item>
         <item name="backgroundSecondaryColor">#000000</item>
     </style>
 
-    <!--
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+
+    <style name="BottomSheetDialogLight" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperLight</item>
+        <item name="separatorColor">#AAA</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
-    !-->
+
+    <style name="bottomSheetStyleWrapperLight" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_dialog_bg_light</item>
+    </style>
+
+
+    <style name="BottomSheetDialogDark" parent="Theme.Design.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperDark</item>
+        <item name="separatorColor">#AAA</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="bottomSheetStyleWrapperDark" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_dialog_bg_dark</item>
+    </style>
+
+
+    <style name="BottomSheetDialogBlack" parent="Theme.Design.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperBlack</item>
+        <item name="separatorColor">#AAA</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="bottomSheetStyleWrapperBlack" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_dialog_bg_black</item>
+    </style>
+
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -43,6 +71,4 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFF</color>
 </resources>

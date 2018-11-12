@@ -7,7 +7,9 @@ import android.os.AsyncTask
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
+import jakubweg.mobishit.helper.ThemeHelper.THEME_DEFAULT
 import jakubweg.mobishit.service.CountdownService
+import jakubweg.mobishit.service.FcmServerNotifierWorker
 import java.security.MessageDigest
 import java.util.*
 
@@ -16,8 +18,11 @@ class MobiregPreferences private constructor(
         private val pref: SharedPreferences
 ) {
     companion object {
-        fun get(context: Context) = MobiregPreferences(context.applicationContext,
-                context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!)
+        fun get(context: Context?): MobiregPreferences {
+            context ?: throw NullPointerException()
+            return MobiregPreferences(context.applicationContext,
+                    context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!)
+        }
 
         fun encryptPassword(s: String?): String {
             if (s == null) throw NullPointerException()
@@ -97,7 +102,8 @@ class MobiregPreferences private constructor(
         pref.edit().putString("refreshFrequency", "$newFrequency").apply()
     }
 
-    fun setPassword(notEncryptedNewPassword: String) {
+    fun setPassword(notEncryptedNewPassword: String?) {
+        notEncryptedNewPassword ?: throw NullPointerException()
         pref.edit().putString("pass", encryptPassword(notEncryptedNewPassword)).apply()
     }
 
@@ -109,7 +115,13 @@ class MobiregPreferences private constructor(
         pref.edit().putBoolean("is_dev", true).apply()
     }
 
-    private class LogOutTask(context: Context, val pref: SharedPreferences)
+    fun setLastFcmAction(action: String?) {
+        pref.edit().putString("lastFcmAct", action)
+                .putLong("lastFcmTime", System.currentTimeMillis())
+                .apply()
+    }
+
+    private class LogOutTask(context: Context, private val pref: SharedPreferences)
         : AsyncTask<Unit, Unit, Unit>() {
         @SuppressLint("StaticFieldLeak")
         private val appContext = context.applicationContext!!
@@ -121,8 +133,6 @@ class MobiregPreferences private constructor(
 
         @SuppressLint("ApplySharedPref")
         override fun doInBackground(vararg params: Unit?) {
-            AppDatabase.deleteDatabase(appContext)
-
             CountdownService.stop(appContext)
 
             pref.edit()
@@ -141,9 +151,16 @@ class MobiregPreferences private constructor(
                     .remove("surname")
                     .remove("phone")
                     .remove("sex")
+                    .remove("refreshWeekends")
+                    .remove("lastTestRefresh")
+                    .remove("readyAverage")
                     .commit()
 
+            AppDatabase.deleteDatabase(appContext)
+
             TimetableWidgetProvider.requestInstantUpdate(appContext)
+
+            FcmServerNotifierWorker.requestPeriodicServerNotifications()
         }
     }
 
@@ -154,7 +171,7 @@ class MobiregPreferences private constructor(
 
     val surname get() = getString("surname") ?: ""
 
-    val theme get() = getString("theme") ?: "light"
+    val theme get() = getString("theme") ?: THEME_DEFAULT
 
     val runCountdownService get() = pref.getBoolean("runCountdownService", false)
 
@@ -166,7 +183,7 @@ class MobiregPreferences private constructor(
 
     private val hasHostInLogin get() = pref.getBoolean("hasHostInLogin", true)
 
-    val loginAndHostIfNeeded = if (hasHostInLogin) "$login.$host" else "$login"
+    val loginAndHostIfNeeded get() = if (hasHostInLogin) "$login.$host" else "$login"
 
     val lmt get() = pref.getLong("lmt", -1L)
 
@@ -202,7 +219,8 @@ class MobiregPreferences private constructor(
         set(value) = pref.edit().putInt("lastTerm", value).apply()
 
 
-    val isDeveloper: Boolean = BuildConfig.DEBUG || pref.getBoolean("is_dev", false)
+    val isDeveloper get() = BuildConfig.DEBUG || pref.getBoolean("is_dev", false)
+
 
     var seenWelcomeActivity
         get() = pref.getBoolean("seenWA", false)
@@ -211,4 +229,43 @@ class MobiregPreferences private constructor(
     var nextAllowedCountdownServiceStart
         get() = pref.getLong("nAllowedCDSstart", 0L)
         set(value) = pref.edit().putLong("nAllowedCDSstart", value).apply()
+
+    var firebaseToken: String?
+        get() = getString("fcmToken")
+        set(value) = pref.edit().putString("fcmToken", value).apply()
+
+    var allowedInstantNotifications
+        get() = pref.getBoolean("allowIN", false)
+        set(value) {
+            decidedAboutFcm = true
+            pref.edit().putBoolean("allowIN", value).apply()
+            FcmServerNotifierWorker.requestPeriodicServerNotifications()
+        }
+
+    var decidedAboutFcm
+        get() = pref.getBoolean("decidedFcm", false)
+        set(value) = pref.edit().putBoolean("decidedFcm", value).apply()
+
+    val timeOfLastReceivedFcm
+        get() = pref.getLong("lastFcmTime", 0L)
+
+    val lastFcmAction
+        get() = getString("lastFcmAct")
+
+
+    var lastTestRefreshTime
+        get() = pref.getLong("lastTestRefresh", 0L)
+        set(value) = pref.edit().putLong("lastTestRefresh", value).apply()
+
+    var groupMarksByParent
+        get() = pref.getBoolean("groupMarks", true)
+        set(value) = pref.edit().putBoolean("groupMarks", value).apply()
+
+    var markSortingOrder
+        get() = pref.getInt("mSortOrder", AverageCalculator.ORDER_DEFAULT)
+        set(value) = pref.edit().putInt("mSortOrder", value).apply()
+
+    var hasReadyAverageCache
+        get() = pref.getBoolean("readyAverage", false)
+        set(value) = pref.edit().putBoolean("readyAverage", value).apply()
 }

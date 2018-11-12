@@ -1,27 +1,27 @@
 package jakubweg.mobishit.service
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.support.v4.app.NotificationCompat
 import androidx.work.*
+import com.google.gson.JsonParser
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.NotificationHelper
-import com.google.gson.JsonParser
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 
-//class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
-//    : Worker(context, workerParameters) {
-class AppUpdateWorker : Worker() {
+class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
+    : Worker(context, workerParameters) {
 
     companion object {
-        private const val APP_VERSION_URL = "https://github.com/JakubekWeg/Mobishit/blob/master/app/release/version_info.json?raw=true"
         private const val UNIQUE_WORK_NAME = "appUpdateChecking"
         private const val UPDATE_CHECKING_INTERVAL_DAYS = 1L
 
@@ -45,7 +45,8 @@ class AppUpdateWorker : Worker() {
 
     override fun doWork(): Result {
         return try {
-            val body = Jsoup.connect(APP_VERSION_URL)
+            val body = Jsoup
+                    .connect(DedicatedServerManager(applicationContext).versionInfoLink)
                     .ignoreContentType(true)
                     .execute().body()
 
@@ -86,7 +87,8 @@ class AppUpdateWorker : Worker() {
                     .setLargeIcon(BitmapFactory.decodeResource(
                             applicationContext.resources, R.mipmap.ic_launcher_round))
                     .setContentTitle("Nowa wersja aplikacji Mobishit")
-                    .setContentText("Kliknij aby pobrać wersję $newName")
+                    .setSubText("Kliknij aby pobrać wersję $newName")
+                    .setContentText(whatsNew)
                     .setStyle(if (whatsNew == null) null
                     else NotificationCompat.BigTextStyle()
                             .bigText(whatsNew))

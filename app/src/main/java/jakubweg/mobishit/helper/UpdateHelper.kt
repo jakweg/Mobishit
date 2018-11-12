@@ -13,7 +13,7 @@ import java.util.*
 
 class UpdateHelper(private val context: Context) {
 
-    private var isFirstTime = false
+    private var mIsFirstTime = false
     var newMarks = mutableListOf<MarkData>()
     var newMessages = mutableListOf<MessageData>()
     var newAttendances = mutableListOf<AttendanceData>()
@@ -27,9 +27,10 @@ class UpdateHelper(private val context: Context) {
     private var onNewEvents: (EventData) -> Unit = { }
     private var onDeleteMark: (MarkData) -> Unit = { }
 
+    val isFirstTime get() = mIsFirstTime
 
     val isAnythingNew
-        get() = isFirstTime ||
+        get() = mIsFirstTime ||
                 newMarks.isNotEmpty() ||
                 newMessages.isNotEmpty() ||
                 newAttendances.isNotEmpty() ||
@@ -67,7 +68,7 @@ class UpdateHelper(private val context: Context) {
         onDeleteMark = { }
 
 
-        isFirstTime = true
+        mIsFirstTime = true
 
         makeLoggedConnection(buildString {
             append("login=eparent")
@@ -125,7 +126,10 @@ class UpdateHelper(private val context: Context) {
                     append("&start_date="); append(preferences.startDate)
                     append("&end_date="); append(endDate)
                     append("&last_end_date="); append(endDate)
-                    append("&lmt="); append(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(preferences.lmt)))
+                    append("&lmt="); append(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+                        .also {
+                            it.timeZone = TimeZone.getTimeZone("CET")
+                        }.format(Date(preferences.lmt)))
                     append("&get_all_mark_groups="); append(preferences.getAllMarkGroups.to0or1())
                     append("&student_id="); append(preferences.studentId)
                 }, host = preferences.host!!, deviceId = preferences.deviceId,
@@ -140,9 +144,10 @@ class UpdateHelper(private val context: Context) {
         reader.apply {
             var millisOfRequest = 0L
             val db = AppDatabase.getAppDatabase(context)
-            db.runInTransaction {
+            db.runInTransaction { }
+            //db.runInTransaction {
+            kotlin.run {
                 beginObject()
-
 
                 val dao = db.mainDao
                 while (hasNext()) {
@@ -150,7 +155,7 @@ class UpdateHelper(private val context: Context) {
 
                     if (peek() != JsonToken.BEGIN_ARRAY) {
                         handleErrorJson(name, reader)
-                        return@runInTransaction
+                        return@run
                     }
                     beginArray()
                     when (name) {

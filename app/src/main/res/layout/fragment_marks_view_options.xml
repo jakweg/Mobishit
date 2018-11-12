@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingTop="8dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="12dp"
+    tools:ignore="HardcodedText,RtlHardcoded">
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Headline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="4dp"
+        android:text="Opcje wyświetlania" />
+
+    <TextView
+        android:id="@+id/textTerm"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Semestr"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@id/textSorting"
+        app:layout_constraintTop_toBottomOf="@id/title" />
+
+    <android.support.v7.widget.AppCompatSpinner
+        android:id="@+id/termSpinner"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/textTerm"
+        app:layout_constraintLeft_toRightOf="@id/textTerm"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textTerm" />
+
+
+    <TextView
+        android:id="@+id/textSorting"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Sortowanie"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@id/textTerm"
+        app:layout_constraintTop_toBottomOf="@id/textTerm" />
+
+    <android.support.v7.widget.AppCompatSpinner
+        android:id="@+id/sortingSpinner"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/textSorting"
+        app:layout_constraintLeft_toRightOf="@id/textSorting"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textSorting" />
+
+    <Switch
+        android:id="@+id/switchGroupParents"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="Grupuj poprawy"
+        app:layout_constraintTop_toBottomOf="@id/textSorting" />
+
+</android.support.constraint.ConstraintLayout>

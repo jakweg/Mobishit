@@ -4,7 +4,7 @@
     tools:ignore="HardcodedText"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="all">
         <item
             android:id="@+id/nav_marks"
             android:icon="@drawable/nav_marks"
@@ -14,36 +14,47 @@
             android:icon="@drawable/nav_timetable"
             android:title="Plan lekcji" />
         <item
+            android:id="@+id/nav_tests"
+            android:icon="@drawable/nav_assignment_late"
+            android:title="Sprawdziany" />
+        <item
+            android:id="@+id/nav_comparisons"
+            android:icon="@drawable/ic_nav_comparisons"
+            android:title="Porównania" />
+        <item
             android:id="@+id/nav_messages"
             android:icon="@drawable/nav_messages"
-            android:title="Wiadomości" />
+            android:title="Wiadomości i uwagi" />
+
+        <item
+            android:id="@+id/nav_last_checked"
+            android:title="Inne">
+            <menu>
+                <group android:checkableBehavior="all">
+                    <item
+                        android:id="@+id/nav_force_refresh"
+                        android:checkable="false"
+                        android:icon="@drawable/nav_force_refresh"
+                        android:title="Odśwież teraz" />
+                    <item
+                        android:id="@+id/nav_settings"
+                        android:icon="@drawable/nav_settings"
+                        android:title="Ustawienia" />
+                    <item
+                        android:id="@+id/nav_about"
+                        android:icon="@drawable/nav_info"
+                        android:title="O aplikacji" />
+                </group>
+            </menu>
+        </item>
     </group>
 
 
+    <!--
     <item
-        android:id="@+id/nav_last_checked"
-        android:title="Inne">
-        <menu>
-            <item
-                android:id="@+id/nav_force_refresh"
-                android:icon="@drawable/nav_force_refresh"
-                android:title="Odśwież teraz" />
-            <item
-                android:id="@+id/nav_settings"
-                android:icon="@drawable/nav_settings"
-                android:title="Ustawienia" />
-            <!--
-            <item
-                android:id="@+id/nav_log_out"
-                android:icon="@drawable/nav_log_out"
-                android:title="Wyloguj się" />
-                -->
-
-            <item
-                android:id="@+id/nav_about"
-                android:icon="@drawable/nav_info"
-                android:title="O aplikacji" />
-        </menu>
-    </item>
+        android:id="@+id/nav_log_out"
+        android:icon="@drawable/nav_log_out"
+        android:title="Wyloguj się" />
+        -->
 
 </menu>

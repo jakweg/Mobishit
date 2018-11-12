@@ -1,15 +1,13 @@
 package jakubweg.mobishit.db
 
-import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
+import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
-@Entity(tableName = "Temp_Marks")
-class MarkShortData(@PrimaryKey(autoGenerate = false) val id: Int, val description: String, val abbreviation: String?, val markScaleValue: Float?, val defaultWeight: Int?, val noCountToAverage: Boolean?, val markPointsValue: Float?, val countPointsWithoutBase: Boolean, val markValueMax: Float?, val termId: Int)
 
 @Entity(tableName = "Teachers")
-class Teacher(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val surname: String, val login: String)
+class Teacher(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val surname: String, val login: String, val sex: String)
 
 @Entity(tableName = "Rooms")
 class RoomData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val description: String)
@@ -42,7 +40,7 @@ class MarkKind(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, v
 class MarkGroupGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val position: Int)
 
 @Entity(tableName = "MarkGroups")
-class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, @ColumnInfo(name = "parent") val isParent: Boolean, val visibility: Int?)
+class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, val visibility: Int?)
 
 @Entity(tableName = "EventTypes")
 class EventType(@PrimaryKey(autoGenerate = true) val id: Int, val subjectId: Int?)
@@ -86,6 +84,77 @@ class LessonData(@PrimaryKey(autoGenerate = true) val id: Int, val lessonNumber:
 @Entity(tableName = "Messages")
 class MessageData(@PrimaryKey(autoGenerate = true) val id: Int, val kind: Int, val sendTime: Long, val senderId: Int, val title: String?, val content: String, var readTime: Long)
 
+@Entity(tableName = "Tests")
+class TestData(@PrimaryKey(autoGenerate = true) val id: Int, val date: String, val group: String, val subject: String, val type: String, val description: String, val addTime: String, val teacher: String) {
+    @Ignore
+    var isInPast: Boolean = false
+}
+
+@Entity(tableName = "AverageCaches")
+class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subjectId: Int, val subjectName: String?, var marks: String?, var weightedAverage: Float, var gotPointsSum: Float, var baseSum: Float) {
+
+    fun getMarksList(): List<String> {
+        return marks?.split('@') ?: emptyList()
+    }
 
 
+    fun setMarksList(list: List<MarkDao.MarkShortInfo>?) {
+        marks = list?.joinToString(separator = "@") {
+            when {
+                it.markScaleValue >= 0 -> it.abbreviation ?: ""
+                it.markPointsValue >= 0 -> it.markPointsValue.toString()
+                else -> ""
+            }
+        }
+    }
 
+    private inline val Float.str1 get() = String.format("%.1f", this)
+    private inline val Float.str2 get() = String.format("%.2f", this)
+
+    private fun buildAverageText(): String {
+        val hasPoints = gotPointsSum > 0f || baseSum > 0f
+        val hasWeightedAverage = weightedAverage > 0f
+        return when {
+            hasPoints && hasWeightedAverage ->
+                "Średnia: ${weightedAverage.str2}\n" +
+                        "Zdobyte punkty: ${gotPointsSum.str1} na ${baseSum.str1} " +
+                        "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+            hasPoints ->
+                "Zdobyte punkty: ${gotPointsSum.str1} na ${baseSum.str1} " +
+                        "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+            hasWeightedAverage ->
+                "Twoja średnia ważona wynosi ${weightedAverage.str2}"
+
+            else -> "Brak danych"
+        }.also { _averageText = it }
+    }
+
+    @Ignore
+    private var _averageText: String? = null
+    val averageText get() = _averageText ?: buildAverageText()
+
+
+    private fun buildShortAverageText(): String {
+        val hasPoints = gotPointsSum > 0f || baseSum > 0f
+        val hasWeightedAverage = weightedAverage > 0f
+        return when {
+            hasPoints && hasWeightedAverage ->
+                "${weightedAverage.str2}\n" +
+                        "${gotPointsSum.str1}/${baseSum.str1} ${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+            hasPoints ->
+                "${gotPointsSum.str1}/${baseSum.str1}\n${(gotPointsSum / baseSum * 100f).toInt()}%"
+
+            hasWeightedAverage -> weightedAverage.str2
+
+            else -> ""
+        }.also { _shortAverageText = it }
+    }
+
+    @Ignore
+    private var _shortAverageText: String? = null
+    val shortAverageText get() = _shortAverageText ?: buildShortAverageText()
+
+}

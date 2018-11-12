@@ -18,7 +18,8 @@ class TimetableModel(application: Application)
     val days get() = handleBackground(mDays).asImmutable
 
     override fun doInBackground() {
-        val days = doAtLeast(350L) {
+        val days = doAtLeast(0L) {
+            //350
             val dao = AppDatabase.getAppDatabase(context).eventDao
 
             val calc = Calendar.getInstance()

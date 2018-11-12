@@ -2,11 +2,13 @@ package jakubweg.mobishit.view
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.os.Build
 import android.support.annotation.AttrRes
 import android.support.annotation.ColorInt
 import android.support.v4.content.ContextCompat
+import android.support.v4.graphics.ColorUtils
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -60,7 +62,7 @@ class MarksListView : View {
         val res = context?.resources ?: return
         val context = this.context ?: return
         val backgroundColor = context.getColorFromAttr(R.attr.backgroundSecondaryColor)
-        val textColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
+        val textColor = ColorUtils.setAlphaComponent(context.themeAttributeToColor(android.R.attr.textColorPrimary), 185)
         val separatorWidth = res.getDimension(R.dimen.separatorWithMarkList)
         val textSize = res.getDimensionPixelSize(R.dimen.textSizeMarkList).toFloat()
         mRoundCornersSize = res.getDimension(R.dimen.roundSizeMarkList)
@@ -97,6 +99,15 @@ class MarksListView : View {
         needsRecalculation = false
     }
 
+
+    @ColorInt
+    fun adjustAlpha(@ColorInt color: Int, factor: Float): Int {
+        val alpha = Math.round(Color.alpha(color) * factor)
+        val red = Color.red(color)
+        val green = Color.green(color)
+        val blue = Color.blue(color)
+        return Color.argb(alpha, red, green, blue)
+    }
 
     override fun onDraw(canvas: Canvas) {
         if (needsRecalculation)
@@ -138,7 +149,7 @@ class MarksListView : View {
                 attrColor, outValue, true)
 
         return ContextCompat.getColor(
-                context, outValue.resourceId)
+                this, outValue.resourceId)
     }
 
     private fun Canvas.drawRoundRectCompat(left: Float, top: Float,

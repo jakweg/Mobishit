@@ -79,6 +79,23 @@ class CountdownService : Service() {
         }
     }
 
+    private val screenListener = object : BroadcastReceiver() {
+        var isScreenEnabled = true
+        val screenIntentFilter
+            get() = IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            }
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action ?: return) {
+                Intent.ACTION_SCREEN_ON -> isScreenEnabled = true
+                Intent.ACTION_SCREEN_OFF -> isScreenEnabled = false
+            }
+            onScreenEnabledChanged()
+        }
+    }
+
     private val notification by lazy(LazyThreadSafetyMode.NONE) { CountdownServiceNotification.create(this) }
 
     private var handlerThread: HandlerThread? = null
@@ -110,6 +127,7 @@ class CountdownService : Service() {
 
         startForeground(notification.notificationId, notification.postSelf())
 
+        registerReceiver(screenListener, screenListener.screenIntentFilter)
 
         val prefs = MobiregPreferences.get(this)
         if (prefs.run {
@@ -127,17 +145,32 @@ class CountdownService : Service() {
         }
     }
 
+
+    private fun onScreenEnabledChanged() {
+        if (screenListener.isScreenEnabled) {
+            handler.postDelayed({
+
+                updateNotification()
+                nextDelayMillis = notification.nextDelayMillis
+                notification.postSelf()
+            }, 250L)
+        }
+    }
+
     private var shouldStillRun = true
     private var beforeLessonsMinutes = 0
     private val updateNotificationTask = Runnable {
         try {
-            updateNotification()
-            nextDelayMillis = notification.nextDelayMillis
-            notification.postSelf()
+            if (screenListener.isScreenEnabled) {
+                updateNotification()
+                nextDelayMillis = notification.nextDelayMillis
+                notification.postSelf()
+            }
             synchronized(this) {
                 if (shouldStillRun)
                     requestUpdates()
             }
+
         } catch (e: Exception) {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(this, "Awaria w usłudze odliczania – zabijam się", Toast.LENGTH_LONG).show()
@@ -155,6 +188,8 @@ class CountdownService : Service() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(stopListener)
+
+        unregisterReceiver(screenListener)
 
         if (handlerThread != null)
             handler.removeCallbacks(updateNotificationTask)

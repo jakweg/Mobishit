@@ -4,24 +4,194 @@ import android.content.Context
 import android.support.v4.util.ArrayMap
 import android.util.Log
 import jakubweg.mobishit.db.AppDatabase
+import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.fragment.SubjectsMarkFragment
+import java.util.ArrayList
+import kotlin.Comparator
 
 @Suppress("NOTHING_TO_INLINE")
 class AverageCalculator private constructor() {
 
     companion object {
-        fun getMarksAndCalculateAverage(context: Context, subjectId: Int):
-                Triple<List<MarkDao.TermShortInfo>,
-                        ArrayMap<Int, List<MarkDao.MarkShortInfo>>,
-                        ArrayMap<Int, AverageCalculationResult>> {
+        private inline fun Float.zeroIfNan() = if (isNaN()) 0f else this
+
+        fun getOrCreateAverageCacheData(context: Context): List<AverageCacheData> {
+            val preferences = MobiregPreferences.get(context)
+            val markDao = AppDatabase.getAppDatabase(context).markDao
+            return if (preferences.hasReadyAverageCache)
+                markDao.getAllAverageCache()
+            else {
+                val data = createAverageCacheData(context)
+                markDao.clearAverageCache()
+                data.forEach {
+                    it.weightedAverage = it.weightedAverage.zeroIfNan()
+                    it.gotPointsSum = it.gotPointsSum.zeroIfNan()
+                    it.baseSum = it.baseSum.zeroIfNan()
+                }
+                markDao.insertAverageCache(data)
+                preferences.hasReadyAverageCache = true
+                data
+            }
+        }
+
+        private fun createAverageCacheData(context: Context): List<AverageCacheData> {
+            val markDao = AppDatabase.getAppDatabase(context).markDao
+
+            val subjects = markDao.getSubjectsWithUsersMarks()
+            val output = ArrayList<AverageCacheData>(subjects.size)
+            for (subject in subjects) {
+                val marks = markDao.getMarksBySubject(subject.id)
+                val result = calculateAverage(marks)
+
+                output.add(AverageCacheData(0, subject.id, subject.name, null,
+                        result.first, result.second, result.third).also { data ->
+                    data.setMarksList(marks)
+                })
+
+            }
+
+            return output
+        }
+
+
+        private const val ORDER_NEW_FIRST = 0
+        private const val ORDER_OLD_FIRST = 1
+        private const val ORDER_WORSE_FIRST = 2
+        private const val ORDER_BETTER_FIRST = 3
+        private const val ORDER_BY_NAME = 4
+        private const val ORDER_BIG_WEIGHT_FIRST = 6
+
+        const val ORDER_DEFAULT = ORDER_NEW_FIRST
+
+        fun getOrderMethodsNames() = arrayOf(
+                "Od najnowszych",
+                "Od najstarszych",
+                "Od najlepszych",
+                "Od najgorszych",
+                "Alfabetycznie",
+                "Od bardziej znaczących"
+        )
+
+        fun getOrderMethodsIds() = intArrayOf(
+                ORDER_NEW_FIRST,
+                ORDER_OLD_FIRST,
+                ORDER_BETTER_FIRST,
+                ORDER_WORSE_FIRST,
+                ORDER_BY_NAME,
+                ORDER_BIG_WEIGHT_FIRST
+        )
+
+
+        private fun getComparator(orderBy: Int): Comparator<MarkDao.MarkShortInfo> {
+            return when (orderBy) {
+                ORDER_NEW_FIRST -> Comparator { o1, o2 -> o2.addTime.compareTo(o1.addTime) }
+                ORDER_OLD_FIRST -> Comparator { o1, o2 -> o1.addTime.compareTo(o2.addTime) }
+                ORDER_BY_NAME -> Comparator { o1, o2 -> o1.description.compareTo(o2.description) }
+                ORDER_BETTER_FIRST -> Comparator { o1, o2 ->
+                    if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
+                        return@Comparator 1
+
+                    if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
+                        return@Comparator -1
+
+                    return@Comparator if (o1.markScaleValue >= 0 && o2.markScaleValue >= 0)
+                        o2.markScaleValue.compareTo(o1.markScaleValue)
+                    else if (o1.markPointsValue >= 0 && o1.markValueMax >= 0
+                            && o2.markPointsValue >= 0 && o2.markValueMax >= 0)
+                        (o2.markPointsValue / o2.markValueMax).compareTo(o1.markPointsValue / o1.markValueMax)
+                    else
+                        0
+                }
+                ORDER_WORSE_FIRST -> Comparator { o1, o2 ->
+                    if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
+                        return@Comparator 1
+
+                    if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
+                        return@Comparator -1
+
+                    return@Comparator if (o1.markScaleValue >= 0 && o2.markScaleValue >= 0)
+                        o1.markScaleValue.compareTo(o2.markScaleValue)
+                    else if (o1.markPointsValue >= 0 && o1.markValueMax >= 0
+                            && o2.markPointsValue >= 0 && o2.markValueMax >= 0)
+                        (o1.markPointsValue / o1.markValueMax).compareTo(o2.markPointsValue / o2.markValueMax)
+                    else
+                        0
+                }
+                /*ORDER_WORSE_FIRST -> getComparator(ORDER_BETTER_FIRST).run {
+
+                    Comparator { o1: MarkDao.MarkShortInfo, o2 ->
+                        this.compare(o2, o1)
+                    }
+                }*/
+                ORDER_BIG_WEIGHT_FIRST -> Comparator<MarkDao.MarkShortInfo> { o1, o2 ->
+                    if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
+                        return@Comparator 1
+
+                    if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
+                        return@Comparator -1
+
+                    return@Comparator if (o1.defaultWeight >= 0 && o2.defaultWeight >= 0)
+                        o2.defaultWeight.compareTo(o1.defaultWeight)
+                    else if (o1.markValueMax >= 0 && o2.markValueMax >= 0)
+                        o2.markValueMax.compareTo(o1.markValueMax)
+                    else
+                        0
+                }.then(getComparator(ORDER_NEW_FIRST))
+                else -> throw IllegalArgumentException()
+            }
+        }
+
+        private fun groupMarksByParents(marks: List<MarkDao.MarkShortInfo>, orderBy: Int)
+                : List<MarkDao.MarkShortInfo> {
+            val comparator = getComparator(orderBy)
+            val grouped = marks
+                    .asSequence()
+                    .sortedWith(comparator)
+                    .groupBy { it.parentIdOrSelf }
+            val outputList = ArrayList<MarkDao.MarkShortInfo>(marks.size)
+
+            grouped.values.forEach { it ->
+                when {
+                    it.size == 1 -> outputList.add(it.first().apply { viewType = SubjectsMarkFragment.MarkAdapter.TYPE_SINGLE })
+                    it.size == 2 -> {
+                        outputList.add(it.first().apply { viewType = SubjectsMarkFragment.MarkAdapter.TYPE_PARENT_FIRST })
+                        outputList.add(it.last().apply { viewType = SubjectsMarkFragment.MarkAdapter.TYPE_PARENT_LAST })
+                    }
+                    else -> {
+                        it.forEachIndexed { index, mark ->
+                            mark.viewType = when (index) {
+                                0 -> SubjectsMarkFragment.MarkAdapter.TYPE_PARENT_FIRST
+                                it.size - 1 -> SubjectsMarkFragment.MarkAdapter.TYPE_PARENT_LAST
+                                else -> SubjectsMarkFragment.MarkAdapter.TYPE_PARENT_MIDDLE
+                            }
+                        }
+                        outputList.addAll(it)
+                    }
+                }
+            }
+            return outputList
+        }
+
+        private fun sortMarks(marks: List<MarkDao.MarkShortInfo>, order: Int, groupByParents: Boolean)
+                : List<MarkDao.MarkShortInfo> {
+            return if (groupByParents)
+                groupMarksByParents(marks, order)
+            else
+                marks.sortedWith(getComparator(order))
+        }
+
+        fun getMarksAndCalculateAverage(context: Context, subjectId: Int, sortOrder: Int, groupByParents: Boolean):
+                Pair<ArrayMap<Int, List<MarkDao.MarkShortInfo>>,
+                        ArrayMap<Int, AverageCacheData>> {
             val dao = AppDatabase.getAppDatabase(context).markDao
-            val terms = dao.getTerms()
+            val terms = dao.getTermsAndTypes()
 
-            val allMarks = dao.getMarksBySubject(subjectId)
+            val allMarks = sortMarks(dao.getMarksBySubject(subjectId), sortOrder, groupByParents)
 
-            // termIs, marks
+            // termId, marks
             val marksMap = ArrayMap<Int, List<MarkDao.MarkShortInfo>>(terms.size)
-            val averagesMap = ArrayMap<Int, AverageCalculationResult>(terms.size)
+            val averagesMap = ArrayMap<Int, AverageCacheData>(terms.size)
 
             terms.forEach { term ->
                 val marks = when (term.type) {
@@ -33,70 +203,29 @@ class AverageCalculator private constructor() {
                 }
 
                 marksMap[term.id] = marks
-                averagesMap[term.id] = AverageCalculator.calculateAverage(marks)
+                averagesMap[term.id] = AverageCalculator.calculateAverage(marks).toCacheData()
             }
-            return Triple(terms, marksMap, averagesMap)
+            return Pair(marksMap, averagesMap)
         }
 
 
-        fun calculateAverageBySubject(context: Context, subjectId: Int):
-                AverageCalculationResult {
-            val dao = AppDatabase.getAppDatabase(context).markDao
-            val marks = dao.getMarksBySubjectAndNotTerm(subjectId)
-            return calculateAverage(marks)
-        }
-
-        private fun calculateAverage(marks: List<MarkDao.MarkAverageShortInfo>?): AverageCalculator.AverageCalculationResult {
-            if (marks == null) throw NullPointerException()
+        private inline fun calculateAverage(marks: List<MarkDao.MarkShortInfo>)
+                : Triple<Float, Float, Float> {
             return AverageCalculator().calculateAverage(marks)
         }
-    }
 
-    class AverageCalculationResult(val weightedAverage: Float, val gotPointsSum: Float, val baseSum: Float) {
-        val averageText by lazy(LazyThreadSafetyMode.NONE) {
-            val hasPoints = gotPointsSum > 0f || baseSum > 0f
-            val hasWeightedAverage = weightedAverage > 0f
-            when {
-                hasPoints && hasWeightedAverage ->
-                    "Średnia: ${String.format("%.2f", weightedAverage)}\n" +
-                            "Zdobyte punkty: $gotPointsSum na $baseSum " +
-                            "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
 
-                hasPoints ->
-                    "Zdobyte punkty: $gotPointsSum na $baseSum " +
-                            "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
-
-                hasWeightedAverage ->
-                    "Twoja średnia ważona wynosi ${String.format("%.2f", weightedAverage)}"
-
-                else -> "Brak danych"
-            }
+        private inline fun Triple<Float, Float, Float>.toCacheData(): AverageCacheData {
+            return AverageCacheData(0, 0, null, null, first, second, third)
         }
 
-        val shortAverageText by lazy(LazyThreadSafetyMode.NONE) {
-            val hasPoints = gotPointsSum > 0f || baseSum > 0f
-            val hasWeightedAverage = weightedAverage > 0f
-            when {
-                hasPoints && hasWeightedAverage ->
-                    "${String.format("%.2f", weightedAverage)}\n" +
-                            "$gotPointsSum/$baseSum ${(gotPointsSum / baseSum * 100f).toInt()}%"
-
-                hasPoints ->
-                    "$gotPointsSum/$baseSum\n${(gotPointsSum / baseSum * 100f).toInt()}%"
-
-                hasWeightedAverage ->
-                    String.format("%.2f", weightedAverage)
-
-                else -> ""
-            }
-        }
     }
 
     private var averageSum = 0f
     private var averageWeight = 0f
     private var baseSum = 0f
     private var gotPointsSum = 0f
-    private fun calculateAverage(marks: List<MarkDao.MarkAverageShortInfo>): AverageCalculator.AverageCalculationResult {
+    private fun calculateAverage(marks: List<MarkDao.MarkShortInfo>): Triple<Float, Float, Float> {
         averageSum = 0f
         averageWeight = 0f
         baseSum = 0f
@@ -106,135 +235,133 @@ class AverageCalculator private constructor() {
             if (mark.parentType == null)
                 handleMarkWithoutParent(mark)
             else {
-                val parentId = mark.parentId ?: mark.markGroupId
+                val parentId = mark.parentIdOrSelf
                 val matchingMarks = marks.filter {
                     !it.hasCalculatedAverage &&
                             (it.parentId == parentId ||
                                     it.markGroupId == parentId)
                 }
-                when (mark.parentType) {
-                    MarkDao.PARENT_TYPE_COUNT_AVERAGE ->
-                        handleParentCountAverage(matchingMarks)
-                    MarkDao.PARENT_TYPE_COUNT_BEST ->
-                        handleParentCountBest(matchingMarks)
-                    MarkDao.PARENT_TYPE_COUNT_LAST ->
-                        handleParentCountLast(matchingMarks)
-                    MarkDao.PARENT_TYPE_COUNT_EVERY ->
-                        handleParentCountEvery(matchingMarks)
-                    MarkDao.PARENT_TYPE_COUNT_WORSE ->
-                        handleParentCountWorse(matchingMarks)
-                    else -> {
-                        Log.i("AverageCalculator", "unknown parent type (${mark.parentType})")
-                        //handleMarkWithoutParent(mark) //don't you can't calculate this, so don't even try
+                if (matchingMarks.isNotEmpty())
+                    when (mark.parentType) {
+                        MarkDao.PARENT_TYPE_COUNT_AVERAGE ->
+                            handleParentCountAverage(matchingMarks)
+                        MarkDao.PARENT_TYPE_COUNT_BEST ->
+                            handleParentCountBest(matchingMarks)
+                        MarkDao.PARENT_TYPE_COUNT_LAST ->
+                            handleParentCountLast(matchingMarks)
+                        MarkDao.PARENT_TYPE_COUNT_EVERY ->
+                            handleParentCountEvery(matchingMarks)
+                        MarkDao.PARENT_TYPE_COUNT_WORSE ->
+                            handleParentCountWorse(matchingMarks)
+                        else -> {
+                            Log.i("AverageCalculator", "unknown parent type (${mark.parentType})")
+                            //handleMarkWithoutParent(mark) //don't you can't calculate this, so don't even try
+                        }
                     }
-                }
             }
         }
 
 
-        return AverageCalculator.AverageCalculationResult(
-                averageSum / averageWeight, gotPointsSum, baseSum)
+        return Triple(averageSum / averageWeight, gotPointsSum, baseSum)
     }
 
-    private fun handleMarkWithoutParent(mark: MarkDao.MarkAverageShortInfo, ignorePreviousCalculation: Boolean = false) {
+    private fun handleMarkWithoutParent(mark: MarkDao.MarkShortInfo, ignorePreviousCalculation: Boolean = false) {
         mark.apply {
             if (!ignorePreviousCalculation && hasCalculatedAverage) return
             hasCalculatedAverage = true
-            if (markScaleValue != null && noCountToAverage != null) {
-                val weight = (defaultWeight ?: 1f)
+            if (markScaleValue >= 0 && noCountToAverage != null) {
+                val weight = if (defaultWeight >= 0f) defaultWeight else 1f
                 averageSum += markScaleValue * weight
                 if (!noCountToAverage)
                     averageWeight += weight
 
-            } else if (countPointsWithoutBase != null &&
-                    markPointsValue != null &&
-                    markValueMax != null) {
-                gotPointsSum += markPointsValue
-                if (!countPointsWithoutBase)
+            }
+            if (countPointsWithoutBase != null) {
+                if (markPointsValue >= 0)
+                    gotPointsSum += markPointsValue
+                if (!countPointsWithoutBase && markValueMax >= 0)
                     baseSum += markValueMax
             }
         }
     }
 
-    private fun handleParentCountAverage(marks: List<MarkDao.MarkAverageShortInfo>) {
+    private fun handleParentCountAverage(marks: List<MarkDao.MarkShortInfo>) {
         if (marks.isEmpty()) return
         var averageValue = 0f
-        var weightSum = 0f
-        var baseSum = 0f
+        var marksCount = 0
         var gotPointsSum = 0f
-        var pointsMarksSum = 0
         marks.forEach { mark ->
             mark.hasCalculatedAverage = true
             mark.apply {
-                if (markScaleValue != null && noCountToAverage != null) {
-                    val weight = (defaultWeight ?: 1f)
-                    averageValue += markScaleValue * weight
-                    weightSum += weight
+                if (markScaleValue >= 0 && noCountToAverage != null) {
+                    averageValue += markScaleValue
+                    marksCount++
 
                 } else if (countPointsWithoutBase != null &&
-                        markPointsValue != null &&
-                        markValueMax != null) {
+                        markPointsValue >= 0 &&
+                        markValueMax >= 0) {
                     gotPointsSum += markPointsValue
-                    baseSum += markValueMax
-                    pointsMarksSum++
+                    marksCount++
                 }
             }
         }
 
-        this.averageSum += averageValue
-        this.averageWeight += weightSum
-        if (pointsMarksSum != 0) {
-            this.baseSum += baseSum / pointsMarksSum
-            this.gotPointsSum += gotPointsSum / pointsMarksSum
-        }
+        val weight = (marks.firstOrNull { it.defaultWeight >= 0 }
+                ?.defaultWeight ?: 1f)
+
+        this.averageSum += averageValue * weight / marksCount.toFloat()
+        this.averageWeight += weight
+
+        this.gotPointsSum += gotPointsSum / marksCount.toFloat()
+        this.baseSum += (marks.firstOrNull { it.markValueMax >= 0 }?.markValueMax ?: 0f)
     }
 
-    private fun handleParentCountBest(marks: List<MarkDao.MarkAverageShortInfo>) {
+    private fun handleParentCountBest(marks: List<MarkDao.MarkShortInfo>) {
         handleMarkWithoutParent(
                 marks
                         .markEveryUsed()
                         .maxBy {
                             when {
-                                it.markScaleValue != null -> it.markScaleValue
-                                it.markPointsValue != null -> it.markPointsValue
+                                it.markScaleValue >= 0 -> it.markScaleValue
+                                it.markPointsValue >= 0 -> it.markPointsValue
                                 else -> Float.MIN_VALUE
                             }
                         } ?: return, true)
     }
 
-    private fun handleParentCountWorse(marks: List<MarkDao.MarkAverageShortInfo>) {
+    private fun handleParentCountWorse(marks: List<MarkDao.MarkShortInfo>) {
         handleMarkWithoutParent(
                 marks
                         .markEveryUsed()
                         .minBy {
                             when {
-                                it.markScaleValue != null -> it.markScaleValue
-                                it.markPointsValue != null -> it.markPointsValue
+                                it.markScaleValue >= 0 -> it.markScaleValue
+                                it.markPointsValue >= 0 -> it.markPointsValue
                                 else -> Float.MIN_VALUE
                             }
                         } ?: return, true)
     }
 
-    private fun handleParentCountLast(marks: List<MarkDao.MarkAverageShortInfo>) {
+    private fun handleParentCountLast(marks: List<MarkDao.MarkShortInfo>) {
         handleMarkWithoutParent(marks
                 .apply { forEach { it.hasCalculatedAverage = true } }
                 .maxBy { it.addTime }
                 ?: return, true)
     }
 
-    private fun handleParentCountEvery(marks: List<MarkDao.MarkAverageShortInfo>) {
+    private fun handleParentCountEvery(marks: List<MarkDao.MarkShortInfo>) {
         marks.forEach { handleMarkWithoutParent(it) }
     }
 
 
-    private inline fun List<MarkDao.MarkAverageShortInfo>.markEveryUsed()
-            : List<MarkDao.MarkAverageShortInfo> {
+    private inline fun List<MarkDao.MarkShortInfo>.markEveryUsed()
+            : List<MarkDao.MarkShortInfo> {
         forEach { it.hasCalculatedAverage = true }
         return this
     }
 
-    private inline fun List<MarkDao.MarkAverageShortInfo>.markEveryNotUsed()
-            : List<MarkDao.MarkAverageShortInfo> {
+    private inline fun List<MarkDao.MarkShortInfo>.markEveryNotUsed()
+            : List<MarkDao.MarkShortInfo> {
         forEach { it.hasCalculatedAverage = false }
         return this
     }

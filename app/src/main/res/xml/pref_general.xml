@@ -11,8 +11,14 @@
             android:entries="@array/refresh_frequency"
             android:entryValues="@array/refresh_frequency_values"
             android:key="refreshFrequency"
-            android:summary="Im więcej tym częściej otrzymasz powiadomienia"
+            android:summary="Im więcej tym częściej otrzymasz powiadomienia, nie ma znaczenia gdy powiadomienia serwerowe są włączone"
             android:title="Częstotliwość odświeżania" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="allowIN"
+            android:summary="Zezwala na optymalizację powiadomień przez dedykowany serwer"
+            android:title="Używaj serwera do synchronizacji powiadomień (zalecane)" />
 
         <SwitchPreferenceCompat
             android:key="runCountdownService"
@@ -75,9 +81,14 @@
         android:key="key_debug_options"
         android:title="Programistyczne">
         <android.support.v7.preference.Preference
-            android:key="key_open_github"
-            android:summary="Ten projekt jest w pełni OpenSource"
-            android:title="Otwórz github" />
+            android:key="key_show_fcm_token"
+            android:summary="Wyświetla token FCM (o ile istnieje)"
+            android:title="Pokaż token FCM" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_clear_averages"
+            android:summary="Usuwa pamięć podręczną średnich"
+            android:title="Przelicz średnie" />
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
@@ -96,11 +107,6 @@
             android:key="logEverySync"
             android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/jakubweg.mobishit/syncs/"
             android:title="Zapisuj ruch sieciowy" />
-
-        <android.support.v7.preference.Preference
-            android:key="key_copy_db"
-            android:summary="Kopiuje do schowka bazę danych (nie zawiera loginu ani hasła)"
-            android:title="Skopiuj bazę danych" />
 
         <android.support.v7.preference.EditTextPreference
             android:defaultValue="213769"

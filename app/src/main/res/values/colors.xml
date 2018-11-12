@@ -9,4 +9,5 @@
     <color name="widgetTextColorLight">#EEEEEE</color>
     <color name="countdownNotificationBg">#303F9F</color>
     <color name="separator_height">#AAA</color>
+    <color name="mark_tint">#4AAA</color>
 </resources>

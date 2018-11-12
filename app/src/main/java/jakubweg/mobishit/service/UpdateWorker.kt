@@ -13,7 +13,6 @@ import android.util.Log
 import androidx.work.*
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
-import jakubweg.mobishit.activity.SettingsActivity
 import jakubweg.mobishit.db.*
 import jakubweg.mobishit.db.AppDatabase.Companion.notifyUpdated
 import jakubweg.mobishit.helper.*
@@ -23,9 +22,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 
-//class UpdateWorker(context: Context, workerParameters: WorkerParameters)
-//    : Worker(context, workerParameters) {
-class UpdateWorker : Worker() {
+class UpdateWorker(context: Context, workerParameters: WorkerParameters)
+    : Worker(context, workerParameters) {
 
     companion object {
         const val UNIQUE_WORK_NAME = "updateMobireg"
@@ -82,6 +80,13 @@ class UpdateWorker : Worker() {
             val updateHelper = UpdateHelper(applicationContext)
 
             updateHelper.doUpdate()
+
+
+            if (updateHelper.isFirstTime
+                    || updateHelper.newMarks.isNotEmpty()
+                    || updateHelper.deletedMarks.isNotEmpty())
+                prefs.hasReadyAverageCache = false
+
 
             val db = AppDatabase.getAppDatabase(applicationContext)
 
@@ -149,7 +154,7 @@ class UpdateWorker : Worker() {
         dao.getMarkShortInfo(List(list.size) { list[it].id }).forEachIndexed { index, info ->
             val text = when {
                 info.abbreviation != null -> "$textPrefix ${info.abbreviation} za ${info.description}"
-                info.markPointsValue != null -> "$textPrefix ${info.markPointsValue} za ${info.description}"
+                info.markPointsValue >= 0f -> "$textPrefix ${info.markPointsValue} za ${info.description}"
                 else -> null
             }
             if (text != null) {
@@ -190,7 +195,7 @@ class UpdateWorker : Worker() {
     }
 
     private fun makeNotificationsForNewMessages(notificationHelper: NotificationHelper, dao: MessageDao, prefs: MobiregPreferences, messages: MutableList<MessageData>) {
-        val list = messages.filter { it.readTime > 0L }
+        val list = messages.filterNot { it.readTime > 0L }
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_MESSAGES))
             return
 
@@ -285,10 +290,10 @@ class UpdateWorker : Worker() {
             }
         }
 
-        val haveVerb = when (prefs.sex) {
-            "M" -> "miał"
-            "K" -> "miała"
-            else -> "miał(a)"
+        val haveEnding = when (prefs.sex) {
+            "M" -> ""
+            "K" -> "a"
+            else -> "(a)"
         }
 
         val ids = notificationHelper.getNotificationIds(otherLessons.size)
@@ -331,7 +336,7 @@ class UpdateWorker : Worker() {
                         val title = "Nowe zastępstwo w $dayName"
                         val shortContent = "Masz <b>$subjectName</b> z <b>$teacherName</b>".fromHtml()
 
-                        val bigContent = ("W <b>$dayName</b> na lekcji <b>$number</b> będziesz $haveVerb " +
+                        val bigContent = ("W <b>$dayName</b> na lekcji <b>$number</b> będziesz miał$haveEnding " +
                                 "<b>$subjectName</b> z <b>$teacherName</b> zamiast " +
                                 "<b>$previousSubject</b> z <b>$previousTeacher</b>").fromHtml()
 
@@ -402,7 +407,7 @@ class UpdateWorker : Worker() {
     private fun getWeekDayName(dayOfWeek: Int): String {
         return when (dayOfWeek) {
             Calendar.MONDAY -> "poniedziałek"
-            Calendar.TUESDAY -> "wtorek"
+            Calendar.TUESDAY -> "ten wtorek" //because w wtorek is wrong, it must be we wtorek
             Calendar.WEDNESDAY -> "środę"
             Calendar.THURSDAY -> "czwartek"
             Calendar.FRIDAY -> "piątek"
@@ -414,8 +419,8 @@ class UpdateWorker : Worker() {
 
     private fun postWrongPasswordNotification(notificationHelper: NotificationHelper, prefs: MobiregPreferences) {
         val contentIntent = PendingIntent.getActivity(applicationContext, 0,
-                Intent(applicationContext, SettingsActivity::class.java)
-                        .apply { action = SettingsActivity.ACTION_UPDATE_PASSWORD }, 0)
+                Intent(applicationContext, MainActivity::class.java)
+                        .apply { action = MainActivity.ACTION_UPDATE_PASSWORD }, 0)
 
         notificationHelper.postNotification(
                 NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_APP_STATE)

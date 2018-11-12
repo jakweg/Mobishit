@@ -97,7 +97,9 @@ class TimetableFragment : Fragment() {
     }
 
     private class DayViewPagerAdapter(private val days: Array<TimetableModel.Date>,
-                                      fm: FragmentManager) : FragmentStatePagerAdapter(fm) {
+                                      fm: FragmentManager)
+    //: FragmentPagerAdapter(fm) {
+        : FragmentStatePagerAdapter(fm) {
         override fun getCount() = days.size
 
         fun getIndexOfOrNext(time: Long): Int {
