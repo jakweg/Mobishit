@@ -9,8 +9,7 @@ class DedicatedServerManager(
         context: Context
 ) {
     companion object {
-        //private const val API_PROVIDER_LINK = "https://github.com/JakubwekWeg/Mobishit/"//TODO
-        private const val API_PROVIDER_LINK = "https://jakubwe.ga/mobishit/api.json"
+        private const val API_PROVIDER_LINK = "https://github.com/JakubekWeg/Mobishit/blob/master/app/release/api_provider.json?raw=true"
 
         private const val MAX_SYNC_DELAY_MILLIS = 12 * 60 * 60 * 1000L
 
