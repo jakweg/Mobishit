@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:padding="8dp">
+
+
+    <View
+        android:id="@+id/colorView"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        tools:background="#FF0000" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_weight="4.5"
+        tools:text="Nieobecność nieusprawiedliwiona" />
+
+
+    <TextView
+        android:id="@+id/textPresents"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_weight="1.5"
+        android:gravity="right"
+        android:maxLines="1"
+        tools:ignore="RtlHardcoded"
+        tools:text="371 (8%)" />
+</LinearLayout>

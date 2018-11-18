@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/subject_name"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="0px"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="4dp"
+        android:layout_weight="4"
+        android:gravity="center_vertical"
+        tools:ignore="RtlHardcoded"
+        tools:text="Podstawy przedsiębiorczości" />
+
+
+    <TextView
+        android:id="@+id/percent"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="0px"
+        android:layout_height="match_parent"
+        android:layout_marginRight="4dp"
+        android:layout_weight="1"
+        android:gravity="right|center_vertical"
+        tools:ignore="RtlHardcoded"
+        tools:text="50%" />
+</LinearLayout>

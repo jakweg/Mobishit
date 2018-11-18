@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="8dp"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="200dp"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/title"
+            style="@style/Base.TextAppearance.AppCompat.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:maxLines="1"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:autoSizeTextType="uniform"
+            tools:text="Statystyki dla Czerwiec 2018" />
+
+        <jakubweg.mobishit.view.AttendanceBarView
+            android:id="@+id/attendanceBar"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            tools:background="#060" />
+
+        <TextView
+            android:id="@+id/hintClickAttendanceType"
+            style="@style/Base.TextAppearance.AppCompat.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:drawablePadding="8dp"
+            android:padding="8dp"
+            android:text="Możesz dotknąć poszczególnego typu obecności, aby dowiedzieć się kiedy miał on miejsce."
+            android:visibility="gone"
+            tools:drawableLeft="@drawable/nav_info"
+            tools:drawableTint="?android:textColorPrimary"
+            tools:ignore="RtlHardcoded"
+            tools:visibility="visible" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/attendanceTypeList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            tools:listitem="@layout/attendance_type_list_item" />
+
+        <Button
+            android:id="@+id/btnSubjectStats"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Statystyki dla przedmiotów" />
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>

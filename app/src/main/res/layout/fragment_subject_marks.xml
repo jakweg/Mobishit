@@ -35,14 +35,15 @@
                 tools:ignore="UnusedAttribute"
                 tools:text="Edukacja dla bezpieczeństwa" />
 
-            <android.support.v7.widget.AppCompatImageButton
+            <ImageButton
                 android:id="@+id/btnViewOptions"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_alignParentRight="true"
                 android:background="?selectableItemBackgroundBorderless"
                 android:contentDescription="Opcję wyświetlania"
-                android:src="@drawable/ic_sort_with_white"
+                tools:src="@drawable/ic_sort_with_white"
+                tools:tint="#000"
                 tools:ignore="HardcodedText" />
 
         </RelativeLayout>

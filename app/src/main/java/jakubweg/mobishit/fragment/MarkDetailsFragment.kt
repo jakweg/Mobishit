@@ -1,6 +1,5 @@
 package jakubweg.mobishit.fragment
 
-import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -14,8 +13,10 @@ import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.ThemeHelper
+import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.model.MarkDetailsViewModel
 
+@Suppress("NOTHING_TO_INLINE")
 class MarkDetailsFragment : BottomSheetDialogFragment() {
     companion object {
         fun newInstance(markId: Int): MarkDetailsFragment {
@@ -33,22 +34,18 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
         show((activity as? DoublePanelActivity)?.supportFragmentManager, null)
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
             : View? = inflater.inflate(R.layout.mark_details_fragment, container, false)
 
-    @Suppress("NOTHING_TO_INLINE")
     private inline fun View.setText(id: Int, text: CharSequence) {
-        findViewById<TextView>(id)?.text = text
+        findViewById<TextView>(id)?.precomputedText = text
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline val Float.prettyMe: String
-        get() {
-            return String.format("%.1f", this)
-        }
 
-    @SuppressLint("SetTextI18n")
+    private inline val Float.prettyMe: String
+        get() = String.format("%.1f", this)
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val model = ViewModelProviders.of(this).get(MarkDetailsViewModel::class.java)
 

@@ -1,9 +1,27 @@
 package jakubweg.mobishit.helper
 
+import android.util.SparseArray
 import java.text.SimpleDateFormat
 import java.util.*
 
 object DateHelper {
+
+    val months = arrayOf(
+            "Styczeń", "Luty", "Marzec", "Kwiecień",
+            "Maj", "Czerwiec", "Lipiec", "Sierpień",
+            "Wrzesień", "Październik", "Listopad", "Grudzień")
+
+    val weekDaysMap by lazy {
+        SparseArray<String>(7).apply {
+            put(Calendar.MONDAY, "Poniedziałek")
+            put(Calendar.THURSDAY, "Wtorek")
+            put(Calendar.WEDNESDAY, "Środa")
+            put(Calendar.TUESDAY, "Czwartek")
+            put(Calendar.FRIDAY, "Piątek")
+            put(Calendar.SATURDAY, "Sobota")
+            put(Calendar.SUNDAY, "Niedziala")
+        }
+    }
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
 

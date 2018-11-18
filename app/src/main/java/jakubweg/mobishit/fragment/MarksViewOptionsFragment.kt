@@ -14,7 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Switch
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.helper.AverageCalculator
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.ThemeHelper
@@ -92,7 +92,7 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
             weakView.get()?.apply {
 
                 findViewById<AppCompatSpinner>(R.id.termSpinner)?.also { spinner ->
-                    val adapter = ArrayAdapter<MarkDao.TermIdAndName>(context!!,
+                    val adapter = ArrayAdapter<TermDao.TermShortInfo>(context!!,
                             android.R.layout.simple_spinner_item, terms)
                     adapter.setDropDownViewResource(
                             android.R.layout.simple_spinner_dropdown_item)

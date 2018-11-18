@@ -3,27 +3,22 @@ package jakubweg.mobishit.fragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.graphics.PorterDuff
-import android.graphics.drawable.Drawable
+import android.graphics.Color
 import android.os.Bundle
-import android.support.annotation.AttrRes
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
-import jakubweg.mobishit.helper.EmptyAdapter
-import jakubweg.mobishit.helper.MobiregPreferences
-import jakubweg.mobishit.helper.SnackbarController
+import jakubweg.mobishit.db.ComparisonCacheData
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.ComparisonsModel
 import java.lang.ref.WeakReference
 
@@ -42,12 +37,19 @@ class ComparisonsFragment : Fragment() {
                 , container, false)
     }
 
+
+    private var iconColor = Color.BLACK
     private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProviders.of(this)[ComparisonsModel::class.java]
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val context = this.context!!
+        iconColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
+
+        view.findViewById<TextView>(R.id.avg_person)!!.setLeftDrawable(R.drawable.ic_person, iconColor)
+        view.findViewById<TextView>(R.id.avg_class)!!.setLeftDrawable(R.drawable.ic_group, iconColor)
+        view.findViewById<TextView>(R.id.avg_school)!!.setLeftDrawable(R.drawable.ic_school, iconColor)
 
         view.findViewById<View>(R.id.btnAllowServer)?.setOnClickListener {
             (activity as MainActivity?)?.apply {
@@ -63,8 +65,8 @@ class ComparisonsFragment : Fragment() {
                     .setTitle("Jak to działa?")
                     .setMessage(
                             "Mobireg nie wysyła porównań bezpośrednio w API, więc nie możemy ich od tak tutaj wyświetlić.\n" +
-                                    "Dlatego stworzyliśmy specjalny serwer, który użyje Twojego konta, pobierze porównania i rankingi i wyśle je Tobie.\n" +
-                                    "Wszystkie dane są przesyłane bezpiecznym, szyfrowanym połączeniem")
+                                    "Dlatego stworzyliśmy specjalny serwer, który użyje Twojego konta, aby pobrać porównania oraz rankingi i wysłać je Tobie.\n" +
+                                    "Wszystkie dane są przesyłane bezpiecznym, szyfrowanym połączeniem.")
                     .setPositiveButton("Rozumiem", null)
                     .show()
         }
@@ -72,8 +74,8 @@ class ComparisonsFragment : Fragment() {
         loadingLayout?.setOnRefreshListener { retryRunnable.run() }
         mainList?.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
 
-        viewModel.status.observe(this, StatusObserver(this))
         viewModel.averages.observe(this, AveragesObserver(this))
+        viewModel.status.observe(this, StatusObserver(this))
     }
 
     private val loadingLayout get() = view?.findViewById<SwipeRefreshLayout?>(R.id.refreshLayout)
@@ -82,12 +84,19 @@ class ComparisonsFragment : Fragment() {
 
     private fun showSnackbar(request: SnackbarController.ShowRequest?) {
         request ?: return
+        request.cancel()
         (activity as? MainActivity?)?.snackbar?.also {
             it.cancelCurrentIfIndefinite()
         }?.show(request)
     }
 
+
     private fun onStatusChanged(newStatus: Int) {
+        if (newStatus == ComparisonsModel.STATUS_NONE) {
+            loadingLayout?.postDelayed({ viewModel.considerRefreshingData() }, 500L)
+            return
+        }
+
         if (newStatus == ComparisonsModel.STATUS_DOWNLOADING) {
             loadingLayout?.isRefreshing = true
             return
@@ -115,17 +124,24 @@ class ComparisonsFragment : Fragment() {
         showSnackbar(SnackbarController.ShowRequest(msg, 5000L))
     }
 
-    private fun onNewAverages(averages: List<ComparisonsModel.SubjectInfo>) {
+    override fun onDestroy() {
+        super.onDestroy()
+        currentSnackBarMessage?.cancel()
+    }
+
+    private fun onNewAverages(averages: List<ComparisonCacheData>) {
         mainList?.apply {
             adapter = if (averages.isEmpty())
                 EmptyAdapter("Nie znaleziono żadnych porównań")
             else
                 Adapter(context!!, averages)
+            startAnimation(AlphaAnimation(0f, 1f).also { it.duration = 300 })
         }
     }
 
+
     private class Adapter(context: Context,
-                          private val averages: List<ComparisonsModel.SubjectInfo>
+                          private val averages: List<ComparisonCacheData>
     ) : RecyclerView.Adapter<Adapter.ViewHolder>() {
 
         private val inflater = LayoutInflater.from(context)!!
@@ -138,29 +154,20 @@ class ComparisonsFragment : Fragment() {
 
         private val iconColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
 
-        private fun Context.themeAttributeToColor(@AttrRes attrColor: Int): Int {
-            val outValue = TypedValue()
-            val theme = this.theme
-            theme.resolveAttribute(
-                    attrColor, outValue, true)
-
-            return ContextCompat.getColor(this, outValue.resourceId)
-        }
-
 
         override fun onBindViewHolder(holder: ViewHolder, pos: Int) {
             val item = averages[pos]
             holder.apply {
-                subjectName.text = item.subjectName
-                avgPerson.text = item.averageStudent
+                subjectName.precomputedText = item.subjectName
+                avgPerson.precomputedText = item.averageStudent
 
-                avgClass.text = when {
+                avgClass.precomputedText = when {
                     item.positionInClass != null -> item.averageClass + "\n" + item.positionInClass
                     item.classImg != null -> item.averageClass + "\n" + item.classImg
                     else -> item.averageClass
                 }
 
-                avgSchool.text = when {
+                avgSchool.precomputedText = when {
                     item.positionInSchool != null -> item.averageSchool + "\n" + item.positionInSchool
                     item.schoolImg != null -> item.averageSchool + "\n" + item.schoolImg
                     else -> item.averageSchool
@@ -169,7 +176,7 @@ class ComparisonsFragment : Fragment() {
         }
 
 
-        private class ViewHolder(v: View, private val iconColor: Int) : RecyclerView.ViewHolder(v) {
+        private class ViewHolder(v: View, iconColor: Int) : RecyclerView.ViewHolder(v) {
             val subjectName = v.findViewById<TextView>(R.id.subject_name)!!
             val avgPerson = v.findViewById<TextView>(R.id.avg_person)!!
             val avgClass = v.findViewById<TextView>(R.id.avg_class)!!
@@ -177,31 +184,19 @@ class ComparisonsFragment : Fragment() {
 
             init {
                 run {
-                    setTextViewDrawableTint(avgPerson, R.drawable.ic_person)
-                    setTextViewDrawableTint(avgClass, R.drawable.ic_group)
-                    setTextViewDrawableTint(avgSchool, R.drawable.ic_school)
+                    avgPerson.setTopDrawable(R.drawable.ic_person, iconColor)
+                    avgClass.setTopDrawable(R.drawable.ic_group, iconColor)
+                    avgSchool.setTopDrawable(R.drawable.ic_school, iconColor)
                 }
             }
 
-            private fun setTextViewDrawableTint(textView: TextView, iconId: Int) {
-                textView.setCompoundDrawablesWithIntrinsicBounds(null,
-                        tintDrawable(ContextCompat.getDrawable(textView.context, iconId)!!, iconColor),
-                        null, null)
-            }
-
-            private fun tintDrawable(drawable: Drawable, tint: Int): Drawable {
-                return DrawableCompat.wrap(drawable).apply {
-                    DrawableCompat.setTint(this, tint)
-                    DrawableCompat.setTintMode(this, PorterDuff.Mode.SRC_ATOP)
-                }
-            }
         }
     }
 
 
     private val retryRunnable = Runnable {
         loadingLayout?.isRefreshing = true
-        viewModel.tryAgain()
+        viewModel.refreshDataFromInternet()
     }
 
     private class StatusObserver(f: ComparisonsFragment)
@@ -213,9 +208,9 @@ class ComparisonsFragment : Fragment() {
     }
 
     private class AveragesObserver(f: ComparisonsFragment)
-        : Observer<List<ComparisonsModel.SubjectInfo>> {
+        : Observer<List<ComparisonCacheData>> {
         val weakRef = WeakReference<ComparisonsFragment>(f)
-        override fun onChanged(t: List<ComparisonsModel.SubjectInfo>?) {
+        override fun onChanged(t: List<ComparisonCacheData>?) {
             weakRef.get()?.onNewAverages(t ?: return)
         }
     }

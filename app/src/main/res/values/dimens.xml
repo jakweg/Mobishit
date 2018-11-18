@@ -2,7 +2,7 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="nav_header_vertical_spacing">8dp</dimen>
-    <dimen name="nav_header_height">176dp</dimen>
+    <dimen name="nav_header_height">146dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="text_margin">16dp</dimen>
     <dimen name="terms_item_padding">10dp</dimen>
@@ -18,4 +18,5 @@
     <dimen name="mark_details_element_vertical_margin">8dp</dimen>
     <dimen name="mark_details_element_right_margin">16dp</dimen>
     <dimen name="comparison_img_size">24dp</dimen>
+    <dimen name="attendance_bar_corners">8dp</dimen>
 </resources>

@@ -125,6 +125,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     .putBoolean("success", false)
                     .build()
             Result.FAILURE
+        } finally {
+            System.gc()
         }
     }
 
@@ -440,7 +442,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
 
     private fun getKotlinExceptionMessage(e: Exception)
-            : String = e.stackTrace.last { it.fileName.endsWith(".kt") }
+            : String = e.stackTrace.last { it?.fileName?.endsWith(".kt") == true }
             ?.run { "${e.message}: $fileName ($lineNumber)" } ?: "unknown file"
 
     private fun makeErrorNotification(message: String) = NotificationCompat.Builder(applicationContext,

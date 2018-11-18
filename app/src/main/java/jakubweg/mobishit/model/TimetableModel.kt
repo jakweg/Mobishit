@@ -3,6 +3,7 @@ package jakubweg.mobishit.model
 import android.app.Application
 import android.arch.lifecycle.MutableLiveData
 import jakubweg.mobishit.db.AppDatabase
+import jakubweg.mobishit.fragment.TimetableFragment
 import jakubweg.mobishit.helper.DateHelper
 import java.util.*
 
@@ -22,19 +23,25 @@ class TimetableModel(application: Application)
             //350
             val dao = AppDatabase.getAppDatabase(context).eventDao
 
-            val calc = Calendar.getInstance()
-
-            val millis = if (calc.get(Calendar.HOUR_OF_DAY) > 16) (calc.timeInMillis + 24 * 60 * 60 * 1000L)
-            else calc.timeInMillis
-
             val days = dao.getDaysWithEventsAsMillis()
 
-            val index = days.indexOfFirst { it > millis } - 1
-            currentSelectedDayIndex = if (index < 0) 0 else index
+            if (TimetableFragment.requestedDate == 0) {
+                val calc = Calendar.getInstance()!!
+                val millis = if (calc.get(Calendar.HOUR_OF_DAY) > 16) (calc.timeInMillis + 24 * 60 * 60 * 1000L)
+                else calc.timeInMillis
 
-            val cal = Calendar.getInstance()
+                val index = days.indexOfFirst { it > millis } - 1
+                currentSelectedDayIndex = if (index < 0) 0 else index
+            } else {
+                val millis = TimetableFragment.requestedDate.toLong().times(1000L)
+                val index = days.indexOfFirst { it > millis } - 1
+                currentSelectedDayIndex = if (index < 0) 0 else index
+                TimetableFragment.requestedDate = 0
+            }
+
+            val cal = Calendar.getInstance()!!
             val iterator = days.iterator()
-            return@doAtLeast Array(days.size) { _ ->
+            return@doAtLeast Array(days.size) {
                 cal.timeInMillis = iterator.next()
                 return@Array TimetableModel.Date(cal.timeInMillis,
                         "${DateHelper.millisToStringDate(cal.timeInMillis)}\n${getWeekdayName(cal.get(Calendar.DAY_OF_WEEK))}")

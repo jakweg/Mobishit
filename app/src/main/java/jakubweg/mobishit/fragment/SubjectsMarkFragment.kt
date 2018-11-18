@@ -9,12 +9,12 @@ import android.support.annotation.IntRange
 import android.support.transition.TransitionInflater
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewCompat
-import android.support.v7.widget.AppCompatImageButton
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
+import android.widget.ImageButton
 import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
@@ -52,8 +52,9 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     private val viewModel by lazy { ViewModelProviders.of(this)[SubjectsMarkModel::class.java] }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (ThemeHelper.isLightThemeSet(context!!))
-            view.findViewById<AppCompatImageButton>(R.id.btnViewOptions)?.setImageResource(R.drawable.ic_sort_with_black)
+        view.findViewById<ImageButton>(R.id.btnViewOptions)?.setImageResource(
+                if (ThemeHelper.isLightThemeSet(context!!)) R.drawable.ic_sort_with_black
+                else R.drawable.ic_sort_with_white)
 
         val (subjectId, subjectName, transitionName) =
                 arguments!!.run {

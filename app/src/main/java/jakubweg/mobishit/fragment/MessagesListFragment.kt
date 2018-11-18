@@ -15,12 +15,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MessageDao
 import jakubweg.mobishit.helper.DateHelper
 import jakubweg.mobishit.helper.EmptyAdapter
+import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.model.MessagesListModel
 import java.lang.ref.WeakReference
 
@@ -65,6 +67,8 @@ class MessagesListFragment : Fragment() {
         override fun onChanged(messages: List<MessageDao.MessageShortInfo>?) {
             messages ?: return
             messagesList.get()?.apply {
+                startAnimation(AlphaAnimation(0f, 1f).also { it.duration = 300 })
+
                 adapter = if (messages.isEmpty())
                     EmptyAdapter("Brak wiadomości")
                 else
@@ -90,8 +94,8 @@ class MessagesListFragment : Fragment() {
         @SuppressLint("SetTextI18n")
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also {
-                holder.messageTitle.text = makeMessageTitle(it)
-                holder.messageInfo.text = "${it.sender} \u2022 ${DateHelper.millisToStringTime(it.sendTime)}"
+                holder.messageTitle.precomputedText = makeMessageTitle(it)
+                holder.messageInfo.precomputedText = "${it.sender} \u2022 ${DateHelper.millisToStringTime(it.sendTime)}"
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                     holder.messageTitle.transitionName = "me$position"
                 holder.colorView.setBackgroundColor(when (it.kind) {

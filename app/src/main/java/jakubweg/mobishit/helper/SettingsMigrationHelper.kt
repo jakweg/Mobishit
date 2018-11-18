@@ -7,7 +7,7 @@ import jakubweg.mobishit.service.UpdateWorker
 
 @Suppress("NOTHING_TO_INLINE")
 object SettingsMigrationHelper {
-    private const val CURRENT_APP_SETTINGS_VERSION = 3
+    private const val CURRENT_APP_SETTINGS_VERSION = 4
 
     fun onSettingsLoaded(prefs: SharedPreferences?,
                          context: Context) {
@@ -16,10 +16,8 @@ object SettingsMigrationHelper {
         if (version != CURRENT_APP_SETTINGS_VERSION
                 && prefs.contains("version")) {
             prefs.edit().putInt("version", CURRENT_APP_SETTINGS_VERSION).apply()
-            when (version) {
-                0 -> update1to2(prefs, context)
-                2 -> update2to3(prefs, context)
-            }
+
+            deleteDatabaseAndRequestNew(prefs, context)
         }
     }
 
@@ -32,14 +30,8 @@ object SettingsMigrationHelper {
                 .remove("lastCheck")
                 .remove("lmt")
                 .apply()
-        UpdateWorker.requestUpdates(context)
-    }
 
-    private inline fun update1to2(pref: SharedPreferences, context: Context) {
-        deleteDatabaseAndRequestNew(pref, context)
-    }
-
-    private inline fun update2to3(pref: SharedPreferences, context: Context) {
-        deleteDatabaseAndRequestNew(pref, context)
+        if (pref.getBoolean("isSignedIn", false))
+            UpdateWorker.requestUpdates(context)
     }
 }

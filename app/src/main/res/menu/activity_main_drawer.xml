@@ -18,6 +18,10 @@
             android:icon="@drawable/nav_assignment_late"
             android:title="Sprawdziany" />
         <item
+            android:id="@+id/nav_attendances"
+            android:icon="@drawable/ic_beenhere"
+            android:title="Obecności" />
+        <item
             android:id="@+id/nav_comparisons"
             android:icon="@drawable/ic_nav_comparisons"
             android:title="Porównania" />

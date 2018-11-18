@@ -10,6 +10,7 @@ import androidx.work.*
 import com.google.gson.JsonParser
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.db.asStringOrNull
 import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.NotificationHelper
 import org.jsoup.Jsoup
@@ -55,8 +56,9 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
             val newName = obj.get("VERSION_NAME")!!.asString!!
             val urlDoDownload = obj.get("URL")!!.asString!!
             val whatIsNew = obj.get("WHATS_NEW")?.asString?.replace("\\n", "\n")
+            val doNotNotify = obj.get("DONT_NOTIFY")?.asStringOrNull == "true"
 
-            if (newCode > BuildConfig.VERSION_CODE)
+            if (newCode > BuildConfig.VERSION_CODE && !doNotNotify)
                 postNotificationAboutNewVersion(newName, urlDoDownload, whatIsNew)
 
             Result.SUCCESS

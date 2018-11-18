@@ -21,6 +21,13 @@ class TimetableFragment : Fragment() {
 
     companion object {
         fun newInstance() = TimetableFragment()
+
+        private var mRequestedDate = 0L
+        var requestedDate
+            get() = mRequestedDate.div(1000L).toInt()
+            set(value) {
+                mRequestedDate = value.toLong().times(1000L)
+            }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

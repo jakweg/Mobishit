@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
@@ -20,6 +21,7 @@ import jakubweg.mobishit.db.TestData
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SnackbarController
+import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.model.TestsModel
 import java.lang.ref.WeakReference
 
@@ -108,9 +110,11 @@ class TestsFragment : Fragment() {
     }
 
     private fun onTestsChanged(newTests: List<TestData>) {
-        testsList?.adapter =
-                if (newTests.isEmpty()) EmptyAdapter("Nic tu nie ma")
-                else TestsAdapter(activity as MainActivity, newTests, model.firstInPastIndex)
+        testsList?.apply {
+            adapter = if (newTests.isEmpty()) EmptyAdapter("Nic tu nie ma")
+            else TestsAdapter(activity as MainActivity, newTests, model.firstInPastIndex)
+            startAnimation(AlphaAnimation(0f, 1f).also { it.duration = 300 })
+        }
     }
 
     private val startRefreshingRunnable = Runnable {
@@ -181,9 +185,9 @@ class TestsFragment : Fragment() {
             else if (holder.itemView.alpha != 1f)
                 holder.itemView.alpha = 1f
 
-            holder.date!!.text = item.date
-            holder.title!!.text = item.description
-            holder.secondaryInfo!!.text = "${item.subject} \u2022 ${item.teacher}"
+            holder.date!!.precomputedText = item.date
+            holder.title!!.precomputedText = item.description
+            holder.secondaryInfo!!.precomputedText = "${item.subject} \u2022 ${item.teacher}"
         }
 
         private class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {

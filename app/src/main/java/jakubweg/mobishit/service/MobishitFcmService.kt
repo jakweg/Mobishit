@@ -9,6 +9,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
 import java.net.URLEncoder
@@ -39,9 +40,12 @@ class MobishitFcmService : FirebaseMessagingService() {
         private const val EXTRA_CONTENT = "n_content"
         private const val EXTRA_SUB_TEXT = "n_sub"
         private const val EXTRA_FORMAT_TEXT = "n_fill_frags"
-        private const val EXTRA_URI_ON_CLICK = "n_onclick"
+        private const val EXTRA_ACTION_ON_CLICK = "n_onclick"
         private const val EXTRA_NOTIFY_WITH_SOUND = "n_sound"
         private const val EXTRA_NOTIFICATION_CHANNEL = "n_channel"
+
+        private const val BEGIN_URL = "url:"
+        private const val BEGIN_MAIN_ACTIVITY = "main_act:"
 
         private const val LINK_FRAG_NAME = "%name%"
         private const val LINK_FRAG_SURNAME = "%surname%"
@@ -118,7 +122,8 @@ class MobishitFcmService : FirebaseMessagingService() {
         val content = fillStringWithFragmentsIf(fillFragments, body[EXTRA_CONTENT].takeUnless { it.isNullOrBlank() })
         val subText = fillStringWithFragmentsIf(fillFragments, body[EXTRA_SUB_TEXT].takeUnless { it.isNullOrBlank() })
 
-        val uriOnClicked = fillStringWithFragments(body[EXTRA_URI_ON_CLICK], true).takeUnless { it.isNullOrBlank() }
+        //val uriOnClicked = fillStringWithFragments(body[EXTRA_URI_ON_CLICK], true).takeUnless { it.isNullOrBlank() }
+        val onClickAction = body[EXTRA_ACTION_ON_CLICK]?.takeUnless { it.isBlank() }
 
         val defaults = if (body[EXTRA_NOTIFY_WITH_SOUND] == TRUE)
             NotificationCompat.DEFAULT_ALL else 0
@@ -130,15 +135,7 @@ class MobishitFcmService : FirebaseMessagingService() {
             return
         }
 
-        val contentIntent = if (uriOnClicked != null) {
-            try {
-                PendingIntent.getActivity(applicationContext, uriOnClicked.hashCode(),
-                        Intent(Intent.ACTION_VIEW, Uri.parse(uriOnClicked)), PendingIntent.FLAG_UPDATE_CURRENT)
-            } catch (e: Exception) {
-                postErrorNotification("Can't create pending intent: ${e.localizedMessage}")
-                null
-            }
-        } else null
+        val contentIntent = getOnClickIntent(onClickAction)
 
 
         val context = applicationContext ?: return
@@ -160,6 +157,47 @@ class MobishitFcmService : FirebaseMessagingService() {
                     .setDefaults(defaults)
 
             postNotification(notification)
+        }
+    }
+
+    private fun getOnClickIntent(onClickAction: String?): PendingIntent? {
+        onClickAction ?: return null
+
+        // we have to provide support for previous versions, so
+
+        if (onClickAction.startsWith("http"))
+            return getOpenLinkIntent(onClickAction)
+
+        // now we can check by new standard
+
+        return when {
+            onClickAction.startsWith(BEGIN_URL) -> getOpenLinkIntent(onClickAction.substring(BEGIN_URL.length))
+            onClickAction.startsWith(BEGIN_MAIN_ACTIVITY) -> getOpenMainActivityIntent(onClickAction.substring(BEGIN_MAIN_ACTIVITY.length))
+            else -> {
+                postErrorNotification("Unknown beginning of onClickAction '$onClickAction'")
+                null
+            }
+        }
+    }
+
+    private fun getOpenLinkIntent(uriOnClicked: String): PendingIntent? {
+        return try {
+            PendingIntent.getActivity(applicationContext, uriOnClicked.hashCode(),
+                    Intent(Intent.ACTION_VIEW, Uri.parse(fillStringWithFragments(uriOnClicked, false))), PendingIntent.FLAG_UPDATE_CURRENT)
+        } catch (e: Exception) {
+            postErrorNotification("Can't create pending intent: ${e.localizedMessage}")
+            null
+        }
+    }
+
+    private fun getOpenMainActivityIntent(action: String): PendingIntent? {
+        return try {
+            PendingIntent.getActivity(this, action.hashCode(), Intent(this, MainActivity::class.java).also {
+                it.action = action
+            }, PendingIntent.FLAG_UPDATE_CURRENT)
+        } catch (e: Exception) {
+            postErrorNotification("Can't create pending intent: ${e.localizedMessage}")
+            null
         }
     }
 

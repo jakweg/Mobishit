@@ -46,6 +46,7 @@ class MainActivity : DoublePanelActivity() {
         const val ACTION_SHOW_TIMETABLE = "showTimetable"
         const val ACTION_SHOW_PREFERENCES = "showPreferences"
         const val ACTION_SHOW_COMPARISONS = "showComparisons"
+        const val ACTION_SHOW_ATTENDANCE_STATS = "showAttendances"
         const val ACTION_UPDATE_PASSWORD = "upPass"
         const val ACTION_ABOUT_APP = "about"
 
@@ -156,11 +157,13 @@ class MainActivity : DoublePanelActivity() {
         navigationView.getHeaderViewById<TextView>(R.id.userNameText).text = fullName
 
         navigationView.getHeaderViewById<TextView>(R.id.textMotto)
-                .text = buildString(100) {
-            append("Mobireg – dziennik tak ")
-            append(MobiregAdjectiveManager.getRandom())
-            append(" jak twoje oceny")
-        }
+                .text = if (preferences.sex != "M")
+            "Mobireg – dziennik tak świetny jak twoje oceny" else
+            buildString(100) {
+                append("Mobireg – dziennik tak ")
+                append(MobiregAdjectiveManager.getRandom())
+                append(" jak twoje oceny")
+            }
     }
 
     override fun onBackPressed() {
@@ -176,6 +179,7 @@ class MainActivity : DoublePanelActivity() {
             R.id.nav_marks -> SubjectListFragment.newInstance()
             R.id.nav_timetable -> TimetableFragment.newInstance()
             R.id.nav_tests -> TestsFragment.newInstance()
+            R.id.nav_attendances -> AttendancesSummaryFragment.newInstance()
             R.id.nav_comparisons -> ComparisonsFragment.newInstance()
             R.id.nav_messages -> MessagesListFragment.newInstance()
             R.id.nav_about -> AboutFragment.newInstance()
@@ -227,7 +231,7 @@ class MainActivity : DoublePanelActivity() {
 
     private fun onRefreshStateChanged(status: WorkInfo) {
         when (status.state) {
-            WorkInfo.State.RUNNING -> showIndefiniteSnackbar("Ładowanie danych…")
+            WorkInfo.State.RUNNING -> showIndefiniteSnackbar("Trwa synchronizacja…")
             WorkInfo.State.ENQUEUED -> snackbar.cancelCurrentIfIndefinite()
             else -> Unit
         }
@@ -264,6 +268,7 @@ class MainActivity : DoublePanelActivity() {
                 item.subMenu?.forEachMenuItem(func)
         }
     }
+
     private var handledDefaultIntent = false
     override fun onNewIntent(intent: Intent?) {
         setIntent(intent)
@@ -272,6 +277,7 @@ class MainActivity : DoublePanelActivity() {
             when (intent.action ?: "") {
                 "", Intent.ACTION_MAIN -> handleDefaultFragment()
                 ACTION_SHOW_TIMETABLE -> {
+                    if (id != 0) TimetableFragment.requestedDate = id
                     switchNavigationTo(R.id.nav_timetable)
                 }
                 ACTION_SHOW_MARK -> {
@@ -284,6 +290,9 @@ class MainActivity : DoublePanelActivity() {
                 ACTION_SHOW_MESSAGE -> {
                     switchNavigationTo(R.id.nav_messages)
                     MessageDetailsFragment.newInstance(id).showSelf(this)
+                }
+                ACTION_SHOW_ATTENDANCE_STATS -> {
+                    switchNavigationTo(R.id.nav_attendances)
                 }
                 ACTION_REFRESH_NOW -> {
                     requestUpdatesNow()
@@ -340,6 +349,7 @@ class MainActivity : DoublePanelActivity() {
             R.id.nav_messages -> "Wiadomości i uwagi"
             R.id.nav_timetable -> "Plan lekcji"
             R.id.nav_comparisons -> "Porównania"
+            R.id.nav_attendances -> "Obecności"
             R.id.nav_tests -> "Sprawdziany"
             R.id.nav_about -> "O aplikacji"
             R.id.nav_settings -> "Ustawienia"
@@ -349,7 +359,8 @@ class MainActivity : DoublePanelActivity() {
 
     private fun handleNavigationItemSelection(itemId: Int) {
         when (itemId) {
-            R.id.nav_marks, R.id.nav_messages, R.id.nav_timetable, R.id.nav_comparisons, R.id.nav_about, R.id.nav_settings, R.id.nav_tests -> {
+            R.id.nav_marks, R.id.nav_messages, R.id.nav_timetable, R.id.nav_comparisons,
+            R.id.nav_about, R.id.nav_attendances, R.id.nav_settings, R.id.nav_tests -> {
                 currentSelectedNavigationItemId = itemId
                 requestNewMainFragment()
             }
@@ -367,11 +378,13 @@ class MainActivity : DoublePanelActivity() {
 
         override fun onNavigationItemSelected(item: MenuItem): Boolean {
             return activity.get()?.run {
-                navigationView.menu
-                        ?.forEachMenuItem(MenuItem.OnMenuItemClickListener {
-                            it.isChecked = it.itemId == item.itemId
-                            false
-                        })
+
+                if (item.isCheckable)
+                    navigationView.menu?.forEachMenuItem(MenuItem.OnMenuItemClickListener {
+                        it.isChecked = it.itemId == item.itemId
+                        false
+                    })
+
 
                 adjustToSelectedNavItem(item.itemId)
 

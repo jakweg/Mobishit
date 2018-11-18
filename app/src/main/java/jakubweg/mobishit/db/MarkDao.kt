@@ -16,19 +16,6 @@ interface MarkDao {
     }
 
 
-    class TermIdAndType(val id: Int, val type: String)
-
-    @Query("""SELECT id, type FROM Terms ORDER BY type""")
-    fun getTermsAndTypes(): List<TermIdAndType>
-
-    class TermIdAndName(val id: Int, val name: String) {
-        override fun toString() = name
-    }
-
-    @Query("SELECT id, name FROM Terms ORDER BY type")
-    fun getTermsAndNames(): List<TermIdAndName>
-
-
     class SubjectShortInfo(val id: Int, val name: String)
 
     @Query("""SELECT Subjects.id, Subjects.name FROM Marks
@@ -42,7 +29,7 @@ interface MarkDao {
 
     // this is used by average calculations
     class MarkShortInfo(val id: Int, val description: String, val abbreviation: String?, val parentType: Int?,
-                        val parentId: Int, val markGroupId: Int, val defaultWeight: Float, val noCountToAverage: Boolean?,
+                        val parentId: Int, val markGroupId: Int, val weight: Float, val noCountToAverage: Boolean?,
                         val markPointsValue: Float, val countPointsWithoutBase: Boolean?, val markValueMax: Float,
                         val addTime: Long, val termId: Int, val markScaleValue: Float) {
         val parentIdOrSelf: Int get() = if (parentId < 0) markGroupId else parentId
@@ -54,7 +41,7 @@ interface MarkDao {
 
     @Query("""SELECT
                         Marks.id, MarkGroups.description, MarkScales.abbreviation, IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
-                        IFNULL(MarkKinds.defaultWeight, -1) as 'defaultWeight', MarkScales.noCountToAverage, IFNULL(Marks.markValue, -1) AS 'markPointsValue',
+                        IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage, IFNULL(Marks.markValue, -1) AS 'markPointsValue',
                         MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax', Terms.id AS 'termId',
                         parentType, IFNULL(MarkGroups.parentId, -1) as 'parentId', MarkGroups.id AS markGroupId, addTime
                     FROM Marks
@@ -81,7 +68,7 @@ INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
 INNER JOIN EventTypeTerms ON EventTypeTerms.id = MarkGroups.eventTypeTermId
 INNER JOIN EventTypes ON EventTypes.id = EventTypeTerms.eventTypeId
 INNER JOIN Subjects ON Subjects.id = EventTypes.subjectId
-WHERE Marks.id IN (:markIds)""")
+WHERE Marks.id IN (:markIds) AND visibility = 0""")
     fun getMarkShortInfo(markIds: List<Int>): List<MarkShortInfoWithSubject>
 
 
@@ -122,7 +109,7 @@ INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
 INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
 INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
-WHERE Marks.id = :id LIMIT 1""")
+WHERE Marks.id = :id AND visibility = 0 LIMIT 1""")
     fun getDeletedMarkInfo(id: Int): DeletedMarkData
 
 

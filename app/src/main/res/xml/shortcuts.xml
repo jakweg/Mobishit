@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <shortcut
         android:enabled="true"
-        android:icon="@drawable/nav_log_out"
+        android:icon="@drawable/nav_timetable"
         android:shortcutDisabledMessage="@string/timetable"
         android:shortcutId="timetable"
         android:shortcutLongLabel="@string/timetable"

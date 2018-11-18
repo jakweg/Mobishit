@@ -3,6 +3,7 @@ package jakubweg.mobishit.db
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
+import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 
 
@@ -40,7 +41,7 @@ class MarkKind(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, v
 class MarkGroupGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val position: Int)
 
 @Entity(tableName = "MarkGroups")
-class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, val visibility: Int?)
+class MarkGroup(@PrimaryKey(autoGenerate = true) val id: Int, val markKindId: Int, val weight: Float?, val markScaleGroupId: Int?, val eventTypeTermId: Int, val abbreviation: String, val description: String, val markType: Int, val position: Int, val countPointsWithoutBase: Boolean, val markValueMin: Int?, val markValueMax: Int?, val parentId: Int?, val parentType: Int?, val visibility: Int?)
 
 @Entity(tableName = "EventTypes")
 class EventType(@PrimaryKey(autoGenerate = true) val id: Int, val subjectId: Int?)
@@ -156,5 +157,27 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
     @Ignore
     private var _shortAverageText: String? = null
     val shortAverageText get() = _shortAverageText ?: buildShortAverageText()
+}
 
+
+@Entity(tableName = "ComparisonCaches")
+class ComparisonCacheData(@PrimaryKey(autoGenerate = true) val id: Int,
+                          val subjectName: String, val averageStudent: String,
+                          val averageClass: String, val averageSchool: String,
+                          val positionInClass: String?, val maxPositionInClass: String?,
+                          val positionInSchool: String?, val maxPositionInSchool: String?,
+                          val classImg: String?, val schoolImg: String?) {
+    constructor(jo: JsonObject) : this(
+            0,
+            jo["subject"]!!.asString!!,
+            jo["avg_person"]!!.asString!!,
+            jo["avg_class"]!!.asString!!,
+            jo["avg_school"]!!.asString!!,
+            jo["pos_class"].asStringOrNull,
+            jo["max_class"].asStringOrNull,
+            jo["pos_school"].asStringOrNull,
+            jo["max_school"].asStringOrNull,
+            jo["img_class"].asStringOrNull,
+            jo["img_school"].asStringOrNull
+    )
 }

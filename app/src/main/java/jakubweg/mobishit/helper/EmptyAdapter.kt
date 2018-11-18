@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import jakubweg.mobishit.R
 
 class EmptyAdapter constructor(private val text: CharSequence) : RecyclerView.Adapter<EmptyAdapter.ViewHolder>() {
 
@@ -13,6 +14,8 @@ class EmptyAdapter constructor(private val text: CharSequence) : RecyclerView.Ad
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             gravity = Gravity.CENTER
             this.text = this@EmptyAdapter.text
+            val padding = parent.context!!.resources.getDimensionPixelSize(R.dimen.snackbarLayoutPadding)
+            setPadding(padding, padding, padding, padding)
             textSize = 18f //sp
         })
     }
@@ -21,7 +24,5 @@ class EmptyAdapter constructor(private val text: CharSequence) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = Unit
 
-
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
-
 }

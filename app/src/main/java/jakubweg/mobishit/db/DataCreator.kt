@@ -292,6 +292,7 @@ class DataCreator {
             var markKindId = 0
             var markScaleGroupId: Int? = null
             var eventTypeTermId = 0
+            var weight: Float? = null
             var abbreviation = ""
             var description = ""
             var markType = 0
@@ -311,6 +312,7 @@ class DataCreator {
                     "mark_kinds_id" -> markKindId = jr.nextInt()
                     "mark_scale_groups_id" -> markScaleGroupId = jr.nextIntOrNull()
                     "event_type_terms_id" -> eventTypeTermId = jr.nextInt()
+                    "weight" -> weight = jr.nextFloatOrNull()
                     "abbreviation" -> abbreviation = jr.nextString()!!
                     "description" -> description = jr.nextString()!!
                     "mark_type" -> markType = jr.nextInt()
@@ -325,7 +327,7 @@ class DataCreator {
                 }
             }
 
-            return MarkGroup(id, markKindId, markScaleGroupId, eventTypeTermId, abbreviation,
+            return MarkGroup(id, markKindId, weight, markScaleGroupId, eventTypeTermId, abbreviation,
                     description, markType, position, countPointsWithoutBase, markValueMin, markValueMax,
                     parentId, parentType, visibility).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)

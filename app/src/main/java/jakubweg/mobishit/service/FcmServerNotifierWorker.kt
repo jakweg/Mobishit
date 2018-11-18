@@ -108,6 +108,7 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
                 addProperty("host", prefs.host)
                 addProperty("studentId", prefs.studentId.toString())
             }
+            addProperty("version", BuildConfig.VERSION_CODE)
         }.toString()
 
         return "$fcmLink?token=${URLEncoder.encode(encodeBase64(request), "UTF-8")}"

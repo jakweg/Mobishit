@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.util.Base64
 import com.google.gson.JsonParser
 import com.google.gson.stream.MalformedJsonException
+import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.TestData
 import jakubweg.mobishit.helper.DateHelper
@@ -38,9 +39,9 @@ class TestsModel(application: Application)
             if (!prefs.allowedInstantNotifications)
                 return STATUS_ERROR_NOT_ALLOWED
 
-            val connected = (context.getSystemService(Context.CONNECTIVITY_SERVICE)
-                    as? ConnectivityManager?)
-                    ?.activeNetworkInfo?.isConnected ?: false
+            val connected = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)
+                    ?.activeNetworkInfo?.isConnected == true
+
             if (!connected)
                 return STATUS_ERROR_CONNECTION_ERROR
 
@@ -105,7 +106,8 @@ class TestsModel(application: Application)
                 "&p=" + URLEncoder.encode(Base64.encodeToString(prefs.password?.toByteArray(), Base64.DEFAULT), "UTF-8") +
                 // we add this because of multiuser accounts need them
                 "&n=" + URLEncoder.encode(Base64.encodeToString(prefs.name.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                "&s=" + URLEncoder.encode(Base64.encodeToString(prefs.surname.toByteArray(), Base64.DEFAULT), "UTF-8")
+                "&s=" + URLEncoder.encode(Base64.encodeToString(prefs.surname.toByteArray(), Base64.DEFAULT), "UTF-8") +
+                "&v=" + URLEncoder.encode(Base64.encodeToString(BuildConfig.VERSION_CODE.toString().toByteArray(), Base64.DEFAULT), "UTF-8")
     }
 
     private var mStatus = MutableLiveData<Int>().apply { value = STATUS_UNKNOWN }

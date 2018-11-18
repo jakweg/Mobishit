@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/title"
+    style="@style/Base.TextAppearance.AppCompat.Body1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:paddingLeft="20dp"
+    android:paddingTop="4dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="4dp"
+    tools:ignore="RtlHardcoded"
+    tools:text="Lekcja 1 \u2022 J.polski \u2022 nieobecność" />

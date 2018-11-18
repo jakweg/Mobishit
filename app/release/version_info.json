@@ -1,7 +1,7 @@
 {
-  "_comment": "TEN PLIK JEST SŁUŻY JUŻ DO AKTUALIZOWANIA APLIKACJI, OD WERSJI 6 JEST DEPRECATED",
+  "_comment": "TEN NIE SŁUŻY JUŻ DO AKTUALIZOWANIA APLIKACJI, OD WERSJI 6 JEST PRZESTARZAŁY A JEGO FUNKCJE PRZEJĄŁ INNY PLIK",
   "VERSION_CODE": 5,
   "VERSION_NAME": "1.1.2",
-  "URL": "https://github.com/JakubekWeg/Mobishit/blob/master/app/release/mobishit.apk?raw=true",
+  "URL": "https://github.com/JakubekWeg/Mobishit/",
   "WHATS_NEW": "Co nowego?\nNaprawiono obliczanie średnich"
 }

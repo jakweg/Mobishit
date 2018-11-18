@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:padding="8dp"
+    tools:ignore="RtlHardcoded,HardcodedText">
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/sumary"
+        android:gravity="center_vertical"
+        tools:text="Marzec 2018" />
+
+    <TextView
+        android:id="@+id/sumary"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:gravity="center_vertical"
+        tools:text="W sumie 230" />
+
+    <jakubweg.mobishit.view.AttendanceBarView
+        android:id="@+id/attendanceBar"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_below="@id/title"
+        android:layout_margin="4dp" />
+
+    <TextView
+        android:id="@+id/textPresents"
+        style="@style/Base.TextAppearance.AppCompat.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/attendanceBar"
+        android:layout_toLeftOf="@id/textAbsents"
+        android:drawablePadding="2dp"
+        android:gravity="center_horizontal"
+        android:text="Obecności\n 213 (78,8%)"
+        tools:drawableLeft="@drawable/event_available"
+        tools:drawableTint="#000" />
+
+
+    <TextView
+        android:id="@+id/textAbsents"
+        style="@style/Base.TextAppearance.AppCompat.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/attendanceBar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:drawableLeft="@drawable/event_busy"
+        android:drawablePadding="2dp"
+        android:gravity="center_horizontal"
+        android:text="Nieobecności\n9 (78,8%)"
+        tools:drawableTint="#000" />
+
+
+    <TextView
+        android:id="@+id/textLateComings"
+        style="@style/Base.TextAppearance.AppCompat.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/attendanceBar"
+        android:layout_toRightOf="@id/textAbsents"
+        android:drawablePadding="2dp"
+        android:gravity="center_horizontal"
+        android:text="Obecności\n2 (78,8%)"
+        tools:drawableLeft="@drawable/ic_assignment_late"
+        tools:drawableTint="#000" />
+
+</RelativeLayout>

@@ -30,6 +30,7 @@
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperLight</item>
         <item name="separatorColor">#AAA</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:backgroundDimAmount">0.3</item>
     </style>
 
     <style name="bottomSheetStyleWrapperLight" parent="Widget.Design.BottomSheet.Modal">
@@ -38,6 +39,7 @@
 
 
     <style name="BottomSheetDialogDark" parent="Theme.Design.BottomSheetDialog">
+        <item name="android:backgroundDimAmount">0.3</item>
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperDark</item>
         <item name="separatorColor">#AAA</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -49,6 +51,7 @@
 
 
     <style name="BottomSheetDialogBlack" parent="Theme.Design.BottomSheetDialog">
+        <item name="android:backgroundDimAmount">0.3</item>
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapperBlack</item>
         <item name="separatorColor">#AAA</item>
         <item name="colorAccent">@color/colorAccent</item>

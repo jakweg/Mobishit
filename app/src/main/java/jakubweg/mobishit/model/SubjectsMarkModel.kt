@@ -2,7 +2,7 @@ package jakubweg.mobishit.model
 
 import android.app.Application
 import android.arch.lifecycle.MutableLiveData
-import android.support.v4.util.ArrayMap
+import android.util.SparseArray
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.AverageCalculator
@@ -28,11 +28,11 @@ class SubjectsMarkModel(application: Application)
 
     private val preferences = MobiregPreferences.get(application)
 
-    private val mMarks = MutableLiveData<ArrayMap<Int, List<MarkDao.MarkShortInfo>>>()
+    private val mMarks = MutableLiveData<SparseArray<List<MarkDao.MarkShortInfo>>>()
 
     val marks get() = handleBackground(mMarks).asImmutable
 
-    private val mAverages = MutableLiveData<ArrayMap<Int, AverageCacheData>>()
+    private val mAverages = MutableLiveData<SparseArray<AverageCacheData>>()
 
     val averages get() = handleBackground(mAverages).asImmutable
 

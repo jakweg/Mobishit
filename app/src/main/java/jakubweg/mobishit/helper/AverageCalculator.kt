@@ -1,11 +1,12 @@
 package jakubweg.mobishit.helper
 
 import android.content.Context
-import android.support.v4.util.ArrayMap
 import android.util.Log
+import android.util.SparseArray
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.fragment.SubjectsMarkFragment
 import java.util.ArrayList
 import kotlin.Comparator
@@ -95,13 +96,8 @@ class AverageCalculator private constructor() {
                     if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
                         return@Comparator -1
 
-                    return@Comparator if (o1.markScaleValue >= 0 && o2.markScaleValue >= 0)
-                        o2.markScaleValue.compareTo(o1.markScaleValue)
-                    else if (o1.markPointsValue >= 0 && o1.markValueMax >= 0
-                            && o2.markPointsValue >= 0 && o2.markValueMax >= 0)
-                        (o2.markPointsValue / o2.markValueMax).compareTo(o1.markPointsValue / o1.markValueMax)
-                    else
-                        0
+                    return@Comparator (o2.markScaleValue + o2.markPointsValue / o2.markValueMax)
+                            .compareTo(o1.markScaleValue + o1.markPointsValue / o1.markValueMax)
                 }
                 ORDER_WORSE_FIRST -> Comparator { o1, o2 ->
                     if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
@@ -110,20 +106,9 @@ class AverageCalculator private constructor() {
                     if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
                         return@Comparator -1
 
-                    return@Comparator if (o1.markScaleValue >= 0 && o2.markScaleValue >= 0)
-                        o1.markScaleValue.compareTo(o2.markScaleValue)
-                    else if (o1.markPointsValue >= 0 && o1.markValueMax >= 0
-                            && o2.markPointsValue >= 0 && o2.markValueMax >= 0)
-                        (o1.markPointsValue / o1.markValueMax).compareTo(o2.markPointsValue / o2.markValueMax)
-                    else
-                        0
+                    return@Comparator (o1.markScaleValue + o1.markPointsValue / o1.markValueMax)
+                            .compareTo(o2.markScaleValue + o2.markPointsValue / o2.markValueMax)
                 }
-                /*ORDER_WORSE_FIRST -> getComparator(ORDER_BETTER_FIRST).run {
-
-                    Comparator { o1: MarkDao.MarkShortInfo, o2 ->
-                        this.compare(o2, o1)
-                    }
-                }*/
                 ORDER_BIG_WEIGHT_FIRST -> Comparator<MarkDao.MarkShortInfo> { o1, o2 ->
                     if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
                         return@Comparator 1
@@ -131,12 +116,8 @@ class AverageCalculator private constructor() {
                     if (o2.countPointsWithoutBase == true || o2.noCountToAverage == true)
                         return@Comparator -1
 
-                    return@Comparator if (o1.defaultWeight >= 0 && o2.defaultWeight >= 0)
-                        o2.defaultWeight.compareTo(o1.defaultWeight)
-                    else if (o1.markValueMax >= 0 && o2.markValueMax >= 0)
-                        o2.markValueMax.compareTo(o1.markValueMax)
-                    else
-                        0
+                    return@Comparator (o2.weight + o2.markValueMax)
+                            .compareTo(o1.weight + o1.markValueMax)
                 }.then(getComparator(ORDER_NEW_FIRST))
                 else -> throw IllegalArgumentException()
             }
@@ -182,16 +163,19 @@ class AverageCalculator private constructor() {
         }
 
         fun getMarksAndCalculateAverage(context: Context, subjectId: Int, sortOrder: Int, groupByParents: Boolean):
-                Pair<ArrayMap<Int, List<MarkDao.MarkShortInfo>>,
-                        ArrayMap<Int, AverageCacheData>> {
-            val dao = AppDatabase.getAppDatabase(context).markDao
-            val terms = dao.getTermsAndTypes()
+                Pair<SparseArray<List<MarkDao.MarkShortInfo>>,
+                        SparseArray<AverageCacheData>> {
+            val db = AppDatabase.getAppDatabase(context)
+            val dao = db.markDao
+            val terms = db.termDao.getTermsShortInfo()
+
+            checkIfSelectedTermIsValid(context, terms)
 
             val allMarks = sortMarks(dao.getMarksBySubject(subjectId), sortOrder, groupByParents)
 
             // termId, marks
-            val marksMap = ArrayMap<Int, List<MarkDao.MarkShortInfo>>(terms.size)
-            val averagesMap = ArrayMap<Int, AverageCacheData>(terms.size)
+            val marksMap = SparseArray<List<MarkDao.MarkShortInfo>>(terms.size)
+            val averagesMap = SparseArray<AverageCacheData>(terms.size)
 
             terms.forEach { term ->
                 val marks = when (term.type) {
@@ -202,12 +186,21 @@ class AverageCalculator private constructor() {
                     else -> throw IllegalArgumentException("unknown term type")
                 }
 
-                marksMap[term.id] = marks
-                averagesMap[term.id] = AverageCalculator.calculateAverage(marks).toCacheData()
+                marksMap.put(term.id, marks)
+                averagesMap.put(term.id, AverageCalculator.calculateAverage(marks).toCacheData())
             }
             return Pair(marksMap, averagesMap)
         }
 
+
+        private fun checkIfSelectedTermIsValid(context: Context,
+                                               terms: List<TermDao.TermShortInfo>) {
+            MobiregPreferences.get(context).apply {
+                val id = lastSelectedTerm
+                if (terms.find { it.id == id } == null)
+                    lastSelectedTerm = terms.firstOrNull()?.id ?: 0
+            }
+        }
 
         private inline fun calculateAverage(marks: List<MarkDao.MarkShortInfo>)
                 : Triple<Float, Float, Float> {
@@ -270,7 +263,7 @@ class AverageCalculator private constructor() {
             if (!ignorePreviousCalculation && hasCalculatedAverage) return
             hasCalculatedAverage = true
             if (markScaleValue >= 0 && noCountToAverage != null) {
-                val weight = if (defaultWeight >= 0f) defaultWeight else 1f
+                val weight = if (weight >= 0f) weight else 1f
                 averageSum += markScaleValue * weight
                 if (!noCountToAverage)
                     averageWeight += weight
@@ -306,8 +299,8 @@ class AverageCalculator private constructor() {
             }
         }
 
-        val weight = (marks.firstOrNull { it.defaultWeight >= 0 }
-                ?.defaultWeight ?: 1f)
+        val weight = (marks.firstOrNull { it.weight >= 0 }
+                ?.weight ?: 1f)
 
         this.averageSum += averageValue * weight / marksCount.toFloat()
         this.averageWeight += weight

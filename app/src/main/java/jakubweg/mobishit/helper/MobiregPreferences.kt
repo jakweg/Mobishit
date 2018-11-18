@@ -257,6 +257,10 @@ class MobiregPreferences private constructor(
         get() = pref.getLong("lastTestRefresh", 0L)
         set(value) = pref.edit().putLong("lastTestRefresh", value).apply()
 
+    var lastComparisonsRefreshTime
+        get() = pref.getLong("lastComparisonsRefresh", 0L)
+        set(value) = pref.edit().putLong("lastComparisonsRefresh", value).apply()
+
     var groupMarksByParent
         get() = pref.getBoolean("groupMarks", true)
         set(value) = pref.edit().putBoolean("groupMarks", value).apply()
@@ -268,4 +272,8 @@ class MobiregPreferences private constructor(
     var hasReadyAverageCache
         get() = pref.getBoolean("readyAverage", false)
         set(value) = pref.edit().putBoolean("readyAverage", value).apply()
+
+    var seenAttendanceDates
+        get() = pref.getBoolean("seenAD", false)
+        set(value) = pref.edit().putBoolean("seenAD", value).apply()
 }

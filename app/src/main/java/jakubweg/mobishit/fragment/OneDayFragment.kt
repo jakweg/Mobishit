@@ -18,6 +18,7 @@ import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.EventDao
 import jakubweg.mobishit.helper.EmptyAdapter
+import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.model.OneDayModel
 import java.lang.ref.WeakReference
 
@@ -126,7 +127,7 @@ class OneDayFragment : Fragment() {
             override fun bindSelf(params: EventDao.EventLongInfo) {
                 params.apply {
                     colorView.setBackgroundColor(color ?: Color.LTGRAY)
-                    mainText.text = subjectName.takeIfNotBlankOrNull() ?: description.takeIfNotBlankOrNull() ?: "Wydarzenie bez nazwy"
+                    mainText.precomputedText = subjectName.takeIfNotBlankOrNull() ?: description.takeIfNotBlankOrNull() ?: "Wydarzenie bez nazwy"
 
                     val hasRoom = roomName != null
                     val hasTeacher = teacherName != null
@@ -154,7 +155,7 @@ class OneDayFragment : Fragment() {
                         }
                     }
 
-                    hoursText.text = "${normalizeHour(startTime)}\n${normalizeHour(endTime)}"
+                    hoursText.precomputedText = "${normalizeHour(startTime)}\n${normalizeHour(endTime)}"
                 }
             }
 
@@ -178,8 +179,8 @@ class OneDayFragment : Fragment() {
 
             override fun bindSelf(params: EventDao.EventLongInfo) {
                 params.apply {
-                    mainText.text = subjectName ?: "Brak nazwy przedmiotu"
-                    secondaryText.text = description?.takeUnless { it.isBlank() } ?: when (substitution) {
+                    mainText.precomputedText = subjectName ?: "Brak nazwy przedmiotu"
+                    secondaryText.precomputedText = description?.takeUnless { it.isBlank() } ?: when (substitution) {
                         EventDao.SUBSTITUTION_OLD_LESSON -> "Lekcja zastąpiona"
                         else -> "Lekcja odwołana"
                     }
