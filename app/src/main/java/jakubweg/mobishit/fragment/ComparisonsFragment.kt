@@ -47,9 +47,9 @@ class ComparisonsFragment : Fragment() {
         val context = this.context!!
         iconColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
 
-        view.findViewById<TextView>(R.id.avg_person)!!.setLeftDrawable(R.drawable.ic_person, iconColor)
-        view.findViewById<TextView>(R.id.avg_class)!!.setLeftDrawable(R.drawable.ic_group, iconColor)
-        view.findViewById<TextView>(R.id.avg_school)!!.setLeftDrawable(R.drawable.ic_school, iconColor)
+        view.findViewById<TextView>(R.id.avg_person)?.setLeftDrawable(R.drawable.ic_person, iconColor)
+        view.findViewById<TextView>(R.id.avg_class)?.setLeftDrawable(R.drawable.ic_group, iconColor)
+        view.findViewById<TextView>(R.id.avg_school)?.setLeftDrawable(R.drawable.ic_school, iconColor)
 
         view.findViewById<View>(R.id.btnAllowServer)?.setOnClickListener {
             (activity as MainActivity?)?.apply {

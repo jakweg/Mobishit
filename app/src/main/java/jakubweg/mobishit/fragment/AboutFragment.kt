@@ -38,7 +38,7 @@ class AboutFragment : Fragment() {
         view.findViewById<TextView>(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
 
 
-        view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener { _ ->
+        view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
             openGithub()
         }
         view.findViewById<Button>(R.id.btnReportError)!!.apply {
@@ -60,22 +60,9 @@ class AboutFragment : Fragment() {
         view.findViewById<ImageView>(R.id.imgAppIcon)!!.apply {
             setOnClickListener { view ->
                 if (isAnimating) return@setOnClickListener
-                if (clicks++ >= 10) {
+                if (clicks++ >= 7) {
                     clicks = 0
-                    view.startAnimation(RotateAnimation(0f, 360f,
-                            Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f).also {
-                        it.duration = 1000
-                        it.setAnimationListener(object : Animation.AnimationListener {
-                            override fun onAnimationRepeat(animation: Animation?) {}
-                            override fun onAnimationEnd(animation: Animation?) {
-                                isAnimating = false
-                            }
-
-                            override fun onAnimationStart(animation: Animation?) {
-                                isAnimating = true
-                            }
-                        })
-                    })
+                    startBiggerAnimation(view)
                 } else {
                     view.startAnimation(ScaleAnimation(1.05f, 1f, 1.05f, 1f,
                             Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f).also {
@@ -84,6 +71,23 @@ class AboutFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun startBiggerAnimation(view: View) {
+        view.startAnimation(RotateAnimation(0f, 360f,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f).also {
+            it.duration = 1000
+            it.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationRepeat(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    isAnimating = false
+                }
+
+                override fun onAnimationStart(animation: Animation?) {
+                    isAnimating = true
+                }
+            })
+        })
     }
 
     private fun openGithub() {

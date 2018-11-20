@@ -11,6 +11,13 @@
         \nNiniejsza aplikacja udostępniana jest z nadzieją, iż będzie ona użyteczna – jednak bez jakiejkolwiek gwarancji.
         \nZostała ona napisana w czasie wolnym, za darmo, dla wszystkich, a jej kod źródłowy jest publiczny.
     </string>
+    <string name="about_app">
+        Aplikacja autorstwa JakubwekWeg
+        \nWyjątkowo dziękuję:
+        \n\u2022 p0358 za popularyzację aplikacji oraz pomoc w konfiguracji serwera
+        \n\u2022 Hoxton i Farel03 za umożliwienie naprawy krytycznego błędu
+        \n\u2022 wielu innym osobom, którzy pomogli a jest ich zbyt dużo by wymieniać
+    </string>
 
 
     <string-array name="refresh_frequency">

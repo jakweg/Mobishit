@@ -12,6 +12,13 @@ class DataCreator {
             val objectId: Int) : Exception()
 
     companion object {
+        fun escapeString(string: String): String {
+            if (!string.contains("\\\""))
+                return string
+
+            return string.replace("\\\"", "\"")
+        }
+
         fun teacher(jr: JsonReader): Teacher {
             var id = 0
             var name = ""
@@ -314,7 +321,7 @@ class DataCreator {
                     "event_type_terms_id" -> eventTypeTermId = jr.nextInt()
                     "weight" -> weight = jr.nextFloatOrNull()
                     "abbreviation" -> abbreviation = jr.nextString()!!
-                    "description" -> description = jr.nextString()!!
+                    "description" -> description = escapeString(jr.nextString()!!)
                     "mark_type" -> markType = jr.nextInt()
                     "count_points_without_base" -> countPointsWithoutBase = jr.nextInt() != 0
                     "parent_id" -> parentId = jr.nextIntOrNull()
@@ -617,7 +624,7 @@ class DataCreator {
                     "teachers_id" -> teacherId = jr.nextInt()
                     "kinds_id" -> kindId = jr.nextInt()
                     "addtime" -> addTime = jr.nextString()!!
-                    "content" -> content = jr.nextString()!!
+                    "content" -> content = escapeString(jr.nextString()!!)
                     "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
@@ -716,8 +723,8 @@ class DataCreator {
                     "id" -> id = jr.nextInt()
                     "send_time" -> sendTime = jr.nextString()!!
                     "sender_users_id" -> senderId = jr.nextInt()
-                    "title" -> title = jr.nextString()!!
-                    "content" -> content = jr.nextString()!!
+                    "title" -> title = escapeString(jr.nextString()!!)
+                    "content" -> content = escapeString(jr.nextString()!!)
                     "read_time" -> readTime = jr.nextStringOrNull()
                     "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
