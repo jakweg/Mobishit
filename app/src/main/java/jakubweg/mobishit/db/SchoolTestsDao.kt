@@ -6,7 +6,7 @@ import android.arch.persistence.room.OnConflictStrategy
 import android.arch.persistence.room.Query
 
 @Dao
-interface TestDao {
+interface SchoolTestsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertTests(tests: List<TestData>)
 

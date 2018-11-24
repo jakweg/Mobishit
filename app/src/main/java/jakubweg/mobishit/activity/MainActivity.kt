@@ -26,7 +26,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.fragment.*
@@ -530,38 +529,6 @@ class MainActivity : DoublePanelActivity() {
         }
     }
 
-    private fun onAppUpdated(lastVersion: Int) {
-        val preferences = MobiregPreferences.get(this)
-        val msg = when (lastVersion) {
-            in 1..5 -> {
-                """Bardzo dużo nowości rzeczy:
-                    |• Niemal natychmiastowe powiadomienia
-                    |• Porównania i rankingi w aplikacji
-                    |• Lista wpisanych sprawdzianów
-                    |• Statystyki obecności
-                    |• Nowy wygląd ocen
-                    |• Lepsze obliczanie średnich i sortowanie ocen
-                    |• Liczne poprawki błędów
-                """.trimMargin()
-            }
-            6 -> {
-                """ |• Statystyki śrenidnich
-                    |• Poprawki błędów i optymalizacja
-                """.trimMargin()
-            }
-            else -> {
-                preferences.markLastUsedVersionCurrent()
-                return
-            }
-        }
-
-        AlertDialog.Builder(this)
-                .setTitle("Co nowego?")
-                .setMessage(msg)
-                .setPositiveButton("OK", null)
-                .show()
-    }
-
     private class BackgroundStartupTask(activity: MainActivity)
         : AsyncTask<Unit, Unit, Unit>() {
         private val mWeakActivity = WeakReference<MainActivity>(activity)
@@ -570,8 +537,6 @@ class MainActivity : DoublePanelActivity() {
 
         private var info: MobiregPreferences.AppUpdateInfo? = null
 
-        private var lastUsedVersion = Int.MAX_VALUE
-
         override fun doInBackground(vararg params: Unit?) {
             CountdownService.startIfNeeded(mWeakActivity.get() ?: return)
             updateWorkStatus = WorkManager.getInstance()
@@ -579,7 +544,6 @@ class MainActivity : DoublePanelActivity() {
             MobiregPreferences.get(mWeakActivity.get()
                     ?: return).apply {
                 info = getAppUpdateInfo()
-                this.lastUsedVersion = lastUsedVersion
             }
 
         }
@@ -589,8 +553,6 @@ class MainActivity : DoublePanelActivity() {
                 it.updateWorkStatus = updateWorkStatus
                 it.startObservingUpdates()
                 info?.also { info -> it.onAppUpdateAvailable(info) }
-                if (lastUsedVersion < BuildConfig.VERSION_CODE)
-                    it.navigationView.postDelayed({ it.onAppUpdated(lastUsedVersion) }, 500L)
             }
         }
     }

@@ -25,7 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract val attendanceDao: AttendanceDao
 
-    abstract val testDao: TestDao
+    abstract val schoolTestsDao: SchoolTestsDao
 
     abstract val comparisonDao: ComparisonDao
 

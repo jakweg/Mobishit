@@ -24,7 +24,6 @@ class MobishitFcmService : FirebaseMessagingService() {
     companion object {
         private const val KEY_ACTION = "action"
         private const val KEY_IS_OFFICIAL = "official"
-        private const val KEY_NOTIFY_WHEN_RECEIVED = "notify"
         private const val KEY_MIN_VERSION = "minVer"
         private const val KEY_MAX_VERSION = "maxVer"
 
@@ -62,17 +61,10 @@ class MobishitFcmService : FirebaseMessagingService() {
         val prefs = MobiregPreferences.get(context)
 
         val isOfficial = body[KEY_IS_OFFICIAL] == TRUE
-        val notifyNow = body[KEY_NOTIFY_WHEN_RECEIVED] == TRUE
 
         if (!isOfficial
                 && !prefs.isDeveloper) {
             return //goodbye, we are not devs
-        }
-
-        if (notifyNow) {
-            postErrorNotification("Received FCM",
-                    "And we were asked to notify you about it" +
-                            "\nContent of data: $body")
         }
 
         val minVersion = body[KEY_MIN_VERSION]?.toIntOrNull() ?: -1

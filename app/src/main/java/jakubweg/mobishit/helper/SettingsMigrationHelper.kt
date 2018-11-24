@@ -19,12 +19,6 @@ object SettingsMigrationHelper {
         val version = prefs.getInt("version", 0)
         if (version != CURRENT_APP_SETTINGS_VERSION) {
             prefs.edit()
-                    .putInt("lUV", when (version) {
-                        in 0..2 -> 1
-                        3 -> 6
-                        4 -> 7
-                        else -> 0
-                    })
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 

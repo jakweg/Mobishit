@@ -40,7 +40,7 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
             WorkManager.getInstance()
                     .enqueueUniquePeriodicWork(
                             UNIQUE_WORK_NAME,
-                            ExistingPeriodicWorkPolicy.KEEP,
+                            ExistingPeriodicWorkPolicy.REPLACE,
                             request)
         }
     }

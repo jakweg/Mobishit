@@ -83,7 +83,7 @@ class TestsModel(application: Application)
 
 
             AppDatabase.getAppDatabase(context)
-                    .testDao.apply {
+                    .schoolTestsDao.apply {
                 deleteAll()
                 insertTests(outputTests)
             }
@@ -164,7 +164,7 @@ class TestsModel(application: Application)
             mStatus.postValue(downloadTests())
         } else {
             val tests = AppDatabase.getAppDatabase(context)
-                    .testDao.getAllTests()
+                    .schoolTestsDao.getAllTests()
             postTests(tests)
         }
     }
