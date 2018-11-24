@@ -42,7 +42,7 @@ class AverageCalculator private constructor() {
             checkIfSelectedTermIsValid(context, db.termDao.getTermIds())
 
             val termId = MobiregPreferences.get(context).lastSelectedTerm
-            val term = db.termDao.getStartEnd(termId)
+            val term = db.termDao.getStartEnd(termId) ?: return emptyList()
 
             val subjects = markDao.getSubjectsWithUsersMarks(term.startDate, term.endDate)
             val output = ArrayList<AverageCacheData>(subjects.size)

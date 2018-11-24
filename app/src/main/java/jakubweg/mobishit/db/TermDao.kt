@@ -23,5 +23,5 @@ interface TermDao {
     class StartEnd(val startDate: Long, val endDate: Long)
 
     @Query("SELECT startDate, endDate FROM Terms WHERE id = :id LIMIT 1")
-    fun getStartEnd(id: Int): StartEnd
+    fun getStartEnd(id: Int): StartEnd?
 }
