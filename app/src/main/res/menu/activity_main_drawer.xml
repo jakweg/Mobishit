@@ -36,6 +36,13 @@
             <menu>
                 <group android:checkableBehavior="all">
                     <item
+                        android:id="@+id/nav_app_update"
+                        android:checkable="false"
+                        android:icon="@drawable/nav_new_version"
+                        android:title="Aktualizuj aplikację"
+                        android:visible="false"
+                        tools:visible="true" />
+                    <item
                         android:id="@+id/nav_force_refresh"
                         android:checkable="false"
                         android:icon="@drawable/nav_force_refresh"
@@ -52,13 +59,4 @@
             </menu>
         </item>
     </group>
-
-
-    <!--
-    <item
-        android:id="@+id/nav_log_out"
-        android:icon="@drawable/nav_log_out"
-        android:title="Wyloguj się" />
-        -->
-
 </menu>

@@ -7,13 +7,12 @@ import android.support.constraint.ConstraintLayout
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.Button
-import android.widget.TextView
 import jakubweg.mobishit.R
 import java.lang.ref.WeakReference
 
 class SnackbarController(
         private val layout: ConstraintLayout) {
-    private val messageText = layout.findViewById<TextView>(R.id.snackbar_text)!!
+    private val messageText = layout.textView(R.id.snackbar_text)!!
     private val action = layout.findViewById<Button>(R.id.snackbar_action)!!
 
     private val animationLength = 300L
@@ -182,4 +181,7 @@ class SnackbarController(
     fun cancelAll() {
         pendingRequests.forEach { it.cancel() }
     }
+
+
+    val isShowingAnything get() = pendingRequests.isNotEmpty()
 }

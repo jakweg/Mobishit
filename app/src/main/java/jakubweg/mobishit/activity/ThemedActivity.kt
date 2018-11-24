@@ -1,6 +1,8 @@
 package jakubweg.mobishit.activity
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.ThemeHelper
@@ -17,10 +19,14 @@ open class FragmentActivity : android.support.v4.app.FragmentActivity() {
         ThemeHelper.makeActivityThemed(this, lastTheme)
     }
 
+    fun openLink(uri: String) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+    }
+
     override fun onStart() {
         super.onStart()
         if (themedPrefs.theme != lastTheme) {
-            recreate()
+            startActivity(intent)
         }
     }
 }

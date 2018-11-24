@@ -14,11 +14,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.EventDao
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.OneDayModel
 import java.lang.ref.WeakReference
 
@@ -112,15 +112,15 @@ class OneDayFragment : Fragment() {
         }
 
         private abstract class BaseViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            protected val mainText = v.findViewById<TextView>(R.id.mainText)!!
+            protected val mainText = v.textView(R.id.mainText)!!
 
             abstract fun bindSelf(params: EventDao.EventLongInfo)
         }
 
         private class NormalLessonViewHolder(v: View) : BaseViewHolder(v) {
             private val colorView = v.findViewById<View>(R.id.eventColorView)!!
-            private val secondaryText = v.findViewById<TextView>(R.id.secondaryText)!!
-            private val hoursText = v.findViewById<TextView>(R.id.hoursText)!!
+            private val secondaryText = v.textView(R.id.secondaryText)!!
+            private val hoursText = v.textView(R.id.hoursText)!!
 
 
             @SuppressLint("SetTextI18n")
@@ -171,7 +171,7 @@ class OneDayFragment : Fragment() {
 
         private class CancelledLessonViewHolder(v: View) : BaseViewHolder(v) {
 
-            private val secondaryText = v.findViewById<TextView>(R.id.secondaryText)!!
+            private val secondaryText = v.textView(R.id.secondaryText)!!
 
             init {
                 mainText.paintFlags = mainText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG

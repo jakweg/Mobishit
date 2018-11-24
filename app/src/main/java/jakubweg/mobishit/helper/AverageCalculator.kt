@@ -6,7 +6,6 @@ import android.util.SparseArray
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
-import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.fragment.SubjectsMarkFragment
 import java.util.ArrayList
 import kotlin.Comparator
@@ -37,9 +36,15 @@ class AverageCalculator private constructor() {
         }
 
         private fun createAverageCacheData(context: Context): List<AverageCacheData> {
-            val markDao = AppDatabase.getAppDatabase(context).markDao
+            val db = AppDatabase.getAppDatabase(context)
+            val markDao = db.markDao
 
-            val subjects = markDao.getSubjectsWithUsersMarks()
+            checkIfSelectedTermIsValid(context, db.termDao.getTermIds())
+
+            val termId = MobiregPreferences.get(context).lastSelectedTerm
+            val term = db.termDao.getStartEnd(termId)
+
+            val subjects = markDao.getSubjectsWithUsersMarks(term.startDate, term.endDate)
             val output = ArrayList<AverageCacheData>(subjects.size)
             for (subject in subjects) {
                 val marks = markDao.getMarksBySubject(subject.id)
@@ -169,7 +174,7 @@ class AverageCalculator private constructor() {
             val dao = db.markDao
             val terms = db.termDao.getTermsShortInfo()
 
-            checkIfSelectedTermIsValid(context, terms)
+            checkIfSelectedTermIsValid(context, terms.map { it.id })
 
             val allMarks = sortMarks(dao.getMarksBySubject(subjectId), sortOrder, groupByParents)
 
@@ -194,11 +199,11 @@ class AverageCalculator private constructor() {
 
 
         private fun checkIfSelectedTermIsValid(context: Context,
-                                               terms: List<TermDao.TermShortInfo>) {
+                                               terms: List<Int>) {
             MobiregPreferences.get(context).apply {
                 val id = lastSelectedTerm
-                if (terms.find { it.id == id } == null)
-                    lastSelectedTerm = terms.firstOrNull()?.id ?: 0
+                if (terms.find { it == id } == null)
+                    lastSelectedTerm = terms.firstOrNull() ?: 0
             }
         }
 

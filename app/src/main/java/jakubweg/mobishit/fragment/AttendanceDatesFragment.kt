@@ -8,12 +8,12 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.helper.setLeftDrawable
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.AttendanceDatesModel
 import java.lang.ref.WeakReference
 
@@ -49,7 +49,7 @@ class AttendanceDatesFragment : AttendanceBaseSheetFragment() {
             val subjectId = params[2].toInt()
             val attendanceType = getInt("type")
 
-            view.findViewById<TextView>(R.id.hintClickLesson)?.apply {
+            view.textView(R.id.hintClickLesson)?.apply {
                 setLeftDrawable(R.drawable.nav_info, currentTextColor)
             }
 
@@ -58,7 +58,7 @@ class AttendanceDatesFragment : AttendanceBaseSheetFragment() {
 
             viewModel.init(start, end, subjectId, attendanceType)
 
-            view.findViewById<TextView>(R.id.title)?.precomputedText = title
+            view.textView(R.id.title)?.precomputedText = title
 
             viewModel.days.observe(this@AttendanceDatesFragment, observer)
         }
@@ -114,7 +114,7 @@ class AttendanceDatesFragment : AttendanceBaseSheetFragment() {
         }
 
         private inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            val title = v.findViewById<TextView>(R.id.title)!!
+            val title = v.textView(R.id.title)!!
 
             init {
                 v.setOnClickListener { onInternalItemClicked(adapterPosition) }

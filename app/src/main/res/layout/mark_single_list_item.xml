@@ -10,13 +10,14 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:gravity="center_vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <android.support.v7.widget.AppCompatTextView
-            android:layout_width="@dimen/mark_element_size"
             android:id="@+id/markValue"
+            android:layout_width="@dimen/mark_element_size"
             android:layout_height="@dimen/mark_element_size"
             android:layout_marginLeft="@dimen/markItemHorizontalMargin"
             android:layout_marginTop="4dp"
@@ -24,25 +25,41 @@
             android:layout_marginBottom="4dp"
             android:background="@drawable/background_mark_single"
             android:gravity="center"
+            android:layout_gravity="center_vertical"
             android:maxLength="4"
             android:maxLines="1"
             android:padding="4dp"
             app:autoSizeMaxTextSize="19sp"
             app:autoSizeTextType="uniform"
-            tools:text="16.5" />
+            tools:text="16.5\n20" />
 
-        <TextView
-            android:id="@+id/markTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
             android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
             android:layout_marginEnd="10dp"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:maxLines="2"
-            android:textSize="16sp"
-            tools:text="Sprawdzian z prgramowania w C++ - operacje na plikach" />
+            android:layout_marginBottom="4dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/markTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="2"
+                android:textSize="16sp"
+                tools:text="Sprawdzian z prgramowania w C++ - xdddmfas" />
+
+            <TextView
+                android:id="@+id/markDescription"
+                style="@style/Base.TextAppearance.AppCompat.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="72.3%, Maksymalnie 30.0" />
+        </LinearLayout>
     </LinearLayout>
 
     <View

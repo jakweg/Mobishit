@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Switch
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
+import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.helper.AverageCalculator
 import jakubweg.mobishit.helper.MobiregPreferences
@@ -31,11 +32,6 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
         fun onTermChanged()
 
         fun onOtherOptionsChanged()
-    }
-
-    private var mOptionsListener = WeakReference<OptionsChangedListener>(null)
-    fun setOptionsListener(listener: OptionsChangedListener?) {
-        this.mOptionsListener = WeakReference<OptionsChangedListener>(listener)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,15 +64,21 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
         ViewModelProviders.of(this)[TermsModel::class.java]
     }
 
+    private inline fun forEachOptionsListener(func: (OptionsChangedListener) -> Unit) {
+        (activity as? MainActivity?)?.optionListeners?.forEach {
+            func.invoke(it.get() ?: return@forEach)
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         if (previousIsEnabledGrouping != viewModel.isGroupingByParentsEnabled
                 || previousOrder != viewModel.selectedOrderMethod) {
             viewModel.savePreferences()
-            mOptionsListener.get()?.onOtherOptionsChanged()
+            forEachOptionsListener { it.onOtherOptionsChanged() }
         } else if (previousTerm != viewModel.selectedTermId) {
             viewModel.savePreferences()
-            mOptionsListener.get()?.onTermChanged()
+            forEachOptionsListener { it.onTermChanged() }
         }
     }
 

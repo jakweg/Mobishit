@@ -15,13 +15,17 @@ import java.util.*
 
 class MobiregPreferences private constructor(
         context: Context,
-        private val pref: SharedPreferences
+        val prefs: SharedPreferences
 ) {
     companion object {
+        private var INSTANCE: MobiregPreferences? = null
+
         fun get(context: Context?): MobiregPreferences {
             context ?: throw NullPointerException()
-            return MobiregPreferences(context.applicationContext,
-                    context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!)
+            return INSTANCE ?: MobiregPreferences(context.applicationContext,
+                    context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!).also {
+                INSTANCE = it
+            }
         }
 
         fun encryptPassword(s: String?): String {
@@ -43,42 +47,42 @@ class MobiregPreferences private constructor(
     }
 
     init {
-        SettingsMigrationHelper.onSettingsLoaded(pref, context)
+        SettingsMigrationHelper.onSettingsLoaded(prefs, context)
     }
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun getString(key: String)
-            : String? = pref.getString(key, null)
+            : String? = prefs.getString(key, null)
 
 
     fun setRandomizedDeviceId(): Int {
         val id = (Random().nextInt() % 10000 + 50000) * 3
-        pref.edit()
+        prefs.edit()
                 .putString("deviceId", "$id")
                 .apply()
         return id
     }
 
     private fun getDeviceIdOrRandomize(): Int {
-        if (pref.contains("deviceId"))
-            return pref.getString("deviceId", null)?.toIntOrNull() ?: 0
+        if (prefs.contains("deviceId"))
+            return prefs.getString("deviceId", null)?.toIntOrNull() ?: 0
         return setRandomizedDeviceId()
     }
 
     fun setLmt(millisOfRequest: Long) {
-        pref.edit().putLong("lmt", millisOfRequest).apply()
+        prefs.edit().putLong("lmt", millisOfRequest).apply()
     }
 
     fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        pref.registerOnSharedPreferenceChangeListener(listener)
+        prefs.registerOnSharedPreferenceChangeListener(listener)
     }
 
     fun unregisterChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        pref.unregisterOnSharedPreferenceChangeListener(listener)
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
     fun setUserData(studentId: Int, name: String, surname: String, phone: String, sex: String, loginName: String, host: String, hasHostInLogin: Boolean, password: String) {
-        pref.edit().apply {
+        prefs.edit().apply {
             putBoolean("isSignedIn", true)
 
             putInt("userId", studentId)
@@ -95,30 +99,53 @@ class MobiregPreferences private constructor(
     }
 
     fun logout(context: Context) {
-        LogOutTask(context, pref).exec()
+        LogOutTask(context, prefs).exec()
     }
 
     fun setRefreshFrequency(newFrequency: Int) {
-        pref.edit().putString("refreshFrequency", "$newFrequency").apply()
+        prefs.edit().putString("refreshFrequency", "$newFrequency").apply()
     }
 
     fun setPassword(notEncryptedNewPassword: String?) {
         notEncryptedNewPassword ?: throw NullPointerException()
-        pref.edit().putString("pass", encryptPassword(notEncryptedNewPassword)).apply()
+        prefs.edit().putString("pass", encryptPassword(notEncryptedNewPassword)).apply()
     }
 
     fun setLastRefreshTimeToNow() {
-        pref.edit().putLong("lastCheck", Calendar.getInstance().timeInMillis).apply()
+        prefs.edit().putLong("lastCheck", Calendar.getInstance().timeInMillis).apply()
     }
 
     fun becomeDeveloper() {
-        pref.edit().putBoolean("is_dev", true).apply()
+        prefs.edit().putBoolean("is_dev", true).apply()
     }
 
     fun setLastFcmAction(action: String?) {
-        pref.edit().putString("lastFcmAct", action)
+        prefs.edit().putString("lastFcmAct", action)
                 .putLong("lastFcmTime", System.currentTimeMillis())
                 .apply()
+    }
+
+    fun setAppUpdateInfo(newCode: Int, newName: String, urlDoDownload: String, whatIsNew: String?) {
+        prefs.edit().putInt("aUnewCode", newCode)
+                .putString("aUnewName", newName)
+                .putString("aUurl", urlDoDownload)
+                .putString("aUnews", whatIsNew)
+                .apply()
+    }
+
+    class AppUpdateInfo(val newCode: Int, val newName: String, val urlDoDownload: String)
+
+    fun getAppUpdateInfo(): AppUpdateInfo? {
+        if (prefs.getInt("aUnewCode", BuildConfig.VERSION_CODE) <= BuildConfig.VERSION_CODE)
+            return null
+
+        return AppUpdateInfo(prefs.getInt("aUnewCode", 0),
+                getString("aUnewName") ?: "",
+                getString("aUurl") ?: "https://github.com/JakubekWeg/Mobishit")
+    }
+
+    fun markLastUsedVersionCurrent() {
+        lastUsedVersion = BuildConfig.VERSION_CODE
     }
 
     private class LogOutTask(context: Context, private val pref: SharedPreferences)
@@ -165,7 +192,7 @@ class MobiregPreferences private constructor(
     }
 
 
-    val isSignedIn get() = pref.getBoolean("isSignedIn", false)
+    val isSignedIn get() = prefs.getBoolean("isSignedIn", false)
 
     val name get() = getString("name") ?: ""
 
@@ -173,7 +200,7 @@ class MobiregPreferences private constructor(
 
     val theme get() = getString("theme") ?: THEME_DEFAULT
 
-    val runCountdownService get() = pref.getBoolean("runCountdownService", false)
+    val runCountdownService get() = prefs.getBoolean("runCountdownService", false)
 
     val login get() = getString("login")
 
@@ -181,99 +208,107 @@ class MobiregPreferences private constructor(
 
     val password get() = getString("pass")
 
-    private val hasHostInLogin get() = pref.getBoolean("hasHostInLogin", true)
+    private val hasHostInLogin get() = prefs.getBoolean("hasHostInLogin", true)
 
     val loginAndHostIfNeeded get() = if (hasHostInLogin) "$login.$host" else "$login"
 
-    val lmt get() = pref.getLong("lmt", -1L)
+    val lmt get() = prefs.getLong("lmt", -1L)
 
-    val logEverySync get() = BuildConfig.DEBUG || pref.getBoolean("logEverySync", false)
+    val logEverySync get() = BuildConfig.DEBUG || prefs.getBoolean("logEverySync", false)
 
     val deviceId get() = getDeviceIdOrRandomize()
 
     val startDate get() = getString("startDate") ?: "2018-01-01"
 
-    val getAllMarkGroups get() = pref.getBoolean("getAllMarkGroups", true)
+    val getAllMarkGroups get() = prefs.getBoolean("getAllMarkGroups", true)
 
-    val studentId get() = pref.getInt("userId", -1)
+    val studentId get() = prefs.getInt("userId", -1)
 
     val sex get() = getString("sex") ?: ""
 
-    val lastCheckTime get() = pref.getLong("lastCheck", 0L)
+    val lastCheckTime get() = prefs.getLong("lastCheck", 0L)
 
     val refreshFrequency get() = (getString("refreshFrequency") ?: "480").toInt()
 
-    val refreshOnWeekends get() = pref.getBoolean("refreshWeekends", true)
+    val refreshOnWeekends get() = prefs.getBoolean("refreshWeekends", true)
 
-    val notifyWithSound get() = pref.getBoolean("notifyWithSound", true)
+    val notifyWithSound get() = prefs.getBoolean("notifyWithSound", true)
 
-    val notifyAboutAttendances get() = pref.getBoolean("notifyAboutAttendances", false)
+    val notifyAboutAttendances get() = prefs.getBoolean("notifyAboutAttendances", false)
 
     val beforeLessonsMinutes: Int
-        get() = pref.getString("beforeLessonsMinutes", null)?.toIntOrNull() ?: 45
+        get() = prefs.getString("beforeLessonsMinutes", null)?.toIntOrNull() ?: 45
 
     val defaultFragment get() = getString("defFrag") ?: MainActivity.FRAGMENT_MARKS
 
     var lastSelectedTerm: Int
-        get() = pref.getInt("lastTerm", 0)
-        set(value) = pref.edit().putInt("lastTerm", value).apply()
+        get() = prefs.getInt("lastTerm", 0)
+        set(value) = prefs.edit().putInt("lastTerm", value).apply()
 
 
-    val isDeveloper get() = BuildConfig.DEBUG || pref.getBoolean("is_dev", false)
+    val isDeveloper get() = BuildConfig.DEBUG || prefs.getBoolean("is_dev", false)
 
 
     var seenWelcomeActivity
-        get() = pref.getBoolean("seenWA", false)
-        set(value) = pref.edit().putBoolean("seenWA", value).apply()
+        get() = prefs.getBoolean("seenWA", false)
+        set(value) = prefs.edit().putBoolean("seenWA", value).apply()
 
     var nextAllowedCountdownServiceStart
-        get() = pref.getLong("nAllowedCDSstart", 0L)
-        set(value) = pref.edit().putLong("nAllowedCDSstart", value).apply()
+        get() = prefs.getLong("nAllowedCDSstart", 0L)
+        set(value) = prefs.edit().putLong("nAllowedCDSstart", value).apply()
 
     var firebaseToken: String?
         get() = getString("fcmToken")
-        set(value) = pref.edit().putString("fcmToken", value).apply()
+        set(value) = prefs.edit().putString("fcmToken", value).apply()
 
     var allowedInstantNotifications
-        get() = pref.getBoolean("allowIN", false)
+        get() = prefs.getBoolean("allowIN", false)
         set(value) {
             decidedAboutFcm = true
-            pref.edit().putBoolean("allowIN", value).apply()
+            prefs.edit().putBoolean("allowIN", value).apply()
             FcmServerNotifierWorker.requestPeriodicServerNotifications()
         }
 
     var decidedAboutFcm
-        get() = pref.getBoolean("decidedFcm", false)
-        set(value) = pref.edit().putBoolean("decidedFcm", value).apply()
+        get() = prefs.getBoolean("decidedFcm", false)
+        set(value) = prefs.edit().putBoolean("decidedFcm", value).apply()
 
     val timeOfLastReceivedFcm
-        get() = pref.getLong("lastFcmTime", 0L)
+        get() = prefs.getLong("lastFcmTime", 0L)
 
     val lastFcmAction
         get() = getString("lastFcmAct")
 
 
     var lastTestRefreshTime
-        get() = pref.getLong("lastTestRefresh", 0L)
-        set(value) = pref.edit().putLong("lastTestRefresh", value).apply()
+        get() = prefs.getLong("lastTestRefresh", 0L)
+        set(value) = prefs.edit().putLong("lastTestRefresh", value).apply()
 
     var lastComparisonsRefreshTime
-        get() = pref.getLong("lastComparisonsRefresh", 0L)
-        set(value) = pref.edit().putLong("lastComparisonsRefresh", value).apply()
+        get() = prefs.getLong("lastComparisonsRefresh", 0L)
+        set(value) = prefs.edit().putLong("lastComparisonsRefresh", value).apply()
 
     var groupMarksByParent
-        get() = pref.getBoolean("groupMarks", true)
-        set(value) = pref.edit().putBoolean("groupMarks", value).apply()
+        get() = prefs.getBoolean("groupMarks", true)
+        set(value) = prefs.edit().putBoolean("groupMarks", value).apply()
 
     var markSortingOrder
-        get() = pref.getInt("mSortOrder", AverageCalculator.ORDER_DEFAULT)
-        set(value) = pref.edit().putInt("mSortOrder", value).apply()
+        get() = prefs.getInt("mSortOrder", AverageCalculator.ORDER_DEFAULT)
+        set(value) = prefs.edit().putInt("mSortOrder", value).apply()
 
     var hasReadyAverageCache
-        get() = pref.getBoolean("readyAverage", false)
-        set(value) = pref.edit().putBoolean("readyAverage", value).apply()
+        get() = prefs.getBoolean("readyAverage", false)
+        set(value) = prefs.edit().putBoolean("readyAverage", value).apply()
 
     var seenAttendanceDates
-        get() = pref.getBoolean("seenAD", false)
-        set(value) = pref.edit().putBoolean("seenAD", value).apply()
+        get() = prefs.getBoolean("seenAD", false)
+        set(value) = prefs.edit().putBoolean("seenAD", value).apply()
+
+    var lastUsedVersion
+        get() = prefs.getInt("lUV", 0)
+        set(value) = prefs.edit().putInt("lUV", value).apply()
+
+    var notifyWhenMainActivityIsInForeground
+        get() = prefs.getBoolean("notifyWhenFG", true)
+        set(value) = prefs.edit().putBoolean("notifyWhenFG", value).apply()
 }

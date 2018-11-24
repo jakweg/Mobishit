@@ -1,6 +1,7 @@
 package jakubweg.mobishit;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 import com.squareup.leakcanary.LeakCanary;
@@ -23,7 +24,7 @@ public class MobishitApplication extends Application {
                 @Override
                 public void uncaughtException(Thread thread, Throwable exception) {
                     try {
-                        exception.printStackTrace();
+                        Log.e("FATAL EXCEPTION", "Uncaught exception crashed Mobishit", exception);
                         CrashHandler.INSTANCE.onNewCrash(getApplicationContext(), thread, exception);
                     } catch (Exception e) {
                         e.printStackTrace();

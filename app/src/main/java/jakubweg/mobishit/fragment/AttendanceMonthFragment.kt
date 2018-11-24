@@ -9,12 +9,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AttendanceDao
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.helper.setLeftDrawable
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.AttendanceMonthModel
 import jakubweg.mobishit.view.AttendanceBarView
 import java.lang.ref.WeakReference
@@ -58,7 +58,7 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
             subjectId = args.getInt("subject")
 
             if (!MobiregPreferences.get(context!!).seenAttendanceDates) {
-                view.findViewById<TextView>(R.id.hintClickAttendanceType)?.also {
+                view.textView(R.id.hintClickAttendanceType)?.also {
                     it.visibility = View.VISIBLE
                     it.setLeftDrawable(R.drawable.nav_info, it.currentTextColor)
                 }
@@ -67,7 +67,7 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
 
             viewModel.init(start, end, subjectId)
 
-            view.findViewById<TextView>(R.id.title)?.precomputedText = title
+            view.textView(R.id.title)?.precomputedText = title
             view.findViewById<Button>(R.id.btnSubjectStats)?.apply {
                 if (subjectId >= 0)
                     visibility = View.GONE
@@ -127,8 +127,8 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
         private inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val colorView = v.findViewById<View>(R.id.colorView)!!
 
-            val title = v.findViewById<TextView>(R.id.title)!!
-            val percentage = v.findViewById<TextView>(R.id.textPresents)!!
+            val title = v.textView(R.id.title)!!
+            val percentage = v.textView(R.id.textPresents)!!
 
             init {
                 v.setOnClickListener { internalOnClick(adapterPosition) }

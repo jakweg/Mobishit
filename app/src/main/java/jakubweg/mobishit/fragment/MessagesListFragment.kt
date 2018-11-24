@@ -16,13 +16,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.db.MessageDao
 import jakubweg.mobishit.helper.DateHelper
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.MessagesListModel
 import java.lang.ref.WeakReference
 
@@ -116,8 +116,8 @@ class MessagesListFragment : Fragment() {
 
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            val messageTitle = v.findViewById<TextView>(R.id.messageTitle)!!
-            val messageInfo = v.findViewById<TextView>(R.id.messageInfo)!!
+            val messageTitle = v.textView(R.id.messageTitle)!!
+            val messageInfo = v.textView(R.id.messageInfo)!!
             val colorView = v.findViewById<View>(R.id.messageColor)!!
 
             init {

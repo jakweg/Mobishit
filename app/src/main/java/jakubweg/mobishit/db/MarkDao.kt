@@ -23,8 +23,9 @@ interface MarkDao {
                     INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
                     INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
                     INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+                    WHERE addTime BETWEEN :dateStart AND :dateEnd
                     GROUP BY Subjects.id ORDER BY Subjects.name""")
-    fun getSubjectsWithUsersMarks(): List<SubjectShortInfo>
+    fun getSubjectsWithUsersMarks(dateStart: Long, dateEnd: Long): List<SubjectShortInfo>
 
 
     // this is used by average calculations

@@ -25,6 +25,7 @@ import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.db.AppDatabase
+import jakubweg.mobishit.helper.CrashHandler
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
@@ -253,8 +254,11 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
 
         findPreference("key_share_crash_report")?.setOnPreferenceClickListener {
             context?.apply {
-                val path = File(this.filesDir
-                        ?: return@setOnPreferenceClickListener false, "crashes")
+                val path = CrashHandler.getCrashesFolder(this)
+                if (!path.exists()) {
+                    Toast.makeText(this, "Nie znaleziono żadnych zrzutów", Toast.LENGTH_SHORT).show()
+                    return@setOnPreferenceClickListener false
+                }
                 val files = path.list()
 
                 AlertDialog.Builder(this)

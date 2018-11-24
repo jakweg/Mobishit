@@ -12,6 +12,7 @@ import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.asStringOrNull
 import jakubweg.mobishit.helper.DedicatedServerManager
+import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -57,6 +58,10 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
             val urlDoDownload = obj.get("URL")!!.asString!!
             val whatIsNew = obj.get("WHATS_NEW")?.asString?.replace("\\n", "\n")
             val doNotNotify = obj.get("DONT_NOTIFY")?.asStringOrNull == "true"
+
+            MobiregPreferences.get(applicationContext).also {
+                it.setAppUpdateInfo(newCode, newName, urlDoDownload, whatIsNew)
+            }
 
             if (newCode > BuildConfig.VERSION_CODE && !doNotNotify)
                 postNotificationAboutNewVersion(newName, urlDoDownload, whatIsNew)

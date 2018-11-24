@@ -14,14 +14,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.ImageButton
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.MobiregPreferences
-import jakubweg.mobishit.helper.ThemeHelper
+import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.SubjectsMarkModel
 
 
@@ -40,6 +39,7 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
+        (activity as? MainActivity?)?.addOptionListener(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             sharedElementEnterTransition = TransitionInflater.from(context!!).inflateTransition(android.R.transition.move)
             sharedElementReturnTransition = TransitionInflater.from(context!!).inflateTransition(android.R.transition.move)
@@ -52,9 +52,6 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     private val viewModel by lazy { ViewModelProviders.of(this)[SubjectsMarkModel::class.java] }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.findViewById<ImageButton>(R.id.btnViewOptions)?.setImageResource(
-                if (ThemeHelper.isLightThemeSet(context!!)) R.drawable.ic_sort_with_black
-                else R.drawable.ic_sort_with_white)
 
         val (subjectId, subjectName, transitionName) =
                 arguments!!.run {
@@ -64,16 +61,9 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
 
         viewModel.init(subjectId)
 
-        val subjectNameText = view.findViewById<TextView>(R.id.subject_name)!!
+        val subjectNameText = view.textView(R.id.subject_name)!!
         subjectNameText.text = subjectName
         ViewCompat.setTransitionName(subjectNameText, transitionName)
-
-        view.findViewById<View>(R.id.btnViewOptions)?.setOnClickListener { _ ->
-            MarksViewOptionsFragment
-                    .newInstance()
-                    .showSelf(activity)
-                    .setOptionsListener(this)
-        }
 
         viewModel.marks.observe(this, Observer {
             it ?: return@Observer
@@ -106,7 +96,7 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     }
 
     private fun setUpAveragesInfo(average: AverageCacheData) {
-        view!!.findViewById<TextView>(R.id.averageInfoText).text = average.averageText
+        view?.textView(R.id.averageInfoText)?.text = average.averageText
     }
 
     class MarkAdapter(context: Context,
@@ -133,14 +123,25 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
             }, parent, false))
         }
 
+        private inline val Float.prettyMe: String
+            get() = String.format("%.1f", this)
+
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also { info ->
                 holder.markTitle.text = info.description.takeUnless { it.isBlank() } ?: "Bez tytułu"
                 ViewCompat.setTransitionName(holder.markTitle, "ma$position")
-                holder.markValue.text = when {
+                holder.markValue.precomputedText = when {
                     info.abbreviation != null -> info.abbreviation
+                    //info.markPointsValue >= 0 && info.markValueMax > 0 ->
+                    //    "${info.markPointsValue}\n${info.markValueMax}"
                     info.markPointsValue >= 0 -> info.markPointsValue.toString() trimEndToLength 4
                     else -> "Wut?"
+                }
+                holder.markDescription?.precomputedText = when {
+                    info.abbreviation == null && info.markValueMax > 0 ->
+                        "${info.markPointsValue.div(info.markValueMax).times(100f).prettyMe}%, maksymalnie ${info.markValueMax.prettyMe}"
+                    info.weight > 0 -> "Waga ${info.weight.prettyMe}"
+                    else -> ""
                 }
             }
         }
@@ -154,8 +155,9 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
         }
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            val markTitle = v.findViewById<TextView>(R.id.markTitle)!!
-            val markValue = v.findViewById<TextView>(R.id.markValue)!!
+            val markTitle = v.textView(R.id.markTitle)!!
+            val markValue = v.textView(R.id.markValue)!!
+            val markDescription = v.textView(R.id.markDescription)
 
             init {
                 v.setOnClickListener { onItemClicked(adapterPosition) }

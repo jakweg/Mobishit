@@ -2,17 +2,16 @@ package jakubweg.mobishit.helper
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
-import android.support.annotation.AttrRes
-import android.support.annotation.ColorInt
-import android.support.annotation.DrawableRes
-import android.support.annotation.StyleRes
+import android.support.annotation.*
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v4.text.PrecomputedTextCompat
 import android.support.v4.widget.TextViewCompat
 import android.util.TypedValue
+import android.view.View
 import android.widget.TextView
 import jakubweg.mobishit.R
 import java.util.*
@@ -89,6 +88,10 @@ fun TextView.setTopDrawable(@DrawableRes drawable: Int, @ColorInt color: Int) {
             null, null)
 }
 
+fun TextView.setLeftDrawable(@DrawableRes drawable: Int) {
+    setLeftDrawable(drawable, currentTextColor)
+}
+
 fun TextView.setLeftDrawable(@DrawableRes drawable: Int, @ColorInt color: Int) {
     setCompoundDrawablesWithIntrinsicBounds(
             ContextCompat.getDrawable(context, drawable)!!.tintSelf(color),
@@ -112,6 +115,15 @@ fun Context.themeAttributeToColor(@AttrRes attrColor: Int): Int {
     return ContextCompat.getColor(this, outValue.resourceId)
 }
 
-interface ItemWithIdClickListener {
-    fun onClick(id: Int)
+fun invertColor(@ColorInt color: Int): Int {
+    val r = Color.red(color)
+    val g = Color.green(color)
+    val b = Color.blue(color)
+    return Color.argb(Color.alpha(color), 255 - r, 255 - g, 255 - b)
+}
+
+fun View.textView(@IdRes id: Int): TextView? = findViewById<TextView?>(id)
+
+fun View.setText(@IdRes id: Int, text: CharSequence) {
+    textView(id)?.precomputedText = text
 }

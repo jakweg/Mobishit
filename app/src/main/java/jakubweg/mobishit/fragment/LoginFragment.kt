@@ -87,7 +87,10 @@ class LoginFragment : Fragment() {
                 LoginDataModel.STATUS_SUCCESS -> {
                     (activity as? WelcomeActivity?)?.apply {
                         UpdateWorker.requestUpdates(this)
-                        MobiregPreferences.get(this).seenWelcomeActivity = true
+                        MobiregPreferences.get(this).also {
+                            it.markLastUsedVersionCurrent()
+                            it.seenWelcomeActivity = true
+                        }
                         AppUpdateWorker.requestChecks()
                         FcmServerNotifierWorker.requestPeriodicServerNotifications()
                         applyFragment(AfterLoginFragment.newInstance())

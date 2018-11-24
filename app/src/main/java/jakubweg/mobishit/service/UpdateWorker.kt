@@ -64,6 +64,9 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 return Result.SUCCESS
             }
 
+            if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis())
+                return Result.SUCCESS
+
             if (!prefs.refreshOnWeekends)
                 Calendar.getInstance().apply {
                     if (!when (this[Calendar.DAY_OF_WEEK]) {
@@ -90,13 +93,17 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
             val db = AppDatabase.getAppDatabase(applicationContext)
 
-            notificationHelper.createNotificationChannels()
-            if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
-                makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
-                makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
-                makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
-                makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
-                makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
+            if (!MainActivity.isMainActivityInForeground
+                    || prefs.notifyWhenMainActivityIsInForeground) {
+
+                notificationHelper.createNotificationChannels()
+                if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                    makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
+                    makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
+                    makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
+                    makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
+                    makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
+                }
             }
 
 

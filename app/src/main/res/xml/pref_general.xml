@@ -7,7 +7,7 @@
             android:title="Wyloguj się" />
 
         <android.support.v7.preference.ListPreference
-            android:defaultValue="480"
+            android:defaultValue="720"
             android:entries="@array/refresh_frequency"
             android:entryValues="@array/refresh_frequency_values"
             android:key="refreshFrequency"
@@ -70,6 +70,12 @@
             android:key="notifyWithSound"
             android:summary="Dotyczy wszystkich rodzajów powiadomień z dziennika"
             android:title="Używaj dźwięku i wibracji" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="notifyWhenFG"
+            android:summary="Wysyłaj powiadmienia nawet gdy wymusisz odświeżenie"
+            android:title="Powiadamiaj przy ręcznym odświeżaniu" />
 
         <android.support.v7.preference.Preference
             android:key="key_open_notification_settings"

@@ -37,6 +37,13 @@ abstract class DoublePanelActivity : FragmentActivity() {
     }
 
     private fun applyNewMainFragment(fragment: Fragment) {
+        if (hasSavedInstance) {
+            findViewById<View>(mainFragmentContainerId)?.postDelayed({
+                applyNewMainFragment(fragment)
+            }, 50L)
+            return
+        }
+
         supportFragmentManager
                 .clearStack()
                 .beginTransaction()
@@ -50,6 +57,13 @@ abstract class DoublePanelActivity : FragmentActivity() {
     }
 
     fun applyNewDetailsFragment(fragment: Fragment) {
+        if (hasSavedInstance) {
+            findViewById<View>(secondFragmentContainerId)?.postDelayed({
+                applyNewDetailsFragment(fragment)
+            }, 50L)
+            return
+        }
+
         supportFragmentManager.beginTransaction()
                 .replace(secondFragmentContainerId, fragment)
                 .addToBackStack(null)
@@ -57,6 +71,13 @@ abstract class DoublePanelActivity : FragmentActivity() {
     }
 
     fun applyNewDetailsFragment(sharedView: View, fragment: Fragment) {
+        if (hasSavedInstance) {
+            findViewById<View>(secondFragmentContainerId)?.postDelayed({
+                applyNewDetailsFragment(sharedView, fragment)
+            }, 50L)
+            return
+        }
+
         supportFragmentManager.beginTransaction().apply {
             setCustomAnimations(R.anim.fragment_enter, R.anim.fade_out, R.anim.fade_in, R.anim.fragment_exit)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -71,6 +92,14 @@ abstract class DoublePanelActivity : FragmentActivity() {
         if (isVisibleActivity)
             while (popBackStackImmediate()) {
             }
+    }
+
+
+    private var hasSavedInstance = false
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        hasSavedInstance = false
     }
 
     abstract fun getCurrentMainFragment(): Fragment?

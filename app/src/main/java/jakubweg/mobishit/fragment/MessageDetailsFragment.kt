@@ -9,11 +9,11 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MessageDao
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.MessageDetailModel
 import java.lang.ref.WeakReference
 
@@ -53,11 +53,11 @@ class MessageDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val messageId = arguments!!.getInt("messageId")
 
-        view.findViewById<TextView>(R.id.textTitle).also {
+        view.textView(R.id.textTitle).also {
             val title = arguments!!.getCharSequence("title", null)
-            title?.apply { it.text = this }
+            title?.apply { it?.text = this }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                it.transitionName = arguments!!.getString("transitionName")
+                it?.transitionName = arguments!!.getString("transitionName")
 
         }
 
@@ -74,16 +74,16 @@ class MessageDetailsFragment : Fragment() {
         override fun onChanged(msg: MessageDao.MessageLongInfo?) {
             msg ?: return
             view.get()?.apply {
-                findViewById<TextView>(R.id.textSender)!!.text = msg.sender?.takeUnless { it.isBlank() } ?: "Bez nadawcy"
+                textView(R.id.textSender)!!.text = msg.sender?.takeUnless { it.isBlank() } ?: "Bez nadawcy"
 
-                findViewById<TextView>(R.id.textSendDate)!!.text = msg.formattedSendTime
+                textView(R.id.textSendDate)!!.text = msg.formattedSendTime
 
-                findViewById<TextView>(R.id.textTitle)!!.also {
+                textView(R.id.textTitle)!!.also {
                     if (it.text.isNullOrEmpty())
                         it.text = MessagesListFragment.makeMessageTitle(msg)
                 }
 
-                findViewById<TextView>(R.id.textContent)!!.text = msg.content
+                textView(R.id.textContent)!!.text = msg.content
 
             }
         }

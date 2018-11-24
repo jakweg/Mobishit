@@ -27,7 +27,7 @@ object CrashHandler {
         writer.append('\n')
         exception.printStackTrace(PrintWriter(writer))
 
-        val message = "Mobishit napotkał błąd krytyczny, którego nie jest w stanie obsłużyć. Kluczowe informacje zostały zapisane na urządzeniu. Proszę skontaktuj się z programistą w celu naprawy błędu. (Kliknij aby otworzyć czat)"
+        val message = "Mobishit napotkał błąd krytyczny, którego nie jest w stanie obsłużyć. (${exception.javaClass.name} ${exception.localizedMessage}) Kluczowe informacje zostały zapisane na urządzeniu. Proszę skontaktuj się z programistą w celu naprawy błędu. (Kliknij aby otworzyć czat)"
 
         val intent = try {
             PendingIntent.getActivity(context, -1,

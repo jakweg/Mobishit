@@ -14,14 +14,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.TestData
-import jakubweg.mobishit.helper.EmptyAdapter
-import jakubweg.mobishit.helper.MobiregPreferences
-import jakubweg.mobishit.helper.SnackbarController
-import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.TestsModel
 import java.lang.ref.WeakReference
 
@@ -191,9 +187,9 @@ class TestsFragment : Fragment() {
         }
 
         private class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            val date = v.findViewById<TextView>(R.id.testDate) ?: null
-            val title = v.findViewById<TextView>(R.id.testTitle) ?: null
-            val secondaryInfo = v.findViewById<TextView>(R.id.testSecondary) ?: null
+            val date = v.textView(R.id.testDate)
+            val title = v.textView(R.id.testTitle)
+            val secondaryInfo = v.textView(R.id.testSecondary)
         }
     }
 }

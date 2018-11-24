@@ -3,6 +3,7 @@ package jakubweg.mobishit.activity
 import android.annotation.SuppressLint
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -16,6 +17,7 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
@@ -24,6 +26,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.fragment.*
@@ -31,6 +34,7 @@ import jakubweg.mobishit.helper.DateHelper
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SnackbarController
+import jakubweg.mobishit.model.MainActivityModel
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.UpdateWorker
 import java.lang.ref.WeakReference
@@ -53,18 +57,22 @@ class MainActivity : DoublePanelActivity() {
         const val FRAGMENT_MARKS = "mk"
         const val FRAGMENT_TIMETABLE = "tt"
         const val FRAGMENT_MESSAGES = "mm"
+
+        private var isInForeground = false
+        val isMainActivityInForeground get() = isInForeground
     }
 
-    private var isInForeground = false
     private var currentSelectedNavigationItemId = 0 //R.id.nav_marks
     private var updateWorkStatus: LiveData<List<WorkInfo>>? = null
 
     lateinit var snackbar: SnackbarController
+    private lateinit var viewModel: MainActivityModel
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var toolbar: Toolbar
     private lateinit var preferences: MobiregPreferences
     private lateinit var chooseDateItem: MenuItem
+    private lateinit var chooseSortingOrderItem: MenuItem
 
     override val mainFragmentContainerId: Int
         get() = R.id.fragment_container
@@ -81,23 +89,14 @@ class MainActivity : DoublePanelActivity() {
 
         setContentView(R.layout.activity_main)
 
+        viewModel = ViewModelProviders.of(this)[MainActivityModel::class.java]
+
         preferences.registerChangeListener(loginStateListener)
 
         navigationView = findViewById(R.id.nav_view)!!
         drawerLayout = findViewById(R.id.drawer_layout)!!
         toolbar = findViewById(R.id.toolbar)!!
-        val weakActivity = WeakReference<MainActivity>(this)
-        chooseDateItem = toolbar.menu!!
-                .add(1, 1, 1, "Wybierz dzień").apply {
-                    setIcon(R.drawable.event_note)
-                    setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-                    setOnMenuItemClickListener { _ ->
-                        weakActivity.get()?.onChooseDateClicked()
-                        true
-                    }
-                    isVisible = false
-                }
-
+        createMenuOptions(toolbar)
 
         val toggle = ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
@@ -124,6 +123,74 @@ class MainActivity : DoublePanelActivity() {
         }
 
         showUsersName()
+
+        if (!preferences.decidedAboutFcm) {
+            navigationView.postDelayed({ requestFcmSnackbar() }, 10000L)
+        }
+    }
+
+    fun addOptionListener(listener: MarksViewOptionsFragment.OptionsChangedListener?) {
+        viewModel.addOptionListener(listener)
+    }
+
+    val optionListeners get() = viewModel.mOptionListeners.toList()
+
+    private fun createMenuOptions(toolbar: Toolbar) {
+        val weakActivity = WeakReference<MainActivity>(this)
+        chooseDateItem = toolbar.menu!!
+                .add(1, 1, 1, "Wybierz dzień").apply {
+                    setIcon(R.drawable.event_note)
+                    setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                    setOnMenuItemClickListener {
+                        weakActivity.get()?.onChooseDateClicked()
+                        true
+                    }
+                    isVisible = false
+                }
+
+        chooseSortingOrderItem = toolbar.menu!!
+                .add(1, 2, 2, "Opcje wyświetlania").apply {
+                    setIcon(R.drawable.ic_sort_with_white)
+                    setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                    setOnMenuItemClickListener {
+                        weakActivity.get()?.onChooseSortingOptionsClicked()
+                        true
+                    }
+                    isVisible = false
+                }
+    }
+
+    private fun showFcmSnackbar() {
+        if (snackbar.isShowingAnything) {
+            requestFcmSnackbar()
+            return
+        }
+        val showRequest = SnackbarController.ShowRequest(
+                "Czy chcesz otrzymywać powiadomienia niemal natychmiast?",
+                "Więcej", -1, SnackbarController.WeakClickedListener(onFcmSnackbarClicked))
+        snackbar.show(showRequest)
+    }
+
+    private fun requestFcmSnackbar() {
+        navigationView.postDelayed({ showFcmSnackbar() }, 1000L)
+    }
+
+    private val onFcmSnackbarClicked = Runnable {
+        AlertDialog.Builder(this)
+                .setTitle("Natychmiastowe powiadomienia")
+                .setMessage("Czy chcesz, aby specjalny serwer sprawdzał mobirega co chwilę i wysyłał Ci powiadomienia, gdy coś będzie godne Twojej uwagi?\n" +
+                        "Dzięki temu po wpisaniu oceny otrzymasz powiadomienie nawet w mniej niż 10 minut, a nie tak jak teraz po kilku godzinach!")
+                .setNegativeButton("Nie, nie chcę tego") { _, _ ->
+                    Toast.makeText(this, "W ustawienich możesz zmienić swoje zdanie", Toast.LENGTH_LONG).show()
+                    preferences.decidedAboutFcm = true
+                    preferences.allowedInstantNotifications = false
+                }
+                .setPositiveButton("Pewnie, że chcę") { _, _ ->
+                    Toast.makeText(this, "Zrozumiano!", Toast.LENGTH_SHORT).show()
+                    preferences.decidedAboutFcm = true
+                    preferences.allowedInstantNotifications = true
+                }
+                .show()
     }
 
     private fun updateUpdateTimeText() {
@@ -220,6 +287,13 @@ class MainActivity : DoublePanelActivity() {
                 as? TimetableFragment?)
                 ?.onChooseDateClicked()
     }
+
+
+    private fun onChooseSortingOptionsClicked() {
+        MarksViewOptionsFragment.newInstance()
+                .showSelf(this)
+    }
+
 
     private fun onUpdatePasswordRequested() {
         (supportFragmentManager
@@ -334,14 +408,15 @@ class MainActivity : DoublePanelActivity() {
     }
 
     private fun adjustToSelectedNavItem(itemId: Int) {
+        chooseSortingOrderItem.isVisible = false
+        chooseDateItem.isVisible = false
         when (itemId) {
             R.id.nav_timetable -> {
                 chooseDateItem.isVisible = true
             }
-            else -> {
-                chooseDateItem.isVisible = false
+            R.id.nav_marks -> {
+                chooseSortingOrderItem.isVisible = true
             }
-
         }
 
         toolbar.title = when (itemId) {
@@ -445,22 +520,77 @@ class MainActivity : DoublePanelActivity() {
     }
 
 
+    private fun onAppUpdateAvailable(info: MobiregPreferences.AppUpdateInfo) {
+        navigationView.menu?.findItem(R.id.nav_app_update)?.also {
+            it.isVisible = true
+            it.setOnMenuItemClickListener {
+                openLink(info.urlDoDownload)
+                true
+            }
+        }
+    }
+
+    private fun onAppUpdated(lastVersion: Int) {
+        val preferences = MobiregPreferences.get(this)
+        val msg = when (lastVersion) {
+            in 1..5 -> {
+                """Bardzo dużo nowości rzeczy:
+                    |• Niemal natychmiastowe powiadomienia
+                    |• Porównania i rankingi w aplikacji
+                    |• Lista wpisanych sprawdzianów
+                    |• Statystyki obecności
+                    |• Nowy wygląd ocen
+                    |• Lepsze obliczanie średnich i sortowanie ocen
+                    |• Liczne poprawki błędów
+                """.trimMargin()
+            }
+            6 -> {
+                """ |• Statystyki śrenidnich
+                    |• Poprawki błędów i optymalizacja
+                """.trimMargin()
+            }
+            else -> {
+                preferences.markLastUsedVersionCurrent()
+                return
+            }
+        }
+
+        AlertDialog.Builder(this)
+                .setTitle("Co nowego?")
+                .setMessage(msg)
+                .setPositiveButton("OK", null)
+                .show()
+    }
+
     private class BackgroundStartupTask(activity: MainActivity)
         : AsyncTask<Unit, Unit, Unit>() {
         private val mWeakActivity = WeakReference<MainActivity>(activity)
 
         private var updateWorkStatus: LiveData<List<WorkInfo>>? = null
 
+        private var info: MobiregPreferences.AppUpdateInfo? = null
+
+        private var lastUsedVersion = Int.MAX_VALUE
+
         override fun doInBackground(vararg params: Unit?) {
             CountdownService.startIfNeeded(mWeakActivity.get() ?: return)
             updateWorkStatus = WorkManager.getInstance()
                     .getWorkInfosForUniqueWorkLiveData(UpdateWorker.UNIQUE_WORK_NAME)
+            MobiregPreferences.get(mWeakActivity.get()
+                    ?: return).apply {
+                info = getAppUpdateInfo()
+                this.lastUsedVersion = lastUsedVersion
+            }
+
         }
 
         override fun onPostExecute(result: Unit?) {
             mWeakActivity.get()?.also {
                 it.updateWorkStatus = updateWorkStatus
                 it.startObservingUpdates()
+                info?.also { info -> it.onAppUpdateAvailable(info) }
+                if (lastUsedVersion < BuildConfig.VERSION_CODE)
+                    it.navigationView.postDelayed({ it.onAppUpdated(lastUsedVersion) }, 500L)
             }
         }
     }

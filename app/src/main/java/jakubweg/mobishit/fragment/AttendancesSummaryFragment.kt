@@ -11,13 +11,9 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AttendanceDao
-import jakubweg.mobishit.helper.EmptyAdapter
-import jakubweg.mobishit.helper.precomputedText
-import jakubweg.mobishit.helper.setLeftDrawable
-import jakubweg.mobishit.helper.themeAttributeToColor
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.AttendancesModel
 import jakubweg.mobishit.view.AttendanceBarView
 import java.lang.ref.WeakReference
@@ -112,13 +108,13 @@ class AttendancesSummaryFragment : Fragment() {
         }
 
         private inner class ViewHolder(v: View, iconColor: Int) : RecyclerView.ViewHolder(v) {
-            val title = v.findViewById<TextView>(R.id.title)!!
-            val summary = v.findViewById<TextView>(R.id.sumary)!!
+            val title = v.textView(R.id.title)!!
+            val summary = v.textView(R.id.sumary)!!
             val attendanceBar = v.findViewById<AttendanceBarView>(R.id.attendanceBar)!!
 
-            val presents = v.findViewById<TextView>(R.id.textPresents)!!
-            val absents = v.findViewById<TextView>(R.id.textAbsents)!!
-            val lateComings = v.findViewById<TextView>(R.id.textLateComings)!!
+            val presents = v.textView(R.id.textPresents)!!
+            val absents = v.textView(R.id.textAbsents)!!
+            val lateComings = v.textView(R.id.textLateComings)!!
 
             init {
                 presents.setLeftDrawable(R.drawable.event_available, iconColor)

@@ -9,11 +9,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AttendanceDao
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.AttendanceSubjectsListModel
 import java.lang.ref.WeakReference
 
@@ -47,7 +47,7 @@ class AttendanceSubjectsListFragment : AttendanceBaseSheetFragment() {
             dateEnd = getLong("end")
             title = getString("title") ?: ""
 
-            view.findViewById<TextView>(R.id.title)?.precomputedText = "Przedmioty • $title"
+            view.textView(R.id.title)?.precomputedText = "Przedmioty • $title"
             viewModel.init(dateStart, dateEnd)
 
             view.findViewById<RecyclerView>(R.id.subjectsList)
@@ -98,8 +98,8 @@ class AttendanceSubjectsListFragment : AttendanceBaseSheetFragment() {
         }
 
         private inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            val subjectName = v.findViewById<TextView>(R.id.subject_name)!!
-            val percent = v.findViewById<TextView>(R.id.percent)!!
+            val subjectName = v.textView(R.id.subject_name)!!
+            val percent = v.textView(R.id.percent)!!
 
             init {
                 v.setOnClickListener { internalOnClickListener(adapterPosition) }

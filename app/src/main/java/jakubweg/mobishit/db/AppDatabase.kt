@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.support.v4.content.LocalBroadcastManager
+import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.SettingsMigrationHelper.deleteDatabaseAndRequestNew
 
 @Database(entities = [Teacher::class, RoomData::class, TermData::class, SubjectData::class, GroupData::class, GroupTerm::class, MarkScaleGroup::class, MarkScale::class, MarkDivisionGroup::class, MarkKind::class, MarkGroupGroup::class, MarkGroup::class, EventType::class, EventTypeTeacher::class, EventTypeTerm::class, EventTypeGroup::class, EventData::class, EventIssue::class, EventEvent::class, AttendanceType::class, AttendanceData::class, MarkData::class, StudentGroup::class, EventTypeSchedule::class, LessonData::class, MessageData::class, TestData::class, AverageCacheData::class, ComparisonCacheData::class],
         version = 1, exportSchema = false)
@@ -44,12 +46,22 @@ abstract class AppDatabase : RoomDatabase() {
 
         private var INSTANCE: AppDatabase? = null
 
-        fun getAppDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: Room.databaseBuilder(context.applicationContext,
+        private fun loadDatabase(context: Context): AppDatabase {
+            return Room.databaseBuilder(context.applicationContext,
                     AppDatabase::class.java, "mobireg.db")
                     .allowMainThreadQueries() // widget on homescreen uses main thread, so we can't remove it
                     .build()
                     .also { INSTANCE = it }
+        }
+
+        fun getAppDatabase(context: Context): AppDatabase {
+            return try {
+                INSTANCE ?: loadDatabase(context)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                deleteDatabaseAndRequestNew(MobiregPreferences.get(context).prefs, context)
+                loadDatabase(context)
+            }
         }
 
 

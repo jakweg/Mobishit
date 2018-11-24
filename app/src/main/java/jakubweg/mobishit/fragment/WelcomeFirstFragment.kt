@@ -12,6 +12,7 @@ import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
+import jakubweg.mobishit.helper.textView
 import java.lang.ref.WeakReference
 
 class WelcomeFirstFragment : Fragment() {
@@ -25,7 +26,7 @@ class WelcomeFirstFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adjective = view.findViewById<TextView>(R.id.text3)!!
+        val adjective = view.textView(R.id.text3)!!
 
         val animation = AlphaAnimation(0f, 1f)
         val weakView = WeakReference<TextView>(adjective)

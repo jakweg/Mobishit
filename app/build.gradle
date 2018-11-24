@@ -13,8 +13,8 @@ android {
         applicationId "jakubweg.mobishit"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 7
-        versionName "1.2 - alpha"
+        versionCode 8
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

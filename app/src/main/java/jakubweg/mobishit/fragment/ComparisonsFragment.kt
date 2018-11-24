@@ -3,7 +3,6 @@ package jakubweg.mobishit.fragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
@@ -14,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.ComparisonCacheData
@@ -38,18 +36,16 @@ class ComparisonsFragment : Fragment() {
     }
 
 
-    private var iconColor = Color.BLACK
     private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProviders.of(this)[ComparisonsModel::class.java]
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val context = this.context!!
-        iconColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
 
-        view.findViewById<TextView>(R.id.avg_person)?.setLeftDrawable(R.drawable.ic_person, iconColor)
-        view.findViewById<TextView>(R.id.avg_class)?.setLeftDrawable(R.drawable.ic_group, iconColor)
-        view.findViewById<TextView>(R.id.avg_school)?.setLeftDrawable(R.drawable.ic_school, iconColor)
+        view.textView(R.id.avg_person)?.setLeftDrawable(R.drawable.ic_person)
+        view.textView(R.id.avg_class)?.setLeftDrawable(R.drawable.ic_group)
+        view.textView(R.id.avg_school)?.setLeftDrawable(R.drawable.ic_school)
 
         view.findViewById<View>(R.id.btnAllowServer)?.setOnClickListener {
             (activity as MainActivity?)?.apply {
@@ -76,6 +72,10 @@ class ComparisonsFragment : Fragment() {
 
         viewModel.averages.observe(this, AveragesObserver(this))
         viewModel.status.observe(this, StatusObserver(this))
+
+        if (viewModel.averages.value?.isNotEmpty() != true) {
+            mainList?.adapter = EmptyAdapter("Brak dostępnych porównań\nPołącz się z internetem lub spróbuj ponownie później")
+        }
     }
 
     private val loadingLayout get() = view?.findViewById<SwipeRefreshLayout?>(R.id.refreshLayout)
@@ -177,10 +177,10 @@ class ComparisonsFragment : Fragment() {
 
 
         private class ViewHolder(v: View, iconColor: Int) : RecyclerView.ViewHolder(v) {
-            val subjectName = v.findViewById<TextView>(R.id.subject_name)!!
-            val avgPerson = v.findViewById<TextView>(R.id.avg_person)!!
-            val avgClass = v.findViewById<TextView>(R.id.avg_class)!!
-            val avgSchool = v.findViewById<TextView>(R.id.avg_school)!!
+            val subjectName = v.textView(R.id.subject_name)!!
+            val avgPerson = v.textView(R.id.avg_person)!!
+            val avgClass = v.textView(R.id.avg_class)!!
+            val avgSchool = v.textView(R.id.avg_school)!!
 
             init {
                 run {

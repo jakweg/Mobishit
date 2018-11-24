@@ -7,13 +7,12 @@ import android.support.design.widget.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.ThemeHelper
-import jakubweg.mobishit.helper.precomputedText
+import jakubweg.mobishit.helper.setText
 import jakubweg.mobishit.model.MarkDetailsViewModel
 
 @Suppress("NOTHING_TO_INLINE")
@@ -37,10 +36,6 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
             : View? = inflater.inflate(R.layout.mark_details_fragment, container, false)
 
-    private inline fun View.setText(id: Int, text: CharSequence) {
-        findViewById<TextView>(id)?.precomputedText = text
-    }
-
 
     private inline val Float.prettyMe: String
         get() = String.format("%.1f", this)
@@ -52,64 +47,64 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
         val markId = arguments!!.getInt("markId", -1)
 
         model.init(markId)
-        model.mark.observe(this, Observer {
-            it ?: return@Observer
+        model.mark.observe(this, Observer { mark ->
+            mark ?: return@Observer
 
             view.apply {
 
-                setText(R.id.markTitle, it.description.takeUnless { s -> s.isBlank() }
+                setText(R.id.markTitle, mark.description.takeUnless { s -> s.isBlank() }
                         ?: "Kolumna bez nazwy")
-                setText(R.id.markColumnValue, it.columnName.takeUnless { s -> s.isBlank() }
+                setText(R.id.markColumnValue, mark.columnName.takeUnless { s -> s.isBlank() }
                         ?: "Kulumna bez nazwy")
 
-                if (it.markPointsValue >= 0f && it.markValueMax >= 0f && it.countPointsWithoutBase != null) {
-                    setText(R.id.markValue, it.markPointsValue.prettyMe)
+                if (mark.markPointsValue >= 0f && mark.markValueMax >= 0f && mark.countPointsWithoutBase != null) {
+                    setText(R.id.markValue, mark.markPointsValue.prettyMe)
 
                     setText(R.id.markMarkText, "Zdobyte punkty")
-                    setText(R.id.markMarkValue, "${it.markPointsValue.prettyMe} pkt.")
+                    setText(R.id.markMarkValue, "${mark.markPointsValue.prettyMe} pkt.")
 
 
                     setText(R.id.markWeightText, "Maksymalna suma punktów")
-                    setText(R.id.markWeightValue, "${it.markValueMax.prettyMe} pkt.")
+                    setText(R.id.markWeightValue, "${mark.markValueMax.prettyMe} pkt.")
 
 
                     setText(R.id.markCountToAverageText, "Wliczana do bazy")
-                    setText(R.id.markCountToAverageValue, if (it.countPointsWithoutBase) "Nie" else "Tak")
+                    setText(R.id.markCountToAverageValue, if (mark.countPointsWithoutBase) "Nie" else "Tak")
 
-                } else if (it.abbreviation != null && it.defaultWeight != null && it.noCountToAverage != null) {
+                } else if (mark.abbreviation != null && mark.defaultWeight != null && mark.noCountToAverage != null) {
 
-                    setText(R.id.markValue, it.abbreviation)
+                    setText(R.id.markValue, mark.abbreviation)
 
                     setText(R.id.markMarkText, "Słowna ocena")
-                    setText(R.id.markMarkValue, it.markName.takeUnless { s -> s.isNullOrBlank() }
+                    setText(R.id.markMarkValue, mark.markName.takeUnless { s -> s.isNullOrBlank() }
                             ?: "Bez nazwy")
 
 
                     setText(R.id.markWeightText, "Waga")
-                    setText(R.id.markWeightValue, "${it.defaultWeight}")
+                    setText(R.id.markWeightValue, "${mark.defaultWeight}")
 
 
                     setText(R.id.markCountToAverageText, "Wliczana do średniej")
-                    setText(R.id.markCountToAverageValue, if (it.noCountToAverage) "Nie" else "Tak")
+                    setText(R.id.markCountToAverageValue, if (mark.noCountToAverage) "Nie" else "Tak")
                 }
 
-                if (it.parentType == null) {
+                if (mark.parentType == null) {
                     findViewById<View>(R.id.markParentTypeInfo)?.visibility = View.GONE
                     findViewById<View>(R.id.markParentTypeValue)?.visibility = View.GONE
                 } else {
-                    setText(R.id.markParentTypeValue, when (it.parentType) {
+                    setText(R.id.markParentTypeValue, when (mark.parentType) {
                         null -> ""
                         MarkDao.PARENT_TYPE_COUNT_EVERY -> "Liczy się każda ocena"
                         MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z ocen"
                         MarkDao.PARENT_TYPE_COUNT_LAST -> "Liczy się ostatnia ocena"
                         MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
                         MarkDao.PARENT_TYPE_COUNT_WORSE -> "Liczy się gorsza ocena"
-                        else -> "Nieznana (${it.parentType})\nProszę zgłoś to programiście Mobishit"
+                        else -> "Nieznana (${mark.parentType})\nProszę zgłoś to programiście Mobishit"
                     })
                 }
 
-                setText(R.id.markTeacherValue, "${it.teacherName} ${it.teacherSurname}")
-                setText(R.id.markGetDateValue, it.formattedAddTime)
+                setText(R.id.markTeacherValue, "${mark.teacherName} ${mark.teacherSurname}")
+                setText(R.id.markGetDateValue, mark.formattedAddTime)
             }
         })
     }

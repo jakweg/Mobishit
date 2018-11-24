@@ -1,8 +1,6 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.ShareCompat
@@ -15,10 +13,11 @@ import android.view.animation.RotateAnimation
 import android.view.animation.ScaleAnimation
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.activity.FragmentActivity
 import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.textView
 
 
 class AboutFragment : Fragment() {
@@ -35,7 +34,7 @@ class AboutFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.findViewById<TextView>(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
+        view.textView(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
 
 
         view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
@@ -91,18 +90,14 @@ class AboutFragment : Fragment() {
     }
 
     private fun openGithub() {
-        openLink("https://github.com/JakubekWeg/Mobishit")
-    }
-
-    private fun openLink(uri: String) {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+        (activity as? FragmentActivity?)?.openLink("https://github.com/JakubekWeg/Mobishit")
     }
 
     private fun sendMessage() {
         AlertDialog.Builder(context ?: return)
                 .setTitle("Jak chcesz się ze mną skontaktować?")
-                .setPositiveButton("Messenger") { _, _ -> openLink("https://m.me/jakweg") }
-                .setNeutralButton("Telegram") { _, _ -> openLink("https://t.me/jakweg") }
+                .setPositiveButton("Messenger") { _, _ -> (activity as? FragmentActivity?)?.openLink("https://m.me/jakweg") }
+                .setNeutralButton("Telegram") { _, _ -> (activity as? FragmentActivity?)?.openLink("https://t.me/jakweg") }
                 .setNegativeButton("Mail") { _, _ -> openSendEmail() }
                 .show()
     }

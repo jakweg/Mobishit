@@ -154,8 +154,6 @@ class LoginDataModel(application: Application)
                                 val phone = get("phone")!!.asStringOrNull ?: ""
                                 val sex = validateSex(get("sex")!!.asStringOrNull)
 
-                                /*MobiregPreferences.get(context).also {
-                                    it.setUserData(id, name, surname, phone, sex, loginName, host, isWithHost, password)} */
                                 users.add(UserData(id, loginName, host, password, isWithHost, name, surname, sex, phone))
                             }
                         }
@@ -167,7 +165,7 @@ class LoginDataModel(application: Application)
                 else -> throw IllegalStateException("Can't log in - no errno nor ParentStudents")
             }
         }
-        return STATUS_FAILED
+        //return STATUS_FAILED //no needed
     }
 
 

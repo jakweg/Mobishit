@@ -16,4 +16,12 @@ interface TermDao {
 
     @Query("SELECT * from Terms ORDER BY type DESC")
     fun getTerms(): List<TermData>
+
+    @Query("SELECT id FROM Terms ORDER BY type DESC")
+    fun getTermIds(): List<Int>
+
+    class StartEnd(val startDate: Long, val endDate: Long)
+
+    @Query("SELECT startDate, endDate FROM Terms WHERE id = :id LIMIT 1")
+    fun getStartEnd(id: Int): StartEnd
 }
