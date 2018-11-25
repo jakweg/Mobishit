@@ -65,7 +65,7 @@ class MainActivity : DoublePanelActivity() {
     private var updateWorkStatus: LiveData<List<WorkInfo>>? = null
 
     lateinit var snackbar: SnackbarController
-    private lateinit var viewModel: MainActivityModel
+    private val viewModel get() = ViewModelProviders.of(this)[MainActivityModel::class.java]
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var toolbar: Toolbar
@@ -87,8 +87,6 @@ class MainActivity : DoublePanelActivity() {
         }
 
         setContentView(R.layout.activity_main)
-
-        viewModel = ViewModelProviders.of(this)[MainActivityModel::class.java]
 
         preferences.registerChangeListener(loginStateListener)
 
@@ -132,7 +130,8 @@ class MainActivity : DoublePanelActivity() {
         viewModel.addOptionListener(listener)
     }
 
-    val optionListeners get() = viewModel.mOptionListeners.toList()
+    val optionListeners
+        get() = viewModel.mOptionListeners.toList()
 
     private fun createMenuOptions(toolbar: Toolbar) {
         val weakActivity = WeakReference<MainActivity>(this)
