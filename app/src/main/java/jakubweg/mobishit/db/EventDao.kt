@@ -33,7 +33,7 @@ LEFT JOIN Subjects ON Subjects.id = EventTypes.subjectId
 LEFT JOIN EventTypeTeachers ON EventTypeTeachers.eventTypeId = EventTypes.id
 LEFT JOIN Teachers ON Teachers.id = EventTypeTeachers.teacherId
 WHERE Events.date = :day
-ORDER BY startTime, number""")
+ORDER BY startTime, number, substitution""")
     fun getAllEventsByDay(day: Long): List<EventLongInfo>
 
 

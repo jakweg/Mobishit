@@ -72,6 +72,7 @@ class MainActivity : DoublePanelActivity() {
     private lateinit var preferences: MobiregPreferences
     private lateinit var chooseDateItem: MenuItem
     private lateinit var chooseSortingOrderItem: MenuItem
+    private lateinit var aboutAttendancesItem: MenuItem
 
     override val mainFragmentContainerId: Int
         get() = R.id.fragment_container
@@ -152,6 +153,17 @@ class MainActivity : DoublePanelActivity() {
                     setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
                     setOnMenuItemClickListener {
                         weakActivity.get()?.onChooseSortingOptionsClicked()
+                        true
+                    }
+                    isVisible = false
+                }
+
+        aboutAttendancesItem = toolbar.menu!!
+                .add(1, 2, 2, "O liczeniu średnich").apply {
+                    setIcon(R.drawable.ic_help)
+                    setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                    setOnMenuItemClickListener {
+                        weakActivity.get()?.onAboutAttendancesClicked()
                         true
                     }
                     isVisible = false
@@ -281,7 +293,7 @@ class MainActivity : DoublePanelActivity() {
     private fun onChooseDateClicked() {
         (supportFragmentManager
                 ?.fragments
-                ?.last { it is TimetableFragment }
+                ?.lastOrNull { it is TimetableFragment }
                 as? TimetableFragment?)
                 ?.onChooseDateClicked()
     }
@@ -292,11 +304,16 @@ class MainActivity : DoublePanelActivity() {
                 .showSelf(this)
     }
 
+    private fun onAboutAttendancesClicked() {
+        AboutAttendancesFragment.newInstance()
+                .showSelf(this)
+    }
+
 
     private fun onUpdatePasswordRequested() {
         (supportFragmentManager
                 ?.fragments
-                ?.first { it is GeneralPreferenceFragment }
+                ?.firstOrNull { it is GeneralPreferenceFragment }
                 as? GeneralPreferenceFragment?)
                 ?.showUpdatePasswordDialog()
     }
@@ -408,12 +425,16 @@ class MainActivity : DoublePanelActivity() {
     private fun adjustToSelectedNavItem(itemId: Int) {
         chooseSortingOrderItem.isVisible = false
         chooseDateItem.isVisible = false
+        aboutAttendancesItem.isVisible = false
         when (itemId) {
             R.id.nav_timetable -> {
                 chooseDateItem.isVisible = true
             }
             R.id.nav_marks -> {
                 chooseSortingOrderItem.isVisible = true
+            }
+            R.id.nav_attendances -> {
+                aboutAttendancesItem.isVisible = true
             }
         }
 

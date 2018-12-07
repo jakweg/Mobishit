@@ -54,17 +54,18 @@ class AttendancesModel(application: Application)
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         while (calendar.timeInMillis <= lastDay) {
             val start = calendar.timeInMillis
+            val name = "${DateHelper.months[calendar[Calendar.MONTH]]} ${calendar[Calendar.YEAR]}"
 
             calendar.add(Calendar.MONTH, 1)
 
             val end = calendar.timeInMillis - 24 * 60 * 60 * 1000
 
+
             val list = dao.getAttendancesBetweenDates(start, end)
 
             if (list.isNotEmpty())
                 stats.add(AttendanceDao.AttendanceCountInfoHolder(
-                        "${DateHelper.months[calendar[Calendar.MONTH] - 1]} ${calendar[Calendar.YEAR]}",
-                        start, end, list))
+                        name, start, end, list))
         }
 
         mAttendanceData.postValue(stats)

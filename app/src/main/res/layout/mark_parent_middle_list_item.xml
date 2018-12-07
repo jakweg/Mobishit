@@ -12,7 +12,7 @@
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/markValue"
         android:layout_width="@dimen/mark_element_size"
-        android:layout_height="@dimen/mark_element_size"
+        android:layout_height="match_parent"
         android:layout_marginLeft="@dimen/markItemHorizontalMargin"
         android:layout_marginRight="@dimen/markItemHorizontalMargin"
         android:background="@drawable/background_mark_with_parent_middle"
@@ -34,7 +34,7 @@
         android:layout_marginEnd="10dp"
         android:ellipsize="end"
         android:gravity="center_vertical"
-        android:maxLines="2"
+        android:maxLines="3"
         android:textSize="16sp"
-        tools:text="Sprawdzian z prgramowania w C++ - operacje na plikach" />
+        tools:text="Sprawdzian z prgramowands\nf dfsia\n w C++ - operacje na plikach" />
 </LinearLayout>

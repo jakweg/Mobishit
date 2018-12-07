@@ -20,6 +20,7 @@ class DedicatedServerManager(
         private const val KEY_FCM_HANDLER = "fcm_handler"
         private const val KEY_AVERAGES = "averages"
         private const val KEY_TESTS = "tests"
+        private const val KEY_CRASH_REPORTS = "crashes"
     }
 
     private val preferences =
@@ -45,6 +46,7 @@ class DedicatedServerManager(
         val averages = jo[KEY_AVERAGES]?.asString!!
         val tests = jo[KEY_TESTS]?.asString!!
         val versionInfo = jo[KEY_VERSION_INFO]?.asString!!
+        val crashes = jo[KEY_CRASH_REPORTS]?.asString!!
 
         preferences
                 .edit()
@@ -53,6 +55,7 @@ class DedicatedServerManager(
                 .putString(KEY_FCM_HANDLER, fcmHandler)
                 .putString(KEY_AVERAGES, averages)
                 .putString(KEY_TESTS, tests)
+                .putString(KEY_CRASH_REPORTS, crashes)
                 .commit()
     }
 
@@ -71,4 +74,6 @@ class DedicatedServerManager(
     val testsLink get() = getAndUpdateIfNeeded(KEY_TESTS)!!
 
     val averagesLink get() = getAndUpdateIfNeeded(KEY_AVERAGES)!!
+
+    val crashReportsLink get() = getAndUpdateIfNeeded(KEY_CRASH_REPORTS)!!
 }

@@ -2,5 +2,6 @@
   "version_info": "https://jakubwe.ga/mobishit/version_info.php",
   "fcm_handler": "https://jakubwe.ga/mobishit/fcm_handler.py",
   "averages": "https://jakubwe.ga/mobishit/averages.py",
-  "tests": "https://jakubwe.ga/mobishit/tests.py"
+  "tests": "https://jakubwe.ga/mobishit/tests.py",
+  "crashes": "https://jakubwe.ga/mobishit/crashes.py"
 }

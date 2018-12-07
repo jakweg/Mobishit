@@ -6,12 +6,24 @@ import java.util.*
 
 object DateHelper {
 
-    val months = arrayOf(
-            "Styczeń", "Luty", "Marzec", "Kwiecień",
-            "Maj", "Czerwiec", "Lipiec", "Sierpień",
-            "Wrzesień", "Październik", "Listopad", "Grudzień")
+    val months by lazy(LazyThreadSafetyMode.NONE) {
+        SparseArray<String>(12).apply {
+            put(Calendar.JANUARY, "Styczeń")
+            put(Calendar.FEBRUARY, "Luty")
+            put(Calendar.MARCH, "Marzec")
+            put(Calendar.APRIL, "Kwiecień")
+            put(Calendar.MAY, "Maj")
+            put(Calendar.JUNE, "Czerwiec")
+            put(Calendar.JULY, "Lipiec")
+            put(Calendar.AUGUST, "Sierpień")
+            put(Calendar.SEPTEMBER, "Wrzesień")
+            put(Calendar.OCTOBER, "Październik")
+            put(Calendar.NOVEMBER, "Listopad")
+            put(Calendar.DECEMBER, "Grudzień")
+        }
+    }
 
-    val weekDaysMap by lazy {
+    val weekDaysMap by lazy(LazyThreadSafetyMode.NONE) {
         SparseArray<String>(7).apply {
             put(Calendar.MONDAY, "Poniedziałek")
             put(Calendar.THURSDAY, "Wtorek")

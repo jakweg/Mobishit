@@ -94,7 +94,7 @@ class AverageCalculator private constructor() {
                 ORDER_NEW_FIRST -> Comparator { o1, o2 -> o2.addTime.compareTo(o1.addTime) }
                 ORDER_OLD_FIRST -> Comparator { o1, o2 -> o1.addTime.compareTo(o2.addTime) }
                 ORDER_BY_NAME -> Comparator { o1, o2 -> o1.description.compareTo(o2.description) }
-                ORDER_BETTER_FIRST -> Comparator { o1, o2 ->
+                ORDER_BETTER_FIRST -> Comparator<MarkDao.MarkShortInfo> { o1, o2 ->
                     if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
                         return@Comparator 1
 
@@ -103,7 +103,7 @@ class AverageCalculator private constructor() {
 
                     return@Comparator (o2.markScaleValue + o2.markPointsValue / o2.markValueMax)
                             .compareTo(o1.markScaleValue + o1.markPointsValue / o1.markValueMax)
-                }
+                }.then(Comparator { o1, o2 -> o2.markValueMax.compareTo(o1.markValueMax) })
                 ORDER_WORSE_FIRST -> Comparator { o1, o2 ->
                     if (o1.countPointsWithoutBase == true || o1.noCountToAverage == true)
                         return@Comparator 1

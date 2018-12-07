@@ -20,7 +20,7 @@ class AttendanceMonthModel(application: Application)
 
 
     // name, color, count
-    private val mAttendanceTypes = MutableLiveData<List<AttendanceDao.AttendanceTypeInfo>>()
+    private val mAttendanceTypes = MutableLiveData<List<AttendanceDao.AttendanceTypeAndCountInfo>>()
 
     val attendanceTypes
         get() = handleBackground(mAttendanceTypes).asImmutable

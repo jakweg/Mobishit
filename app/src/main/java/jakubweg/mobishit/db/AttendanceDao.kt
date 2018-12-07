@@ -3,9 +3,17 @@ package jakubweg.mobishit.db
 import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.Query
+import jakubweg.mobishit.model.AboutAttendancesModel
 
 @Dao
 interface AttendanceDao {
+
+    class TypeInfo(val name: String, val color: Int, val countAs: String) : AboutAttendancesModel.TypeInfoAboutItemParent()
+
+    @Query("SELECT name, color, countAs FROM AttendanceTypes ORDER BY countAs, name")
+    fun getTypesInfo(): List<TypeInfo>
+
+
 
     class AttendanceCountInfo(val countAs: String, val count: Int)
 
@@ -30,31 +38,36 @@ interface AttendanceDao {
     @Query("""SELECT countAs, count(Attendances.id) AS count FROM Attendances
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
-                WHERE date BETWEEN :start AND :end GROUP BY countAs""")
+                WHERE date BETWEEN :start AND :end
+                AND status != 2 AND substitution != 2 GROUP BY countAs""")
     fun getAttendancesBetweenDates(start: Long, end: Long): List<AttendanceCountInfo>
 
 
-    class AttendanceTypeInfo(val id: Int, val name: String, val count: Int, val color: Int)
+    class AttendanceTypeAndCountInfo(val id: Int, val name: String, val count: Int, val color: Int)
 
     @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
-                WHERE date BETWEEN :start AND :end GROUP BY typeId""")
-    fun getDetailedAttendancesBetweenDates(start: Long, end: Long): List<AttendanceTypeInfo>
-
-    @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
-                INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
-                INNER JOIN Events ON Events.id = Attendances.eventId
-                INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-                WHERE subjectId = :subjectId AND date BETWEEN :start AND :end GROUP BY typeId""")
-    fun getDetailedAttendancesBetweenDates(start: Long, end: Long, subjectId: Int): List<AttendanceTypeInfo>
+                WHERE date BETWEEN :start AND :end
+                AND status != 2 AND substitution != 2 GROUP BY typeId""")
+    fun getDetailedAttendancesBetweenDates(start: Long, end: Long): List<AttendanceTypeAndCountInfo>
 
     @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
                 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-                WHERE subjectId IS NULL AND date BETWEEN :start AND :end GROUP BY typeId""")
-    fun getDetailedAttendancesBetweenDatesNoSubject(start: Long, end: Long): List<AttendanceTypeInfo>
+                WHERE subjectId = :subjectId AND date BETWEEN :start AND :end
+                AND status != 2 AND substitution != 2 GROUP BY typeId""")
+    fun getDetailedAttendancesBetweenDates(start: Long, end: Long, subjectId: Int): List<AttendanceTypeAndCountInfo>
+
+    @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
+                INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
+                INNER JOIN Events ON Events.id = Attendances.eventId
+                INNER JOIN EventTypes ON EventTypes.id = eventTypeId
+                WHERE subjectId IS NULL AND date BETWEEN :start AND :end
+                AND status != 2 AND substitution != 2
+                GROUP BY typeId""")
+    fun getDetailedAttendancesBetweenDatesNoSubject(start: Long, end: Long): List<AttendanceTypeAndCountInfo>
 
 
     @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
@@ -70,7 +83,8 @@ INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
 LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE date BETWEEN :start AND :end GROUP BY subjectId
+WHERE date BETWEEN :start AND :end AND status != 2 AND substitution != 2
+GROUP BY subjectId
 ORDER BY Subjects.abbreviation""")
     fun getAttendanceSubjectInfoBetweenDates(start: Long, end: Long): List<AttendanceSubjectInfo>
 
@@ -83,7 +97,7 @@ INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
 LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE subjectId = :subjectId AND typeId = :typeId
+WHERE subjectId = :subjectId AND typeId = :typeId AND status != 2 AND substitution != 2
 AND date BETWEEN :start AND :end
 ORDER BY date, number""")
     fun getAttendanceDatesBySubject(start: Long, end: Long, subjectId: Int, typeId: Int): List<AttendanceLesson>
@@ -94,7 +108,7 @@ INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
 LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE subjectId IS NULL AND typeId = :typeId
+WHERE subjectId IS NULL AND typeId = :typeId AND status != 2 AND substitution != 2
 AND date BETWEEN :start AND :end
 ORDER BY date, number""")
     fun getAttendanceDatesByNullSubject(start: Long, end: Long, typeId: Int): List<AttendanceLesson>
@@ -105,7 +119,7 @@ INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
 LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE typeId = :typeId AND date BETWEEN :start AND :end
+WHERE typeId = :typeId AND date BETWEEN :start AND :end AND status != 2 AND substitution != 2
 ORDER BY date, number""")
     fun getAttendanceDatesByAnySubject(start: Long, end: Long, typeId: Int): List<AttendanceLesson>
 

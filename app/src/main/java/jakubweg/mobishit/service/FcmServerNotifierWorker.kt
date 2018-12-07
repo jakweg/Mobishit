@@ -112,7 +112,6 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
         }.toString()
 
         return "$fcmLink?token=${URLEncoder.encode(encodeBase64(request), "UTF-8")}"
-        //return "$fcmLink?token=${URLEncoder.encode(request, "UTF-8")}"
     }
 
     private fun encodeBase64(s: String): String {

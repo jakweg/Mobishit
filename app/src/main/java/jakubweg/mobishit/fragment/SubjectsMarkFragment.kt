@@ -128,7 +128,8 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also { info ->
-                holder.markTitle.text = info.description.takeUnless { it.isBlank() } ?: "Bez tytułu"
+                holder.markTitle.text = (info.description.takeUnless { it.isBlank() }
+                        ?: "Bez tytułu")
                 ViewCompat.setTransitionName(holder.markTitle, "ma$position")
                 holder.markValue.precomputedText = when {
                     info.abbreviation != null -> info.abbreviation
@@ -139,7 +140,15 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
                 }
                 holder.markDescription?.precomputedText = when {
                     info.abbreviation == null && info.markValueMax > 0 ->
-                        "${info.markPointsValue.div(info.markValueMax).times(100f).prettyMe}%, maksymalnie ${info.markValueMax.prettyMe}"
+                        StringBuilder()
+                                .append(info.markPointsValue.div(info.markValueMax).times(100f).prettyMe)
+                                .append("% • maksymalnie ")
+                                .append(info.markValueMax.prettyMe)
+                                .apply {
+                                    if (info.countPointsWithoutBase == true)
+                                        append(" \u2022 Poza bazą")
+                                }
+                                .toString()
                     info.weight > 0 -> "Waga ${info.weight.prettyMe}"
                     else -> ""
                 }

@@ -108,6 +108,8 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:autoLink="web|email|phone"
+            android:linksClickable="true"
             android:id="@+id/textContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

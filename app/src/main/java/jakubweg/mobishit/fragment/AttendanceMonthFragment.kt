@@ -92,7 +92,7 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
         })
     }
 
-    private fun onAttendanceClicked(item: AttendanceDao.AttendanceTypeInfo) {
+    private fun onAttendanceClicked(item: AttendanceDao.AttendanceTypeAndCountInfo) {
         AttendanceDatesFragment
                 .newInstance("${item.name} \u2022 $title", start, end, subjectId, item.id)
                 .showSelfInsteadOfMe(this)
@@ -100,7 +100,7 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
 
     private class AttendanceTypesAdapter(f: AttendanceMonthFragment?,
                                          context: Context,
-                                         private val list: List<AttendanceDao.AttendanceTypeInfo>)
+                                         private val list: List<AttendanceDao.AttendanceTypeAndCountInfo>)
         : RecyclerView.Adapter<AttendanceTypesAdapter.ViewHolder>() {
         private val fragment = WeakReference(f)
 

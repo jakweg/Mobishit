@@ -16,6 +16,8 @@ import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.*
 import jakubweg.mobishit.db.AppDatabase.Companion.notifyUpdated
 import jakubweg.mobishit.helper.*
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -449,8 +451,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
 
     private fun getKotlinExceptionMessage(e: Exception)
-            : String = e.stackTrace.last { it?.fileName?.endsWith(".kt") == true }
-            ?.run { "${e.message}: $fileName ($lineNumber)" } ?: "unknown file"
+            : String = StringWriter().also { e.printStackTrace(PrintWriter(it)) }.toString()
+
 
     private fun makeErrorNotification(message: String) = NotificationCompat.Builder(applicationContext,
             NotificationHelper.CHANNEL_APP_STATE)

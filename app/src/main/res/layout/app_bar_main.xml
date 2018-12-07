@@ -51,6 +51,7 @@
             tools:text="Hello world Whats.up?" />
 
         <Button
+            android:textColor="@color/colorAccent"
             android:id="@+id/snackbar_action"
             style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="wrap_content"

@@ -15,6 +15,7 @@
         android:orientation="horizontal">
 
         <android.support.v7.widget.AppCompatTextView
+            android:layout_gravity="top"
             android:id="@+id/markValue"
             android:layout_width="@dimen/mark_element_size"
             android:layout_height="@dimen/mark_element_size"

@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.transition.TransitionInflater
 import android.support.v4.app.Fragment
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,10 +20,8 @@ import java.lang.ref.WeakReference
 
 class MessageDetailsFragment : Fragment() {
     companion object {
-        @JvmStatic
         fun newInstance(messageId: Int) = newInstance(messageId, null, null)
 
-        @JvmStatic
         fun newInstance(messageId: Int, messageTitle: CharSequence?, transitionName: String?) = MessageDetailsFragment().also {
             it.arguments = Bundle().apply {
                 putInt("messageId", messageId)
@@ -45,9 +44,7 @@ class MessageDetailsFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?
-        = inflater.inflate(R.layout.fragment_message_details, container, false)
-
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(R.layout.fragment_message_details, container, false)
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -83,7 +80,10 @@ class MessageDetailsFragment : Fragment() {
                         it.text = MessagesListFragment.makeMessageTitle(msg)
                 }
 
-                textView(R.id.textContent)!!.text = msg.content
+                textView(R.id.textContent)!!.also {
+                    it.movementMethod = LinkMovementMethod.getInstance()
+                    it.text = msg.content
+                }
 
             }
         }
