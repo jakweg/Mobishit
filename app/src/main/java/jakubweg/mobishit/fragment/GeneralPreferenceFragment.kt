@@ -10,12 +10,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.support.v4.app.ShareCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.preference.EditTextPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.SwitchPreferenceCompat
-import android.util.Base64
 import android.util.Log
 import android.view.inputmethod.EditorInfo
 import android.widget.AbsListView
@@ -25,12 +23,10 @@ import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.activity.WelcomeActivity
 import jakubweg.mobishit.db.AppDatabase
-import jakubweg.mobishit.helper.CrashHandler
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
 import jakubweg.mobishit.service.UpdateWorker
-import java.io.File
 
 class GeneralPreferenceFragment : PreferenceFragmentCompat() {
     companion object {
@@ -249,35 +245,6 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
                                 ?.primaryClip = ClipData.newPlainText("FCM token", token ?: "null")
                     }
                     .show()
-            false
-        }
-
-        findPreference("key_share_crash_report")?.setOnPreferenceClickListener {
-            context?.apply {
-                val path = CrashHandler.getCrashesFolder(this)
-                if (!path.exists()) {
-                    Toast.makeText(this, "Nie znaleziono żadnych zrzutów", Toast.LENGTH_SHORT).show()
-                    return@setOnPreferenceClickListener false
-                }
-                val files = path.list()
-
-                AlertDialog.Builder(this)
-                        .setTitle("Wybierz zrzut")
-                        .setNegativeButton("Anuluj", null)
-                        .setItems(files) { _, pos ->
-                            val filename = files[pos]
-                            val content = String(
-                                    Base64.encode(File(path, filename).readBytes(),
-                                            Base64.DEFAULT))
-
-                            activity?.apply {
-                                startActivity(ShareCompat.IntentBuilder.from(this)
-                                        .setType("text/plain")
-                                        .setText(content)
-                                        .createChooserIntent())
-                            }
-                        }.show()
-            }
             false
         }
     }

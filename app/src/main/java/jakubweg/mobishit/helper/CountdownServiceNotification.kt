@@ -81,10 +81,12 @@ abstract class CountdownServiceNotification private constructor(context: Context
 
 
     // ---- during lesson
-    fun updateDuringLesson(lesson: EventDao.CountdownServiceLesson, nowSeconds: Int) {
+    fun updateDuringLesson(lesson: EventDao.CountdownServiceLesson,
+                           nowSeconds: Int,
+                           nextLesson: EventDao.CountdownServiceLesson?) {
         if (mStatus != STATUS_DURING_LESSON
                 || lesson != mPreviousLesson) {
-            initDuringLesson(lesson, nowSeconds)
+            initDuringLesson(lesson, nowSeconds, nextLesson)
             mPreviousLesson = lesson
             mStatus = STATUS_DURING_LESSON
         }
@@ -92,7 +94,9 @@ abstract class CountdownServiceNotification private constructor(context: Context
         setDuringLessonSecond(lesson, nowSeconds)
     }
 
-    protected abstract fun initDuringLesson(lesson: EventDao.CountdownServiceLesson, nowSeconds: Int)
+    protected abstract fun initDuringLesson(lesson: EventDao.CountdownServiceLesson,
+                                            nowSeconds: Int,
+                                            nextLesson: EventDao.CountdownServiceLesson?)
 
     protected abstract fun setDuringLessonSecond(lesson: EventDao.CountdownServiceLesson, nowSeconds: Int)
 
@@ -194,6 +198,7 @@ abstract class CountdownServiceNotification private constructor(context: Context
                 " \u2022 ${firstLesson.roomName}"
             else
                 ""
+            clearButtons()
 
             mBuilder.setContentTitle("Dziś zaczniesz z ${firstLesson.name?.takeUnless { it.isBlank() }
                     ?: "pewną lekcją"}")
@@ -201,7 +206,8 @@ abstract class CountdownServiceNotification private constructor(context: Context
 
             if (showSubText) {
                 mBuilder.setSubText(buildListFromNotNullObjects(firstLesson.name, firstLesson.roomName))
-            }
+            } else
+                mBuilder.setSubText(null)
         }
 
         override fun setBeforeLessonsSecond(remain: Int) {
@@ -213,16 +219,24 @@ abstract class CountdownServiceNotification private constructor(context: Context
         }
 
 
+        private var nextLesson: EventDao.CountdownServiceLesson? = null
         // ---- during
-        override fun initDuringLesson(lesson: EventDao.CountdownServiceLesson, nowSeconds: Int) {
+        override fun initDuringLesson(lesson: EventDao.CountdownServiceLesson,
+                                      nowSeconds: Int,
+                                      nextLesson: EventDao.CountdownServiceLesson?) {
             resetProgress()
+            clearButtons()
+            isShowingNextLesson = false
             mBuilder.setContentTitle("Trwa ${lesson.name?.takeIf { it.isNotBlank() }
                     ?: "pewna lekcja"}")
 
             if (lesson.endSeconds - lesson.startSeconds > 45 * 60) {
-                mBuilder.mActions.clear()
-                mBuilder.addAction(R.drawable.ic_timer_off, "Ukryj dzisiaj", cancelTodayIntent)
+                setUpCancelTodayButton()
             }
+
+            this.nextLesson = nextLesson
+            if (nextLesson == null)
+                mBuilder.setSubText(null)
 
             if (showSubText) {
                 mBuilder.setSubText(buildListFromNotNullObjects(lesson.name, lesson.roomName))
@@ -234,7 +248,20 @@ abstract class CountdownServiceNotification private constructor(context: Context
             }
         }
 
+        private var isShowingNextLesson = false
         override fun setDuringLessonSecond(lesson: EventDao.CountdownServiceLesson, nowSeconds: Int) {
+            val next = this.nextLesson
+            if (next != null &&
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                    nowSeconds + 5 * 60 >= next.startSeconds - (next.startSeconds - lesson.endSeconds)) {
+                mBuilder.setSubText("Następnie ${buildListFromNotNullObjects(next.name, next.roomName)}")
+                if (!showSubText) {
+                    resetProgress()
+                    isShowingNextLesson = true
+                }
+                this.nextLesson = null
+            }
+
             val total = lesson.endSeconds - lesson.startSeconds
             val progress = nowSeconds - lesson.startSeconds
             mBuilder.setContentText(if (showSubText)
@@ -242,7 +269,7 @@ abstract class CountdownServiceNotification private constructor(context: Context
             else
                 formatTime('P', lesson.endSeconds - nowSeconds) + mTempText)
 
-            if (showProgressBar)
+            if (!isShowingNextLesson && showProgressBar)
                 setProgress(progress, total)
         }
 
@@ -251,9 +278,9 @@ abstract class CountdownServiceNotification private constructor(context: Context
         override fun initBetweenLessons(previousLesson: EventDao.CountdownServiceLesson,
                                         nextLesson: EventDao.CountdownServiceLesson,
                                         nowSeconds: Int) {
+            clearButtons()
             if (nextLesson.startSeconds - previousLesson.endSeconds > 30 * 60) {
-                mBuilder.mActions.clear()
-                mBuilder.addAction(R.drawable.ic_timer_off, "Ukryj dzisiaj", cancelTodayIntent)
+                setUpCancelTodayButton()
             }
 
             if (showSubText) {
@@ -264,6 +291,7 @@ abstract class CountdownServiceNotification private constructor(context: Context
                     "Następnie ${nextLesson.name}")
 
             } else {
+                mBuilder.setSubText(null)
                 mTempText = if (nextLesson.roomName != null)
                     " \u2022 ${nextLesson.roomName} \u2022 ${nextLesson.name}"
                 else
@@ -282,6 +310,17 @@ abstract class CountdownServiceNotification private constructor(context: Context
                 formatTime('P', total - progress) + mTempText)
             if (showProgressBar)
                 setProgress(progress, total)
+        }
+
+        private fun clearButtons() {
+            mBuilder.mActions.clear()
+        }
+
+        private fun setUpCancelTodayButton() {
+            if (mBuilder.mActions.isNotEmpty())
+                return
+            mBuilder.mActions.clear()
+            mBuilder.addAction(R.drawable.ic_timer_off, "Ukryj dzisiaj", cancelTodayIntent)
         }
     }
 }

@@ -4,9 +4,6 @@ import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.support.v4.content.LocalBroadcastManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SettingsMigrationHelper.deleteDatabaseAndRequestNew
 
@@ -30,20 +27,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val comparisonDao: ComparisonDao
 
     companion object {
-        private const val ACTION_UPDATED = "dbUpdated"
-        const val EXTRA_HAS_CHANGED = "changed"
-
-        val databaseUpdatedIntentFilter
-            get() = IntentFilter(ACTION_UPDATED)
-
-        fun notifyUpdated(context: Context, databaseChanged: Boolean) {
-            LocalBroadcastManager.getInstance(context)
-                    .sendBroadcast(Intent(ACTION_UPDATED).also {
-                        it.putExtra(EXTRA_HAS_CHANGED, databaseChanged)
-                    })
-        }
-
-
         private var INSTANCE: AppDatabase? = null
 
         private fun loadDatabase(context: Context): AppDatabase {

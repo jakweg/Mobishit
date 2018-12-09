@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.*
+import android.support.annotation.WorkerThread
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.widget.Toast
@@ -19,6 +20,7 @@ import jakubweg.mobishit.helper.CountdownServiceNotification
 import jakubweg.mobishit.helper.DateHelper
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
+import java.lang.ref.WeakReference
 import java.util.*
 
 class CountdownService : Service() {
@@ -27,15 +29,16 @@ class CountdownService : Service() {
     companion object ServiceController {
         private const val ACTION_STOP_SERVICE = "stop"
 
-        fun startIfNeeded(context: Context) {
-            val prefs = MobiregPreferences.get(context)
+        @WorkerThread
+        fun startIfNeeded(context: WeakReference<Context?>) {
+            val prefs = MobiregPreferences.get(context.get() ?: return)
             if (!prefs.run {
                         isSignedIn && runCountdownService &&
                                 nextAllowedCountdownServiceStart <= Calendar.getInstance()!!.timeInMillis
                     })
                 return
 
-            val dao = AppDatabase.getAppDatabase(context).eventDao
+            val dao = AppDatabase.getAppDatabase(context.get() ?: return).eventDao
 
             val today = DateHelper.getNowDateMillis()
 
@@ -45,7 +48,7 @@ class CountdownService : Service() {
             val nowSecond = DateHelper.getSecondsOfNow()
 
             if (nowSecond >= startSecond - prefs.beforeLessonsMinutes * 60 && nowSecond < endSecond)
-                start(context)
+                start(context.get() ?: return)
         }
 
         fun start(context: Context) {
@@ -304,7 +307,12 @@ class CountdownService : Service() {
         lessons.lastIndexWhich { it.startSeconds <= nowSeconds }.also {
             val item = lessons[it]
             when {
-                nowSeconds <= item.endSeconds -> notification.updateDuringLesson(item, nowSeconds)
+                nowSeconds <= item.endSeconds -> {
+                    val next = if (it == lessons.size - 1)
+                        null else lessons[it + 1]
+                    notification.updateDuringLesson(item, nowSeconds, next)
+                }
+
                 it == lessons.size - 1 -> throw IllegalStateException("it == lessons.size - 1")
                 else -> notification.updateBetweenLessons(lessons[it], lessons[it + 1], nowSeconds)
             }

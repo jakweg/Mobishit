@@ -14,7 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.helper.EmptyAdapter
 import jakubweg.mobishit.helper.textView
@@ -29,26 +29,16 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
     }
 
     override fun onOtherOptionsChanged() = Unit
-    private var shouldRefreshData = false
     override fun onTermChanged() {
-        if (isVisible)
-            viewModel.requestSubjectsAfterTermChanges()
-        else
-            shouldRefreshData = true
+        viewModel.requestSubjectsAfterTermChanges()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (shouldRefreshData) {
-            viewModel.requestSubjectsAfterTermChanges()
-            shouldRefreshData = false
-        }
-    }
+    lateinit var listener: MarkOptionsListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
-        (activity as? MainActivity?)?.addOptionListener(this)
+        listener = MarkOptionsListener(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)

@@ -7,6 +7,7 @@ import android.os.Build
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.text.Html
 import android.text.Spanned
 import android.util.Log
@@ -14,7 +15,6 @@ import androidx.work.*
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.*
-import jakubweg.mobishit.db.AppDatabase.Companion.notifyUpdated
 import jakubweg.mobishit.helper.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -29,6 +29,13 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
     companion object {
         const val UNIQUE_WORK_NAME = "updateMobireg"
+        const val ACTION_REFRESH_STATE_CHANGED = "mobiregrefreshchanged"
+        const val STATUS_STOPPED = 0
+        const val STATUS_RUNNING = 1
+        const val STATUS_FINISHED_NOTHING_NEW = 2
+        const val STATUS_FINISHED_SOMETHING_NEW = 3
+        const val STATUS_ERROR = 4
+
         fun requestUpdates(context: Context) {
             val frequency = MobiregPreferences.get(context).run {
                 if (!isSignedIn)
@@ -56,6 +63,14 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
+    private fun publishStatus(status: Int) {
+        LocalBroadcastManager.getInstance(applicationContext)
+                .sendBroadcast(Intent().also {
+                    it.action = ACTION_REFRESH_STATE_CHANGED
+                    it.putExtra("status", status)
+                })
+    }
+
     override fun doWork(): Result {
         val notificationHelper = NotificationHelper(applicationContext)
         val prefs = MobiregPreferences.get(applicationContext)
@@ -66,8 +81,12 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 return Result.SUCCESS
             }
 
-            if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis())
+            publishStatus(STATUS_RUNNING)
+
+            if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis()) {
+                publishStatus(STATUS_STOPPED)
                 return Result.SUCCESS
+            }
 
             if (!prefs.refreshOnWeekends)
                 Calendar.getInstance().apply {
@@ -78,6 +97,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                                 else -> false
                             }) {
                         //we've got weekends and we don't care about school, so we get drunk and PARTY!!
+                        publishStatus(STATUS_STOPPED)
                         return Result.SUCCESS
                     }
                 }
@@ -108,8 +128,10 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 }
             }
 
-
-            notifyUpdated(applicationContext, updateHelper.isAnythingNew)
+            if (updateHelper.isAnythingNew)
+                publishStatus(STATUS_FINISHED_SOMETHING_NEW)
+            else
+                publishStatus(STATUS_FINISHED_NOTHING_NEW)
 
             TimetableWidgetProvider.requestInstantUpdate(applicationContext)
 
@@ -119,10 +141,12 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     .putBoolean("success", false)
                     .build()
             Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
+            publishStatus(STATUS_ERROR)
             Result.RETRY
         } catch (ipe: UpdateHelper.InvalidPasswordException) {
             postWrongPasswordNotification(notificationHelper, prefs)
 
+            publishStatus(STATUS_ERROR)
             Result.FAILURE
         } catch (e: Exception) {
             e.printStackTrace()
@@ -130,9 +154,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
             notificationHelper.postNotification(
                     makeErrorNotification(getKotlinExceptionMessage(e)))
 
-            outputData = Data.Builder()
-                    .putBoolean("success", false)
-                    .build()
+            publishStatus(STATUS_ERROR)
             Result.FAILURE
         } finally {
             System.gc()
@@ -251,6 +273,9 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
         val canNotifyAboutAttendance = prefs.notifyAboutAttendances
 
+        val contentIntent = Intent(applicationContext, MainActivity::class.java)
+        contentIntent.action = MainActivity.ACTION_SHOW_TIMETABLE
+
         list.map { it.id }.split(100).forEach { eventIds ->
             dao.getAttendanceInfoByIds(eventIds, canNotifyAboutAttendance).apply {
                 val notificationIds = notificationHelper.getNotificationIds(size)
@@ -270,7 +295,14 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     else
                         "Dzień $formattedDate • godzina ${info.startTime}")
 
-                    notificationHelper.postNotification(notificationIds[index], notification)
+                    val notificationId = notificationIds[index]
+
+                    contentIntent.putExtra("id", info.date)
+                    notification.setContentIntent(PendingIntent
+                            .getActivity(applicationContext, notificationId,
+                                    contentIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+
+                    notificationHelper.postNotification(notificationId, notification)
                 }
             }
         }

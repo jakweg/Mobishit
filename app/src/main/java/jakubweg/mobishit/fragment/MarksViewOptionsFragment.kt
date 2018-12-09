@@ -14,7 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Switch
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.helper.AverageCalculator
 import jakubweg.mobishit.helper.MobiregPreferences
@@ -25,7 +25,9 @@ import java.lang.ref.WeakReference
 
 class MarksViewOptionsFragment : BottomSheetDialogFragment() {
     companion object {
-        fun newInstance() = MarksViewOptionsFragment()
+        fun newInstance(showSortBySpinner: Boolean) = MarksViewOptionsFragment().apply {
+            arguments = Bundle().also { it.putBoolean("chooseOrder", showSortBySpinner) }
+        }
     }
 
     interface OptionsChangedListener {
@@ -60,25 +62,20 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.fragment_marks_view_options, container, false)
     }
 
-    private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
-        ViewModelProviders.of(this)[TermsModel::class.java]
-    }
+    private val viewModel
+        get() =
+            ViewModelProviders.of(this)[TermsModel::class.java]
 
-    private inline fun forEachOptionsListener(func: (OptionsChangedListener) -> Unit) {
-        (activity as? MainActivity?)?.optionListeners?.forEach {
-            func.invoke(it.get() ?: return@forEach)
-        }
-    }
 
     override fun onStop() {
         super.onStop()
         if (previousIsEnabledGrouping != viewModel.isGroupingByParentsEnabled
                 || previousOrder != viewModel.selectedOrderMethod) {
             viewModel.savePreferences()
-            forEachOptionsListener { it.onOtherOptionsChanged() }
+            MarkOptionsListener.notifyOtherOptionsChanged(context)
         } else if (previousTerm != viewModel.selectedTermId) {
             viewModel.savePreferences()
-            forEachOptionsListener { it.onTermChanged() }
+            MarkOptionsListener.notifyTermChanged(context)
         }
     }
 
@@ -88,6 +85,7 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val weakView = WeakReference<View>(view)
+        val setOrderSpinnerVisible = arguments?.getBoolean("chooseOrder", true) ?: true
 
         viewModel.terms.observe(this, Observer { terms ->
             terms ?: return@Observer
@@ -113,34 +111,40 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
                 }
 
 
-                val sortingMethodsNames = AverageCalculator.getOrderMethodsNames()
-                val sortingMethodsIds = AverageCalculator.getOrderMethodsIds()
+                if (setOrderSpinnerVisible) {
+                    val sortingMethodsNames = AverageCalculator.getOrderMethodsNames()
+                    val sortingMethodsIds = AverageCalculator.getOrderMethodsIds()
 
-                findViewById<AppCompatSpinner>(R.id.sortingSpinner)?.also { spinner ->
-                    val adapter = ArrayAdapter<String>(context!!,
-                            android.R.layout.simple_spinner_item, sortingMethodsNames)
-                    adapter.setDropDownViewResource(
-                            android.R.layout.simple_spinner_dropdown_item)
+                    findViewById<AppCompatSpinner>(R.id.sortingSpinner)?.also { spinner ->
+                        val adapter = ArrayAdapter<String>(context!!,
+                                android.R.layout.simple_spinner_item, sortingMethodsNames)
+                        adapter.setDropDownViewResource(
+                                android.R.layout.simple_spinner_dropdown_item)
 
-                    spinner.adapter = adapter
-                    if (viewModel.selectedOrderMethod != 0)
-                        spinner.setSelection(sortingMethodsIds.indexOfFirst { it == viewModel.selectedOrderMethod })
+                        spinner.adapter = adapter
+                        if (viewModel.selectedOrderMethod != 0)
+                            spinner.setSelection(sortingMethodsIds.indexOfFirst { it == viewModel.selectedOrderMethod })
 
-                    spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                        override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+                        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
 
-                        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                            viewModel.selectedOrderMethod = sortingMethodsIds[position]
+                            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                                viewModel.selectedOrderMethod = sortingMethodsIds[position]
+                            }
                         }
                     }
-                }
 
 
-                findViewById<Switch>(R.id.switchGroupParents)?.also {
-                    it.isChecked = viewModel.isGroupingByParentsEnabled
-                    it.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.isGroupingByParentsEnabled = isChecked
+                    findViewById<Switch>(R.id.switchGroupParents)?.also {
+                        it.isChecked = viewModel.isGroupingByParentsEnabled
+                        it.setOnCheckedChangeListener { _, isChecked ->
+                            viewModel.isGroupingByParentsEnabled = isChecked
+                        }
                     }
+                } else {
+                    findViewById<View>(R.id.textSorting)?.visibility = View.INVISIBLE
+                    findViewById<View>(R.id.sortingSpinner)?.visibility = View.INVISIBLE
+                    findViewById<View>(R.id.switchGroupParents)?.visibility = View.GONE
                 }
 
             }

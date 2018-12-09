@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText,AlwaysShowAction">
+
+    <item
+        android:id="@+id/nav_sort_by"
+        android:icon="@drawable/ic_sort_with_white"
+        android:orderInCategory="1"
+        android:title="Ustawienia wyświetlania"
+        android:visible="false"
+        app:showAsAction="always"
+        tools:visible="true" />
+
+    <item
+        android:id="@+id/nav_choose_date"
+        android:icon="@drawable/event_note"
+        android:orderInCategory="2"
+        android:title="Wybierz datę"
+        android:visible="false"
+        app:showAsAction="always"
+        tools:visible="true" />
+
+    <item
+        android:id="@+id/nav_about_attendances"
+        android:icon="@drawable/ic_help"
+        android:orderInCategory="3"
+        android:title="O statystykach obecności"
+        android:visible="false"
+        app:showAsAction="always"
+        tools:visible="true" />
+</menu>

@@ -11,8 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import jakubweg.mobishit.R
-import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MessageDao
 import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.MessageDetailModel
@@ -29,10 +27,6 @@ class MessageDetailsFragment : Fragment() {
                 putString("transitionName", transitionName)
             }
         }
-    }
-
-    fun showSelf(activity: MainActivity?) {
-        (activity as? DoublePanelActivity)?.applyNewDetailsFragment(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

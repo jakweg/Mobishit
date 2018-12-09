@@ -16,6 +16,7 @@ import android.widget.ImageView
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.FragmentActivity
+import jakubweg.mobishit.helper.CrashHandler
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.textView
 
@@ -38,7 +39,17 @@ class AboutFragment : Fragment() {
 
 
         view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
-            openGithub()
+            //openGithub() TODO
+            throw IllegalStateException("You can't click the button")
+            Thread {
+            }.also {
+                it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { t, e ->
+                    t ?: return@UncaughtExceptionHandler
+                    e ?: return@UncaughtExceptionHandler
+                    CrashHandler.onNewCrash(activity!!, t, e)
+                }
+                it.start()
+            }
         }
         view.findViewById<Button>(R.id.btnReportError)!!.apply {
             val ending = when (MobiregPreferences.get(context ?: return).sex) {

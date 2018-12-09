@@ -16,10 +16,16 @@ class MarkDetailsViewModel(application: Application) : BaseViewModel(application
     private val mMark = MutableLiveData<MarkDao.MarkDetails>()
     val mark get() = handleBackground(mMark).asImmutable
 
+    var markNotFound = false
+
     override fun doInBackground() {
         if (markId == 0) cancelLastTask()
         val dao = AppDatabase.getAppDatabase(context).markDao
 
-        mMark.postValue(dao.getMarkDetails(markId))
+        val mark = dao.getMarkDetails(markId)
+        if (mark == null)
+            markNotFound = true
+
+        mMark.postValue(mark)
     }
 }

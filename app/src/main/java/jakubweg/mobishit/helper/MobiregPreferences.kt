@@ -311,4 +311,8 @@ class MobiregPreferences private constructor(
     var notifyWhenMainActivityIsInForeground
         get() = prefs.getBoolean("notifyWhenFG", true)
         set(value) = prefs.edit().putBoolean("notifyWhenFG", value).apply()
+
+    var ignoreCrashes
+        get() = prefs.getBoolean("iC", false)
+        set(value) = prefs.edit().putBoolean("iC", value).apply()
 }

@@ -37,7 +37,7 @@
                 <group android:checkableBehavior="all">
                     <item
                         android:id="@+id/nav_app_update"
-                        android:checkable="false"
+                        android:checkable="true"
                         android:icon="@drawable/nav_new_version"
                         android:title="Aktualizuj aplikację"
                         android:visible="false"

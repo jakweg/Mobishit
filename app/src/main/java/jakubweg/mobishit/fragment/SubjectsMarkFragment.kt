@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.MobiregPreferences
@@ -36,10 +37,13 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
         }
     }
 
+    private lateinit var listener: MarkOptionsListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
-        (activity as? MainActivity?)?.addOptionListener(this)
+        listener = MarkOptionsListener(this)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             sharedElementEnterTransition = TransitionInflater.from(context!!).inflateTransition(android.R.transition.move)
             sharedElementReturnTransition = TransitionInflater.from(context!!).inflateTransition(android.R.transition.move)

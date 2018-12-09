@@ -139,6 +139,12 @@ class SnackbarController(
             executeRequest()
     }
 
+    @MainThread
+    fun showCancelingCurrent(request: ShowRequest) {
+        cancelCurrent()
+        show(request)
+    }
+
     private fun executeRequest() {
         var item: ShowRequest? = null
         while (pendingRequests.isNotEmpty()) {

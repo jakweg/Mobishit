@@ -96,10 +96,6 @@
             android:summary="Usuwa pamięć podręczną średnich"
             android:title="Przelicz średnie" />
 
-        <android.support.v7.preference.Preference
-            android:key="key_share_crash_report"
-            android:title="Wyślij zrzut stosu z błędu krytycznego" />
-
         <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="getAllMarkGroups"

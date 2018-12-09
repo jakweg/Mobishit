@@ -99,7 +99,7 @@ INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
 INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
 INNER JOIN Teachers ON Teachers.id = Marks.teacherId
 WHERE Marks.id = :markId LIMIT 1""")
-    fun getMarkDetails(markId: Int): MarkDetails
+    fun getMarkDetails(markId: Int): MarkDetails?
 
 
     class DeletedMarkData(val description: String?, val abbreviation: String?, val subjectName: String)

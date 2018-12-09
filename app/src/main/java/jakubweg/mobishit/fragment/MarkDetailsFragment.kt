@@ -7,6 +7,7 @@ import android.support.design.widget.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MainActivity
@@ -48,6 +49,11 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
 
         model.init(markId)
         model.mark.observe(this, Observer { mark ->
+            if (model.markNotFound) {
+                Toast.makeText(view.context, "Nie znaleziono oceny", Toast.LENGTH_SHORT).show()
+                dismissAllowingStateLoss()
+                return@Observer
+            }
             mark ?: return@Observer
 
             view.apply {
