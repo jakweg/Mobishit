@@ -28,17 +28,17 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textSize="16sp"
+            style="@style/Base.TextAppearance.AppCompat.Body1"
             tools:text="To jest tytuł wiadomości wysłanej do ucznia!" />
 
         <TextView
             android:id="@+id/messageInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            style="@style/Base.TextAppearance.AppCompat.Caption"
             android:layout_marginTop="2dp"
             android:ellipsize="middle"
             android:singleLine="true"
-            android:textSize="13sp"
             tools:text="Od Jan Kowalski w dniu 30.02.2018 15:34" />
     </LinearLayout>
 </LinearLayout>

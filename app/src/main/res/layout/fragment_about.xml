@@ -14,13 +14,14 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
+        <!-- TODO -->
         <android.support.v7.widget.AppCompatTextView
             style="@style/Base.TextAppearance.AppCompat.Title"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginTop="15dp"
             android:gravity="center_horizontal"
-            android:text="Mobishit"
+            android:text="Mobishit ALPHA"
             android:textAllCaps="true"
             app:autoSizeTextType="uniform" />
 

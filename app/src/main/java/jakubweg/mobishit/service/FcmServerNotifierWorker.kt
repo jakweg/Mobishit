@@ -58,12 +58,12 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
             // probably user has no Google Play services :\
             if (BuildConfig.DEBUG)
                 postErrorNotification("Token is empty!")
-            return Result.FAILURE
+            return Result.failure()
         }
 
         return try {
             val body = Jsoup
-                    .connect(createServerNotifyUrl() ?: return Result.SUCCESS)!!
+                    .connect(createServerNotifyUrl() ?: return Result.success())!!
                     .ignoreHttpErrors(true)!!
                     .ignoreContentType(true)!!
                     .execute()!!
@@ -77,18 +77,18 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
             val result = jsonObject["result"]?.asString ?: "no result provided"
 
             if (isSuccess) {
-                Result.SUCCESS
+                Result.success()
             } else {
                 postErrorNotification("Can't register FCM: $result\nGot: $body")
-                Result.FAILURE
+                Result.failure()
             }
 
         } catch (te: SocketTimeoutException) {
-            Result.RETRY
+            Result.retry()
         } catch (e: Exception) {
             e.printStackTrace()
             postErrorNotification(e.localizedMessage)
-            Result.FAILURE
+            Result.failure()
         }
     }
 

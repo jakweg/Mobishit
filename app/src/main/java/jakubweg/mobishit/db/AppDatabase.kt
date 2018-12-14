@@ -7,7 +7,7 @@ import android.content.Context
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SettingsMigrationHelper.deleteDatabaseAndRequestNew
 
-@Database(entities = [Teacher::class, RoomData::class, TermData::class, SubjectData::class, GroupData::class, GroupTerm::class, MarkScaleGroup::class, MarkScale::class, MarkDivisionGroup::class, MarkKind::class, MarkGroupGroup::class, MarkGroup::class, EventType::class, EventTypeTeacher::class, EventTypeTerm::class, EventTypeGroup::class, EventData::class, EventIssue::class, EventEvent::class, AttendanceType::class, AttendanceData::class, MarkData::class, StudentGroup::class, EventTypeSchedule::class, LessonData::class, MessageData::class, TestData::class, AverageCacheData::class, ComparisonCacheData::class],
+@Database(entities = [Teacher::class, RoomData::class, TermData::class, SubjectData::class, GroupData::class, GroupTerm::class, MarkScaleGroup::class, MarkScale::class, MarkDivisionGroup::class, MarkKind::class, MarkGroupGroup::class, MarkGroup::class, EventType::class, EventTypeTeacher::class, EventTypeTerm::class, EventTypeGroup::class, EventData::class, EventIssue::class, EventEvent::class, AttendanceType::class, AttendanceData::class, MarkData::class, StudentGroup::class, EventTypeSchedule::class, LessonData::class, MessageData::class, TestData::class, AverageCacheData::class, ComparisonCacheData::class, SentMessageData::class],
         version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract val mainDao: MainDao

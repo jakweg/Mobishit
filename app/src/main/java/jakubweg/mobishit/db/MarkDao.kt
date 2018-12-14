@@ -1,6 +1,7 @@
 package jakubweg.mobishit.db
 
 import android.arch.persistence.room.*
+import android.util.SparseArray
 import jakubweg.mobishit.helper.DateHelper
 
 @Suppress("FunctionName")
@@ -13,6 +14,14 @@ interface MarkDao {
         const val PARENT_TYPE_COUNT_AVERAGE = 3
         const val PARENT_TYPE_COUNT_WORSE = 4 //lol, i don't know why xD
         const val PARENT_TYPE_COUNT_BEST = 5
+
+        val parentTypesAsText = SparseArray<String>(5).also {
+            it.put(MarkDao.PARENT_TYPE_COUNT_EVERY, "Liczy się każda ocena")
+            it.put(MarkDao.PARENT_TYPE_COUNT_AVERAGE, "Liczy się średnia z ocen")
+            it.put(MarkDao.PARENT_TYPE_COUNT_LAST, "Liczy się ostatnia ocena")
+            it.put(MarkDao.PARENT_TYPE_COUNT_BEST, "Liczy się lepsza ocena")
+            it.put(MarkDao.PARENT_TYPE_COUNT_WORSE, "Liczy się gorsza ocena")
+        }
     }
 
 
@@ -42,7 +51,8 @@ interface MarkDao {
 
     @Query("""SELECT
                         Marks.id, MarkGroups.description, MarkScales.abbreviation, IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
-                        IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage, IFNULL(Marks.markValue, -1) AS 'markPointsValue',
+                        IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage,
+                        IFNULL(Marks.markValue, -1) AS 'markPointsValue',
                         MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax', Terms.id AS 'termId',
                         parentType, IFNULL(MarkGroups.parentId, -1) as 'parentId', MarkGroups.id AS markGroupId, addTime
                     FROM Marks
@@ -112,6 +122,14 @@ INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
 WHERE Marks.id = :id AND visibility = 0 LIMIT 1""")
     fun getDeletedMarkInfo(id: Int): DeletedMarkData
+
+
+    class MarkScaleShortInfo(val abbreviation: String, val markValue: Float)
+
+    @Query("""SELECT abbreviation, markValue FROM MarkScales
+WHERE MarkScales.markScaleGroupId = :groupId AND not noCountToAverage AND length(abbreviation) > 0
+ORDER BY markValue""")
+    fun getMarkScalesByGroupId(groupId: Int): List<MarkScaleShortInfo>
 
 
     @Query("DELETE FROM AverageCaches")

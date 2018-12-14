@@ -112,8 +112,8 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
 
 
                 if (setOrderSpinnerVisible) {
-                    val sortingMethodsNames = AverageCalculator.getOrderMethodsNames()
-                    val sortingMethodsIds = AverageCalculator.getOrderMethodsIds()
+                    val sortingMethodsNames = AverageCalculator.orderMethodsNames
+                    val sortingMethodsIds = AverageCalculator.orderMethodsIds
 
                     findViewById<AppCompatSpinner>(R.id.sortingSpinner)?.also { spinner ->
                         val adapter = ArrayAdapter<String>(context!!,

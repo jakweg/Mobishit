@@ -17,6 +17,7 @@ import jakubweg.mobishit.fragment.*
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SnackbarController
+import jakubweg.mobishit.service.MessageUploadWorker
 import jakubweg.mobishit.service.UpdateWorker
 
 class MainActivity : DoublePanelActivity() {
@@ -51,7 +52,7 @@ class MainActivity : DoublePanelActivity() {
     val drawerLayout get() = findViewById<DrawerLayout>(R.id.drawer_layout)!!
 
     lateinit var snackbar: SnackbarController
-    lateinit var navigationUtils: MainActivityNavigationLayoutUtils
+    private lateinit var navigationUtils: MainActivityNavigationLayoutUtils
     private var currentSelectedItemId = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,7 +85,7 @@ class MainActivity : DoublePanelActivity() {
 
         navigationView.getHeaderViewById<TextView>(R.id.textMotto)
                 .text = "Mobireg – dziennik tak ${
-        if (preferences.sex != "M")
+        if (preferences.sex == "M")
             MobiregAdjectiveManager.getRandom()
         else "świetny"} jak twoje oceny"
     }
@@ -107,7 +108,13 @@ class MainActivity : DoublePanelActivity() {
     fun onNavigationItemSelected(itemId: Int, requestNewLayout: Boolean) {
         when (itemId) {
             R.id.nav_force_refresh ->
-                tryToRefresh()
+                MessageUploadWorker.requestMessageSent(
+                        this,
+                        0,
+                        "chuj",
+                        "chujchuj")
+            //tryToRefresh()
+
             R.id.nav_app_update ->
                 startActivity(Intent(Intent.ACTION_VIEW,
                         Uri.parse(preferences.getAppUpdateInfo()
@@ -130,6 +137,7 @@ class MainActivity : DoublePanelActivity() {
             R.id.nav_messages -> MessagesListFragment.newInstance()
             R.id.nav_about -> AboutFragment.newInstance()
             R.id.nav_settings -> GeneralPreferenceFragment.newInstance()
+            R.id.nav_calculate_average -> VirtualMarksFragment.newInstance()
             else -> null
         }
     }

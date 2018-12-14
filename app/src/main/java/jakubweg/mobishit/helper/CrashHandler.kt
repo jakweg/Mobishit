@@ -50,12 +50,13 @@ object CrashHandler {
             WorkManager.getInstance()
                     .enqueue(request)
 
+            Thread.sleep(1000) // give some time to WorkManager for enqueuing request
 
             if (!MobiregPreferences.get(context).ignoreCrashes)
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
                         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager,
                         AlarmManager.RTC_WAKEUP,
-                        System.currentTimeMillis() + 2 * 1000,
+                        System.currentTimeMillis() + 1000,
                         PendingIntent.getActivity(context, 0,
                                 Intent(context, SettingsActivity::class.java).also {
                                     it.action = SettingsActivity.ACTION_SHOW_CRASH_DIALOG
@@ -69,5 +70,9 @@ object CrashHandler {
         System.exit(0)
     }
 
-    private fun Throwable.stackTraceToString() = StringWriter().run { printStackTrace(PrintWriter(this)) }.toString()
+    private fun Throwable.stackTraceToString(): String {
+        val errors = StringWriter()
+        this.printStackTrace(PrintWriter(errors))
+        return errors.toString()
+    }
 }

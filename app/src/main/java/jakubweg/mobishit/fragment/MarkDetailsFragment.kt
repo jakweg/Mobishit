@@ -98,15 +98,7 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
                     findViewById<View>(R.id.markParentTypeInfo)?.visibility = View.GONE
                     findViewById<View>(R.id.markParentTypeValue)?.visibility = View.GONE
                 } else {
-                    setText(R.id.markParentTypeValue, when (mark.parentType) {
-                        null -> ""
-                        MarkDao.PARENT_TYPE_COUNT_EVERY -> "Liczy się każda ocena"
-                        MarkDao.PARENT_TYPE_COUNT_AVERAGE -> "Średnia z ocen"
-                        MarkDao.PARENT_TYPE_COUNT_LAST -> "Liczy się ostatnia ocena"
-                        MarkDao.PARENT_TYPE_COUNT_BEST -> "Liczy się lepsza ocena"
-                        MarkDao.PARENT_TYPE_COUNT_WORSE -> "Liczy się gorsza ocena"
-                        else -> "Nieznana (${mark.parentType})\nProszę zgłoś to programiście Mobishit"
-                    })
+                    setText(R.id.markParentTypeValue, MarkDao.parentTypesAsText[mark.parentType])
                 }
 
                 setText(R.id.markTeacherValue, "${mark.teacherName} ${mark.teacherSurname}")

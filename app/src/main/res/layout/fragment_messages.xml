@@ -1,15 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/messagesList"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        tools:listitem="@layout/message_list_item" />
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:colorBackground"
+            android:elevation="8dp"
+            app:tabSelectedTextColor="?android:textColorPrimary"
+            app:tabTextColor="?android:textColorSecondary"
+            tools:ignore="UnusedAttribute">
+
+            <android.support.design.widget.TabItem
+                android:id="@+id/navReceivedMessages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Odebrane" />
+
+            <android.support.design.widget.TabItem
+                android:id="@+id/navSentMessages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Wysłane" />
+        </android.support.design.widget.TabLayout>
+
+        <TextView
+            android:id="@+id/sentMessagesInfo"
+            style="@style/Base.TextAppearance.AppCompat.Small"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="4dp"
+            android:padding="8dp"
+            android:text="Pokazywane są tylko wiadomości wysłane z tej aplikacji"
+            android:visibility="gone"
+            tools:drawableLeft="@drawable/nav_info"
+            tools:visibility="visible" />
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/messagesList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            tools:itemCount="15"
+            tools:listitem="@layout/message_list_item" />
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btnNewMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_edit"
+        app:fabCustomSize="48dp"
+        app:fabSize="normal"
+        tools:ignore="RtlHardcoded" />
+</FrameLayout>

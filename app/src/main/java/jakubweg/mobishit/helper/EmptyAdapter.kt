@@ -7,11 +7,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import jakubweg.mobishit.R
 
-class EmptyAdapter constructor(private val text: CharSequence) : RecyclerView.Adapter<EmptyAdapter.ViewHolder>() {
+class EmptyAdapter constructor(private val text: CharSequence,
+                               private val matchParent: Boolean) : RecyclerView.Adapter<EmptyAdapter.ViewHolder>() {
 
+    constructor(text: CharSequence) : this(text, true)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(TextView(parent.context).apply {
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    if (matchParent) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT)
             gravity = Gravity.CENTER
             this.text = this@EmptyAdapter.text
             val padding = parent.context!!.resources.getDimensionPixelSize(R.dimen.snackbarLayoutPadding)

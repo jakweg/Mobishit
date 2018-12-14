@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/weightLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:ignore="ContentDescription,RtlHardcoded">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#AAA" />
+
+    <TextView
+        android:id="@+id/textWeight"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/layoutMark"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="8dp"
+        android:gravity="center_vertical"
+        android:minWidth="100dp"
+        android:text="Ocena: " />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/layoutWeight"
+        android:layout_alignBottom="@id/layoutWeight"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="8dp"
+        android:gravity="center_vertical"
+        android:minWidth="100dp"
+        android:text="Waga: " />
+
+    <LinearLayout
+        android:id="@+id/layoutMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_toLeftOf="@id/btnDeleteMark"
+        android:layout_toRightOf="@id/textWeight"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btnDecrease"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?android:selectableItemBackground"
+            android:padding="8dp"
+            android:src="@drawable/ic_navigate_before"
+            android:tint="?android:attr/textColorPrimary" />
+
+        <TextView
+            android:id="@+id/markValue"
+            style="@style/Base.TextAppearance.AppCompat.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="40dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="bdb" />
+
+        <ImageButton
+            android:id="@+id/btnIncrease"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?android:selectableItemBackground"
+            android:contentDescription=""
+            android:padding="8dp"
+            android:src="@drawable/ic_navigate_next"
+            android:tint="?android:attr/textColorPrimary" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutWeight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layoutMark"
+        android:layout_centerHorizontal="true"
+        android:layout_toLeftOf="@id/btnDeleteMark"
+        android:layout_toRightOf="@id/title"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btnDecrease2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?android:selectableItemBackground"
+            android:padding="8dp"
+            android:src="@drawable/ic_navigate_before"
+            android:tint="?android:attr/textColorPrimary" />
+
+        <TextView
+            android:id="@+id/markValue2"
+            style="@style/Base.TextAppearance.AppCompat.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="40dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="5" />
+
+        <ImageButton
+            android:id="@+id/btnIncrease2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?android:selectableItemBackground"
+            android:contentDescription=""
+            android:padding="8dp"
+            android:src="@drawable/ic_navigate_next"
+            android:tint="?android:attr/textColorPrimary" />
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnDeleteMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/layoutMark"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="right"
+        android:background="?android:selectableItemBackground"
+        android:padding="8dp"
+        android:src="@drawable/ic_delete"
+        android:tint="?android:attr/textColorPrimary" />
+
+    <ImageButton
+        android:id="@+id/btnMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/layoutWeight"
+        android:layout_alignBottom="@id/layoutWeight"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="right"
+        android:background="?android:selectableItemBackground"
+        android:padding="8dp"
+        android:src="@drawable/ic_more"
+        android:tint="?android:attr/textColorPrimary" />
+</RelativeLayout>

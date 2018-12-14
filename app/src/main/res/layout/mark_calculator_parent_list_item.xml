@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingBottom="4dp"
+    tools:ignore="ContentDescription,RtlHardcoded">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#AAA" />
+
+    <LinearLayout
+        android:id="@+id/weightLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/parentTypeText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="8dp"
+        android:minWidth="150dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textWeight"
+            style="@style/Base.TextAppearance.AppCompat.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:text="Waga: " />
+
+        <ImageButton
+            android:id="@+id/btnDecrease"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:padding="4dp"
+            android:src="@drawable/ic_navigate_before"
+            android:tint="?android:attr/textColorPrimary" />
+
+        <TextView
+            android:id="@+id/markValue"
+            style="@style/Base.TextAppearance.AppCompat.Body2"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="30dp"
+            android:text="13" />
+
+        <ImageButton
+            android:id="@+id/btnIncrease"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:contentDescription=""
+            android:padding="4dp"
+            android:src="@drawable/ic_navigate_next"
+            android:tint="?android:attr/textColorPrimary" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/parentTypeText"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/btnAddNewMark"
+        android:layout_toRightOf="@id/weightLayout"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:selectableItemBackground"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        android:text="Liczona jest średnia z wszystkich ocen" />
+
+    <ImageButton
+        android:id="@+id/btnAddNewMark"
+        android:layout_width="wrap_content"
+        android:layout_height="0px"
+        android:layout_alignBottom="@id/parentTypeText"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/btnDeleteMark"
+        android:background="?android:selectableItemBackground"
+        android:contentDescription=""
+        android:padding="4dp"
+        android:src="@drawable/ic_add_box"
+        android:tint="?android:attr/textColorPrimary" />
+
+    <ImageButton
+        android:id="@+id/btnDeleteMark"
+        android:layout_width="wrap_content"
+        android:layout_height="0px"
+        android:layout_alignBottom="@id/parentTypeText"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:background="?android:selectableItemBackground"
+        android:contentDescription=""
+        android:padding="4dp"
+        android:src="@drawable/ic_delete_sweep"
+        android:tint="?android:attr/textColorPrimary" />
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="48dp"
+        android:layout_toLeftOf="@id/btnDeleteMark"
+        android:background="#AAA" />
+</RelativeLayout>

@@ -10,7 +10,7 @@ import jakubweg.mobishit.service.UpdateWorker
 
 @Suppress("NOTHING_TO_INLINE")
 object SettingsMigrationHelper {
-    private const val CURRENT_APP_SETTINGS_VERSION = 8
+    private const val CURRENT_APP_SETTINGS_VERSION = 803 //TODO
 
     @SuppressLint("ApplySharedPref")
     fun onSettingsLoaded(prefs: SharedPreferences?,

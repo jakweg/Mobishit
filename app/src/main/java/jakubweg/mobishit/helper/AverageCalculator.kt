@@ -70,7 +70,7 @@ class AverageCalculator private constructor() {
 
         const val ORDER_DEFAULT = ORDER_NEW_FIRST
 
-        fun getOrderMethodsNames() = arrayOf(
+        val orderMethodsNames = arrayOf(
                 "Od najnowszych",
                 "Od najstarszych",
                 "Od najlepszych",
@@ -79,7 +79,7 @@ class AverageCalculator private constructor() {
                 "Od bardziej znaczących"
         )
 
-        fun getOrderMethodsIds() = intArrayOf(
+        val orderMethodsIds = intArrayOf(
                 ORDER_NEW_FIRST,
                 ORDER_OLD_FIRST,
                 ORDER_BETTER_FIRST,
@@ -268,10 +268,11 @@ class AverageCalculator private constructor() {
             if (!ignorePreviousCalculation && hasCalculatedAverage) return
             hasCalculatedAverage = true
             if (markScaleValue >= 0 && noCountToAverage != null) {
+                if (!noCountToAverage)
+                    return@apply
+                averageWeight += weight
                 val weight = if (weight >= 0f) weight else 1f
                 averageSum += markScaleValue * weight
-                if (!noCountToAverage)
-                    averageWeight += weight
 
             }
             if (countPointsWithoutBase != null) {
@@ -292,6 +293,8 @@ class AverageCalculator private constructor() {
             mark.hasCalculatedAverage = true
             mark.apply {
                 if (markScaleValue >= 0 && noCountToAverage != null) {
+                    if (noCountToAverage == true)
+                        return@apply
                     averageValue += markScaleValue
                     marksCount++
 

@@ -78,14 +78,14 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
             if (!prefs.isSignedIn) {
                 WorkManager.getInstance()
                         .cancelUniqueWork(UNIQUE_WORK_NAME)
-                return Result.SUCCESS
+                return Result.success()
             }
 
             publishStatus(STATUS_RUNNING)
 
             if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis()) {
                 publishStatus(STATUS_STOPPED)
-                return Result.SUCCESS
+                return Result.success()
             }
 
             if (!prefs.refreshOnWeekends)
@@ -98,7 +98,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                             }) {
                         //we've got weekends and we don't care about school, so we get drunk and PARTY!!
                         publishStatus(STATUS_STOPPED)
-                        return Result.SUCCESS
+                        return Result.success()
                     }
                 }
 
@@ -135,19 +135,16 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
             TimetableWidgetProvider.requestInstantUpdate(applicationContext)
 
-            Result.SUCCESS
+            Result.success()
         } catch (ste: SocketTimeoutException) {
-            outputData = Data.Builder()
-                    .putBoolean("success", false)
-                    .build()
             Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
             publishStatus(STATUS_ERROR)
-            Result.RETRY
+            Result.retry()
         } catch (ipe: UpdateHelper.InvalidPasswordException) {
             postWrongPasswordNotification(notificationHelper, prefs)
 
             publishStatus(STATUS_ERROR)
-            Result.FAILURE
+            Result.failure()
         } catch (e: Exception) {
             e.printStackTrace()
 
@@ -155,7 +152,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     makeErrorNotification(getKotlinExceptionMessage(e)))
 
             publishStatus(STATUS_ERROR)
-            Result.FAILURE
+            Result.failure()
         } finally {
             System.gc()
         }
@@ -297,7 +294,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
                     val notificationId = notificationIds[index]
 
-                    contentIntent.putExtra("id", info.date)
+                    contentIntent.putExtra("id", (info.date / 1000).toInt())
                     notification.setContentIntent(PendingIntent
                             .getActivity(applicationContext, notificationId,
                                     contentIntent, PendingIntent.FLAG_UPDATE_CURRENT))
@@ -408,8 +405,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         var remain = size
         val iterator = iterator()
 
-        return List(size / count + 1) { _ ->
-            List(min(remain, count)) { _ ->
+        return List(size / count + 1) {
+            List(min(remain, count)) {
                 remain--
                 iterator.next()
             }

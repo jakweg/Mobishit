@@ -65,6 +65,7 @@ abstract class DoublePanelActivity : FragmentActivity() {
         }
 
         supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fragment_enter, R.anim.fade_out, R.anim.fade_in, R.anim.fragment_exit)
                 .replace(secondFragmentContainerId, fragment)
                 .addToBackStack(null)
                 .commitAllowingStateLoss()

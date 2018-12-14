@@ -26,13 +26,13 @@ class GroupData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, 
 class GroupTerm(@PrimaryKey(autoGenerate = true) val id: Int, val groupId: Int, val termId: Int)
 
 @Entity(tableName = "MarkScaleGroups")
-class MarkScaleGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String)
+class MarkScaleGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val markType: String, val isPublic: Boolean, val isDefault: Boolean)
 
 @Entity(tableName = "MarkScales")
 class MarkScale(@PrimaryKey(autoGenerate = true) val id: Int, val markScaleGroupId: Int, val abbreviation: String, val name: String, val markValue: Float, val noCountToAverage: Boolean)
 
 @Entity(tableName = "MarkDivisionGroups")
-class MarkDivisionGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val type: Int, val rangeMin: Float, val rangeMax: Float, val markScaleGroupsId: Int)
+class MarkDivisionGroup(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val type: Int, val isPublic: Boolean, val rangeMin: Float, val rangeMax: Float, val markScaleGroupsId: Int)
 
 @Entity(tableName = "MarkKinds")
 class MarkKind(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val abbreviation: String, val defaultMarkType: Int?, val defaultMarkScaleGroupId: Int?, val defaultWeight: Int?, val position: Int, val cssStyle: String)
@@ -180,4 +180,20 @@ class ComparisonCacheData(@PrimaryKey(autoGenerate = true) val id: Int,
             jo["img_class"].asStringOrNull,
             jo["img_school"].asStringOrNull
     )
+}
+
+@Entity(tableName = "SentMessages")
+class SentMessageData(@PrimaryKey(autoGenerate = true) val id: Int,
+                      val subject: String,
+                      val content: String,
+                      val sentTime: Long,
+                      val receiverId: Int,
+                      val status: Int) {
+    companion object {
+        const val STATUS_ENQUEUED = 0
+        const val STATUS_IN_PROGRESS = 2
+        const val STATUS_SUCCEEDED = 3
+        const val STATUS_FAILED = 4
+        const val STATUS_CANCELLED = 5
+    }
 }

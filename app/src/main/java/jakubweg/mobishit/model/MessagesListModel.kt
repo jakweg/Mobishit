@@ -1,6 +1,7 @@
 package jakubweg.mobishit.model
 
 import android.app.Application
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.MessageDao
@@ -8,12 +9,20 @@ import jakubweg.mobishit.db.MessageDao
 class MessagesListModel(application: Application)
     : BaseViewModel(application) {
 
-    private val mMessages = MutableLiveData<List<MessageDao.MessageShortInfo>>()
+    private val mReceivedMessages = MutableLiveData<List<MessageDao.MessageShortInfo>>()
 
-    val messages get() = handleBackground(mMessages).asImmutable
+    val receivedMessages get() = handleBackground(mReceivedMessages).asImmutable
+
+    var sentMessages: LiveData<List<MessageDao.SentMessageShortData>> = MutableLiveData<List<MessageDao.SentMessageShortData>>()
+
+    val sentMessagesLiveData = MutableLiveData<Long>()
 
     override fun doInBackground() {
         val dao = AppDatabase.getAppDatabase(context).messageDao
-        mMessages.postValue(dao.getMessages())
+
+        sentMessages = dao.getAllSentMessages()
+
+        mReceivedMessages.postValue(dao.getMessages())
+        sentMessagesLiveData.postValue(System.currentTimeMillis())
     }
 }

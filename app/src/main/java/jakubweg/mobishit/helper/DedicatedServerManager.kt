@@ -4,6 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.google.gson.JsonParser
 import org.jsoup.Jsoup
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.ByteArrayOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class DedicatedServerManager(
         context: Context
@@ -21,6 +26,45 @@ class DedicatedServerManager(
         private const val KEY_AVERAGES = "averages"
         private const val KEY_TESTS = "tests"
         private const val KEY_CRASH_REPORTS = "crashes"
+        private const val KEY_MESSAGES = "messages"
+
+        fun makePostRequest(url: String, postData: ByteArray): String {
+            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 5000
+                readTimeout = 20 * 1000
+                requestMethod = "POST"
+                doInput = true
+                doOutput = true
+            }
+
+
+            val os = connection.outputStream
+
+            BufferedOutputStream(os).use {
+                it.write(postData)
+            }
+
+            os.close()
+
+            val bis = BufferedInputStream(connection.inputStream)
+            val buf = ByteArrayOutputStream()
+
+            val buffer = ByteArray(1024 * 8)
+            var read = 0
+            while (read >= 0) {
+                read = bis.read(buffer)
+                if (read == -1)
+                    break
+                buf.write(buffer, 0, read)
+                if (read == 0)
+                    Thread.sleep(10L)
+            }
+
+            bis.close()
+            connection.disconnect()
+
+            return String(buf.toByteArray(), Charsets.UTF_8)
+        }
     }
 
     private val preferences =
@@ -47,6 +91,7 @@ class DedicatedServerManager(
         val tests = jo[KEY_TESTS]?.asString!!
         val versionInfo = jo[KEY_VERSION_INFO]?.asString!!
         val crashes = jo[KEY_CRASH_REPORTS]?.asString!!
+        val messages = jo[KEY_MESSAGES]?.asString!!
 
         preferences
                 .edit()
@@ -56,6 +101,7 @@ class DedicatedServerManager(
                 .putString(KEY_AVERAGES, averages)
                 .putString(KEY_TESTS, tests)
                 .putString(KEY_CRASH_REPORTS, crashes)
+                .putString(KEY_MESSAGES, messages)
                 .commit()
     }
 
@@ -76,4 +122,6 @@ class DedicatedServerManager(
     val averagesLink get() = getAndUpdateIfNeeded(KEY_AVERAGES)!!
 
     val crashReportsLink get() = getAndUpdateIfNeeded(KEY_CRASH_REPORTS)!!
+
+    val messagesLink get() = getAndUpdateIfNeeded(KEY_MESSAGES)!!
 }

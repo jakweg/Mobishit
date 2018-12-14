@@ -148,7 +148,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
 
         activity.menuInflater.inflate(R.menu.activity_main_toolbar, toolbar.menu)
         if (MobiregPreferences.get(activity).getAppUpdateInfo() != null)
-            toolbar.menu?.findItem(R.id.nav_app_update)?.isVisible = true
+            navigationView.menu?.findItem(R.id.nav_app_update)?.isVisible = true
         toolbar.setOnMenuItemClickListener(::onMenuItemClicked)
     }
 
@@ -252,6 +252,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
             R.id.nav_tests -> "Sprawdziany"
             R.id.nav_about -> "O aplikacji"
             R.id.nav_settings -> "Ustawienia"
+            R.id.nav_calculate_average -> "Oblicz średnią"
             else -> return
         }
     }
@@ -442,3 +443,5 @@ fun Menu.forEach(func: (MenuItem) -> Unit) {
     for (i in 0 until size())
         func.invoke(getItem(i))
 }
+
+inline fun <E> List<E>.averageBy(crossinline getter: (E) -> Double) = sumByDouble(getter).div(size.toDouble())

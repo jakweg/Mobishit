@@ -29,6 +29,10 @@
             android:id="@+id/nav_messages"
             android:icon="@drawable/nav_messages"
             android:title="Wiadomości i uwagi" />
+        <item
+            android:id="@+id/nav_calculate_average"
+            android:icon="@drawable/ic_functions"
+            android:title="Oblicz średnią (testowo)" />
 
         <item
             android:id="@+id/nav_last_checked"

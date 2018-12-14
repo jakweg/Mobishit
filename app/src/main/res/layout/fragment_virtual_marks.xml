@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/nav_info"
+        android:drawableTint="#000"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="Obliczanie średnich jeszcze w budowie..."
+        tools:ignore="RtlHardcoded,UnusedAttribute" />
+
+    <Button
+        android:id="@+id/addNewMark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dodaj ocenę z poprawy" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/markParentsList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        tools:listitem="@layout/mark_calculator_parent_list_item" />
+</LinearLayout>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="12dp"
+    android:layout_marginRight="12dp"
+    android:orientation="vertical">
+
+    <TextView
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
+        android:text="Nowa wiadomość"
+        android:visibility="visible" />
+
+    <android.support.design.button.MaterialButton
+        android:id="@+id/btnChooseReceiver"
+        style="@style/Base.Widget.AppCompat.Button.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:text="Wybierz odbiorcę wiadomości"
+        android:textColor="?android:textColorPrimary"
+        app:backgroundTint="@android:color/transparent"
+        app:cornerRadius="4dp"
+        app:strokeColor="@color/colorPrimary"
+        app:strokeWidth="2dp" />
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/editSubject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/compose_mail_topic_background"
+        android:gravity="center"
+        android:hint="Tutaj wpisz temat wiadomości..."
+        android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences"
+        android:maxLength="120"
+        android:padding="8dp"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:ignore="RtlHardcoded">
+
+        <android.support.design.button.MaterialButton
+            android:id="@+id/btnDiscard"
+            style="@style/Base.Widget.AppCompat.Button.Colored"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="Odrzuć"
+            android:textColor="?android:textColorPrimary"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="4dp"
+            app:icon="@drawable/ic_cancel"
+            app:iconTint="#F00"
+            app:rippleColor="#F00"
+            app:strokeColor="#F00"
+            app:strokeWidth="2dp" />
+
+        <android.support.design.button.MaterialButton
+            android:id="@+id/btnSend"
+            style="@style/Base.Widget.AppCompat.Button.Colored"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="Wyślij"
+            android:textColor="#FFF"
+            app:backgroundTint="@color/colorPrimary"
+            app:cornerRadius="4dp"
+            app:icon="@drawable/ic_send"
+            app:iconTint="#FFF"
+            app:strokeColor="@color/colorPrimary"
+            app:strokeWidth="2dp" />
+    </LinearLayout>
+
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/editContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/compose_mail_topic_background"
+        android:gravity="left|top"
+        android:hint="Tutaj wpisz treść wiadomości..."
+        android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textMultiLine"
+        android:maxLength="2000"
+        android:minHeight="80dp"
+        android:padding="8dp"
+        android:textSize="16sp"
+        tools:ignore="RtlHardcoded" />
+</LinearLayout>

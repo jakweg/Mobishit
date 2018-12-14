@@ -2,6 +2,7 @@ package jakubweg.mobishit.db
 
 import android.graphics.Color
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import jakubweg.mobishit.helper.DateHelper
@@ -128,7 +129,7 @@ class DataCreator {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
-                    "parents_id" -> parentId = jr.nextInt()
+                    "parent_id" -> parentId = jr.nextInt()
                     "abbr" -> abbr = jr.nextString()!!
                     "type" -> type = jr.nextString()!!
                     "action" -> isDeleted = jr.nextString() == "D"
@@ -167,18 +168,24 @@ class DataCreator {
         fun markScaleGroup(jr: JsonReader): MarkScaleGroup {
             var id = 0
             var name = ""
+            var isPublic = false
+            var markType = ""
+            var isDefault = false
             jr.beginObject()
             var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
+                    "public" -> isPublic = jr.nextInt() != 0
+                    "mark_types" -> markType = jr.nextString()!!
+                    "is_default" -> isDefault = jr.nextInt() != 0
                     "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkScaleGroup(id, name).also {
+            return MarkScaleGroup(id, name, markType, isPublic, isDefault).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
             }
         }
@@ -218,12 +225,14 @@ class DataCreator {
             var type = 0
             var rangeMin = 0f
             var rangeMax = 0f
+            var isPublic = false
             var markScaleGroupId = 0
             jr.beginObject()
             var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
+                    "public" -> isPublic = jr.nextInt() != 0
                     "mark_scale_groups_id" -> markScaleGroupId = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "type" -> type = jr.nextInt()
@@ -234,7 +243,7 @@ class DataCreator {
                 }
             }
 
-            return MarkDivisionGroup(id, name, type, rangeMin, rangeMax, markScaleGroupId).also {
+            return MarkDivisionGroup(id, name, type, isPublic, rangeMin, rangeMax, markScaleGroupId).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
             }
         }
@@ -756,3 +765,11 @@ fun JsonReader.nextFloatOrNull() = if (peek() == JsonToken.NULL) {
 } else nextDouble().toFloat()
 
 val JsonElement?.asStringOrNull get() = if (this == null || isJsonNull) null else asString!!
+
+fun JsonObject.getBoolean(key: String, defaultValue: Boolean): Boolean {
+    val obj = this[key] ?: return defaultValue
+    return if (obj.isJsonPrimitive)
+        obj.asBoolean
+    else
+        obj.asString?.equals("true", true) ?: defaultValue
+}

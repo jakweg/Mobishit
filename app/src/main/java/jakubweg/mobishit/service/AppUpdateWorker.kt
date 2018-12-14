@@ -66,15 +66,15 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
             if (newCode > BuildConfig.VERSION_CODE && !doNotNotify)
                 postNotificationAboutNewVersion(newName, urlDoDownload, whatIsNew)
 
-            Result.SUCCESS
+            Result.success()
         } catch (ste: SocketTimeoutException) {
-            Result.RETRY
+            Result.retry()
         } catch (ie: IOException) {
             ie.printStackTrace()
-            Result.FAILURE
+            Result.failure()
         } catch (e: Exception) {
             e.printStackTrace()
-            Result.FAILURE
+            Result.failure()
         }
     }
 

@@ -16,7 +16,6 @@ import android.widget.ImageView
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.FragmentActivity
-import jakubweg.mobishit.helper.CrashHandler
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.textView
 
@@ -35,21 +34,11 @@ class AboutFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.textView(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - ${BuildConfig.BUILD_TYPE}"
+        view.textView(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
 
 
         view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
-            //openGithub() TODO
-            throw IllegalStateException("You can't click the button")
-            Thread {
-            }.also {
-                it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { t, e ->
-                    t ?: return@UncaughtExceptionHandler
-                    e ?: return@UncaughtExceptionHandler
-                    CrashHandler.onNewCrash(activity!!, t, e)
-                }
-                it.start()
-            }
+            openGithub()
         }
         view.findViewById<Button>(R.id.btnReportError)!!.apply {
             val ending = when (MobiregPreferences.get(context ?: return).sex) {
