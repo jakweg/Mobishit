@@ -14,6 +14,7 @@ import jakubweg.mobishit.helper.NotificationHelper
 import org.jsoup.Jsoup
 import java.net.SocketTimeoutException
 import java.net.URLEncoder
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : Worker(context, parameters) {
@@ -85,6 +86,8 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
 
         } catch (te: SocketTimeoutException) {
             Result.retry()
+        } catch (uhe: UnknownHostException) {
+            Result.retry()
         } catch (e: Exception) {
             e.printStackTrace()
             postErrorNotification(e.localizedMessage)
@@ -94,7 +97,7 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
 
 
     private fun createServerNotifyUrl(): String? {
-        val fcmLink = DedicatedServerManager(applicationContext).fcmHandlerLink
+        val fcmLink = DedicatedServerManager(applicationContext).fcmHandlerLink ?: return null
         val prefs = MobiregPreferences.get(applicationContext)
 
         val token = prefs.firebaseToken ?: return null

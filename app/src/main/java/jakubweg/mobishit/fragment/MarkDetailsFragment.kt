@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
-import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.helper.ThemeHelper
 import jakubweg.mobishit.helper.setText
@@ -30,7 +29,7 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
 
     override fun getTheme() = ThemeHelper.getBottomSheetTheme(context!!)
 
-    fun showSelf(activity: MainActivity?) {
+    fun showSelf(activity: android.support.v4.app.FragmentActivity?) {
         show((activity as? DoublePanelActivity)?.supportFragmentManager, null)
     }
 

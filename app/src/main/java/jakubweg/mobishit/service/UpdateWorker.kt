@@ -36,6 +36,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         const val STATUS_FINISHED_SOMETHING_NEW = 3
         const val STATUS_ERROR = 4
 
+        var currentStatus = STATUS_STOPPED
+
         fun requestUpdates(context: Context) {
             val frequency = MobiregPreferences.get(context).run {
                 if (!isSignedIn)
@@ -64,6 +66,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     }
 
     private fun publishStatus(status: Int) {
+        currentStatus = status
         LocalBroadcastManager.getInstance(applicationContext)
                 .sendBroadcast(Intent().also {
                     it.action = ACTION_REFRESH_STATE_CHANGED
@@ -88,20 +91,6 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 return Result.success()
             }
 
-            if (!prefs.refreshOnWeekends)
-                Calendar.getInstance().apply {
-                    if (!when (this[Calendar.DAY_OF_WEEK]) {
-                                Calendar.FRIDAY -> this[Calendar.HOUR_OF_DAY] < 16
-                                Calendar.SATURDAY -> true
-                                Calendar.SUNDAY -> this[Calendar.HOUR_OF_DAY] > 16
-                                else -> false
-                            }) {
-                        //we've got weekends and we don't care about school, so we get drunk and PARTY!!
-                        publishStatus(STATUS_STOPPED)
-                        return Result.success()
-                    }
-                }
-
             val updateHelper = UpdateHelper(applicationContext)
 
             updateHelper.doUpdate()
@@ -109,8 +98,10 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
             if (updateHelper.isFirstTime
                     || updateHelper.newMarks.isNotEmpty()
-                    || updateHelper.deletedMarks.isNotEmpty())
+                    || updateHelper.deletedMarks.isNotEmpty()) {
+                prefs.hasReadyLastMarksCache = false
                 prefs.hasReadyAverageCache = false
+            }
 
 
             val db = AppDatabase.getAppDatabase(applicationContext)
@@ -203,7 +194,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
         val ids = notificationHelper.getNotificationIds(list.size)
         val notification = NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_MARKS)
-                .setSmallIcon(R.drawable.ic_remove)
+                .setSmallIconCompat(R.drawable.ic_remove, R.drawable.star)
                 .setAutoCancel(true)
                 .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
                 .setCategory(NotificationCompat.CATEGORY_SOCIAL)!!
@@ -215,7 +206,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 if (it.abbreviation != null)
                     notification.setContentText("Pozbyto się ${it.abbreviation} za ${it.description}")
                 else
-                    notification.setContentText("Pozbyto sie oceny za ${it.description}")
+                    notification.setContentText("Pozbyto się oceny za ${it.description}")
             } else {
                 notification.setContentText("Ktoś usunął ci ocenę")
             }
@@ -277,8 +268,9 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
             dao.getAttendanceInfoByIds(eventIds, canNotifyAboutAttendance).apply {
                 val notificationIds = notificationHelper.getNotificationIds(size)
                 forEachIndexed { index, info ->
-                    notification.setSmallIcon(
-                            if (info.isAbsent) R.drawable.event_busy else R.drawable.event_available)
+                    notification.setSmallIconCompat(
+                            if (info.isAbsent) R.drawable.event_busy else R.drawable.event_available,
+                            R.drawable.ic_event_png)
                     //notification.color = info.color
 
                     notification.setContentTitle(
@@ -317,10 +309,11 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         val notification = NotificationCompat.Builder(
                 applicationContext, NotificationHelper.CHANNEL_SUBSTITUTIONS)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
-                .setSmallIcon(R.drawable.event_note)
+                .setSmallIcon(R.drawable.ic_event_png)
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent)!!
                 .setDefaultsIf(prefs.notifyWithSound)
+
 
         val (replacedEvents, otherLessons) = Pair(mutableListOf<EventData>(),
                 mutableListOf<EventData>()).apply {

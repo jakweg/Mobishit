@@ -14,24 +14,25 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <!-- TODO -->
         <android.support.v7.widget.AppCompatTextView
             style="@style/Base.TextAppearance.AppCompat.Title"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginTop="15dp"
             android:gravity="center_horizontal"
-            android:text="Mobishit ALPHA"
+            android:text="Mobishit"
             android:textAllCaps="true"
             app:autoSizeTextType="uniform" />
 
         <ImageView
+            android:layout_marginBottom="8dp"
+            android:scaleType="fitXY"
             android:id="@+id/imgAppIcon"
             android:elevation="4dp"
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:contentDescription="Ikona aplikacji"
-            android:src="@mipmap/ic_launcher_round"
+            tools:srcCompat="@mipmap/ic_launcher_round"
             tools:ignore="UnusedAttribute" />
 
         <TextView
@@ -48,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="Ten projekt jest otwartoźródłowy, zapraszam na Githuba."
+            android:text="Ten projekt jest otwartoźródłowy, zapraszam na GitHuba."
             android:textSize="15sp" />
 
         <View
@@ -68,7 +69,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Otwórz Githuba" />
+                android:text="Otwórz GitHuba" />
 
             <Button
                 android:id="@+id/btnUsedLibs"
@@ -84,7 +85,7 @@
             android:id="@+id/btnReportError"
             style="@style/Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             tools:text="Masz jakąś sugestię lub znalazłaś/eś błąd? - skontaktuj się ze mną!" />
 
         <TextView
@@ -96,6 +97,14 @@
             android:layout_marginTop="15dp"
             android:layout_marginBottom="10dp"
             android:gravity="center"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnTermsOfUse"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Polityka prywatności i Regulamin korzystania"
             android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>

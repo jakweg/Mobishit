@@ -12,6 +12,7 @@ import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import org.jsoup.Jsoup
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 
 class ComparisonsModel(application: Application)
@@ -52,7 +53,7 @@ class ComparisonsModel(application: Application)
             } else {
                 mStatus.postValue(STATUS_DOWNLOADING)
                 val body = Jsoup
-                        .connect(linkToServerWithParams)
+                        .connect(linkToServerWithParams.takeUnless { it.isBlank() }!!)
                         .ignoreContentType(true)
                         .execute()
                         .body()
@@ -82,6 +83,8 @@ class ComparisonsModel(application: Application)
 
             }
         } catch (ste: SocketTimeoutException) {
+            mStatus.postValue(STATUS_NO_INTERNET)
+        } catch (uhe: UnknownHostException) {
             mStatus.postValue(STATUS_NO_INTERNET)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -124,7 +127,7 @@ class ComparisonsModel(application: Application)
     private val linkToServerWithParams
         get() = buildString {
             MobiregPreferences.get(context).apply {
-                append(DedicatedServerManager(context).averagesLink)
+                append(DedicatedServerManager(context).averagesLink ?: return@buildString)
 
                 append("?l=")
                 append(loginAndHostIfNeeded)

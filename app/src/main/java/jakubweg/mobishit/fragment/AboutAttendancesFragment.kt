@@ -4,13 +4,17 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.RecyclerView
+import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import jakubweg.mobishit.R
+import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.AttendanceDao
+import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.model.AboutAttendancesModel
 import java.lang.ref.WeakReference
@@ -29,6 +33,11 @@ class AboutAttendancesFragment
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val model = ViewModelProviders.of(this)[AboutAttendancesModel::class.java]
 
+        MobiregPreferences.get(context!!).apply {
+            if (!seenAboutAttendanceFragment)
+                seenAboutAttendanceFragment = true
+        }
+
         val weakView = WeakReference(view)
         model.types.observe(this, Observer {
             it ?: return@Observer
@@ -40,6 +49,32 @@ class AboutAttendancesFragment
                 }
             }
         })
+
+        view.findViewById<View?>(R.id.btnExcludeSubjects)?.setOnClickListener {
+            val context = it.context ?: return@setOnClickListener
+            val cursor = AppDatabase.getAppDatabase(context)
+                    .query("SELECT Subjects.id as \"_id\", Subjects.name as name, isExcludedFromStats FROM Events \n" +
+                            "INNER JOIN EventTypes ON EventTypes.id = eventTypeId\n" +
+                            "LEFT OUTER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)\n" +
+                            "GROUP BY subjectId\n" +
+                            "ORDER BY Subjects.name", arrayOf())
+
+            val affectedSubjects = SparseBooleanArray()
+
+            AlertDialog.Builder(context)
+                    .setTitle("Wybierz przedmioty do wykluczenia ze statystyk")
+                    .setMultiChoiceItems(cursor, "isExcludedFromStats", "name"
+                    ) { _, which, isChecked ->
+                        cursor.moveToPosition(which)
+                        affectedSubjects.put(cursor.getInt(0), isChecked)
+                    }
+                    .setNegativeButton("Anuluj", null)
+                    .setPositiveButton("Zapisz") { _, _ ->
+                        model.updateExcludingSubjects(affectedSubjects)
+                    }
+                    .show()
+
+        }
     }
 
     private class AttendanceTypesAdapter(context: Context,

@@ -21,7 +21,7 @@ class MobiregPreferences private constructor(
         private var INSTANCE: MobiregPreferences? = null
 
         fun get(context: Context?): MobiregPreferences {
-            context ?: throw NullPointerException()
+            context ?: return INSTANCE ?: throw NullPointerException()
             return INSTANCE ?: MobiregPreferences(context.applicationContext,
                     context.applicationContext.getSharedPreferences("mobireg", Context.MODE_PRIVATE)!!).also {
                 INSTANCE = it
@@ -55,7 +55,7 @@ class MobiregPreferences private constructor(
             : String? = prefs.getString(key, null)
 
 
-    fun setRandomizedDeviceId(): Int {
+    private fun setRandomizedDeviceId(): Int {
         val id = (Random().nextInt() % 10000 + 50000) * 3
         prefs.edit()
                 .putString("deviceId", "$id")
@@ -113,10 +113,6 @@ class MobiregPreferences private constructor(
 
     fun setLastRefreshTimeToNow() {
         prefs.edit().putLong("lastCheck", Calendar.getInstance().timeInMillis).apply()
-    }
-
-    fun becomeDeveloper() {
-        prefs.edit().putBoolean("is_dev", true).apply()
     }
 
     fun setLastFcmAction(action: String?) {
@@ -178,7 +174,6 @@ class MobiregPreferences private constructor(
                     .remove("surname")
                     .remove("phone")
                     .remove("sex")
-                    .remove("refreshWeekends")
                     .remove("lastTestRefresh")
                     .remove("readyAverage")
                     .commit()
@@ -230,8 +225,6 @@ class MobiregPreferences private constructor(
 
     val refreshFrequency get() = (getString("refreshFrequency") ?: "480").toInt()
 
-    val refreshOnWeekends get() = prefs.getBoolean("refreshWeekends", true)
-
     val notifyWithSound get() = prefs.getBoolean("notifyWithSound", true)
 
     val notifyAboutAttendances get() = prefs.getBoolean("notifyAboutAttendances", false)
@@ -273,9 +266,6 @@ class MobiregPreferences private constructor(
         get() = prefs.getBoolean("decidedFcm", false)
         set(value) = prefs.edit().putBoolean("decidedFcm", value).apply()
 
-    val timeOfLastReceivedFcm
-        get() = prefs.getLong("lastFcmTime", 0L)
-
     val lastFcmAction
         get() = getString("lastFcmAct")
 
@@ -315,4 +305,29 @@ class MobiregPreferences private constructor(
     var ignoreCrashes
         get() = prefs.getBoolean("iC", false)
         set(value) = prefs.edit().putBoolean("iC", value).apply()
+
+    var hasReadyWidgetCache
+        get() = prefs.getBoolean("hrWidc", false)
+        set(value) = prefs.edit().putBoolean("hrWidc", value).apply()
+
+    var showLastMarks
+        get() = prefs.getBoolean("sLM", true)
+        set(value) = prefs.edit().putBoolean("sLM", value).apply()
+
+    var hasReadyLastMarksCache
+        get() = prefs.getBoolean("sLMc", true)
+        set(value) = prefs.edit().putBoolean("sLMc", value).apply()
+
+    var seenAboutAttendanceFragment
+        get() = prefs.getBoolean("sAAf", false)
+        set(value) = prefs.edit().putBoolean("sAAf", value).apply()
+
+    var hasSavedAnyVirtualMark
+        get() = prefs.getBoolean("hsVm", false)
+        set(value) = prefs.edit().putBoolean("hsVm", value).apply()
+
+    var lastMarkScaleGroupId
+        get() = prefs.getInt("lmsg", -1)
+        set(value) = prefs.edit().putInt("lmsg", value).apply()
+
 }

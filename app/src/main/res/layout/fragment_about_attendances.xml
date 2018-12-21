@@ -11,9 +11,22 @@
     tools:ignore="HardcodedText">
 
     <LinearLayout
+        android:layout_marginTop="8dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnExcludeSubjects"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Wyklucz przedmioty" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#AAA" />
 
         <android.support.v7.widget.AppCompatTextView
             android:id="@+id/title"

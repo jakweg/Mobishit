@@ -29,8 +29,12 @@ class CountdownService : Service() {
     companion object ServiceController {
         private const val ACTION_STOP_SERVICE = "stop"
 
+        private var isRunning = false
+
         @WorkerThread
         fun startIfNeeded(context: WeakReference<Context?>) {
+            if (isRunning)
+                return
             val prefs = MobiregPreferences.get(context.get() ?: return)
             if (!prefs.run {
                         isSignedIn && runCountdownService &&
@@ -52,6 +56,8 @@ class CountdownService : Service() {
         }
 
         fun start(context: Context) {
+            if (isRunning)
+                return
             ContextCompat.startForegroundService(context.applicationContext,
                     Intent(context, CountdownService::class.java))
         }
@@ -125,6 +131,7 @@ class CountdownService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(stopListener, IntentFilter(ACTION_STOP_SERVICE))
 
@@ -189,6 +196,7 @@ class CountdownService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isRunning = false
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(stopListener)
 

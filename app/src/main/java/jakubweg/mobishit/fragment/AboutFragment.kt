@@ -1,7 +1,11 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.app.Fragment
 import android.support.v4.app.ShareCompat
 import android.support.v7.app.AlertDialog
@@ -13,11 +17,14 @@ import android.view.animation.RotateAnimation
 import android.view.animation.ScaleAnimation
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Toast
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.FragmentActivity
+import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.textView
+import kotlin.concurrent.thread
 
 
 class AboutFragment : Fragment() {
@@ -35,7 +42,20 @@ class AboutFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.textView(R.id.textVersionInfo)!!.text = "Mobishit ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-
+        view.findViewById<View?>(R.id.btnTermsOfUse)?.setOnClickListener {
+            // I know it is bad
+            thread {
+                try {
+                    val link = DedicatedServerManager(context!!).termsOfUseLink!!
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+                } catch (e: Exception) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context
+                                ?: return@post, "Wystąpił błąd", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
 
         view.findViewById<View>(R.id.btnOpenGithub)!!.setOnClickListener {
             openGithub()
@@ -57,6 +77,7 @@ class AboutFragment : Fragment() {
             showUsedLibs()
         }
         view.findViewById<ImageView>(R.id.imgAppIcon)!!.apply {
+            setImageResource(R.mipmap.ic_launcher_round)
             setOnClickListener { view ->
                 if (isAnimating) return@setOnClickListener
                 if (clicks++ >= 7) {

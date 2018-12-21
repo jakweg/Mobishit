@@ -5,11 +5,15 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.support.annotation.*
+import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.res.ResourcesCompat
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v4.text.PrecomputedTextCompat
 import android.support.v4.widget.TextViewCompat
+import android.support.v7.content.res.AppCompatResources
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
@@ -94,7 +98,7 @@ fun TextView.setLeftDrawable(@DrawableRes drawable: Int) {
 
 fun TextView.setLeftDrawable(@DrawableRes drawable: Int, @ColorInt color: Int) {
     setCompoundDrawablesWithIntrinsicBounds(
-            ContextCompat.getDrawable(context, drawable)!!.tintSelf(color),
+            AppCompatResources.getDrawable(context, drawable)!!.tintSelf(color),
             null, null, null)
 }
 
@@ -115,6 +119,15 @@ fun Context.themeAttributeToColor(@AttrRes attrColor: Int): Int {
     return ContextCompat.getColor(this, outValue.resourceId)
 }
 
+fun Context.themeAttributeToDrawable(@AttrRes attrDrawable: Int): Drawable? {
+    val outValue = TypedValue()
+    val theme = this.theme ?: null
+    theme?.resolveAttribute(
+            attrDrawable, outValue, true)
+
+    return ResourcesCompat.getDrawable(resources, outValue.resourceId, theme)
+}
+
 fun invertColor(@ColorInt color: Int): Int {
     val r = Color.red(color)
     val g = Color.green(color)
@@ -126,4 +139,12 @@ fun View.textView(@IdRes id: Int): TextView? = findViewById<TextView?>(id)
 
 fun View.setText(@IdRes id: Int, text: CharSequence) {
     textView(id)?.precomputedText = text
+}
+
+fun NotificationCompat.Builder.setSmallIconCompat(vectorIconId: Int, pngIconId: Int): NotificationCompat.Builder {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+        setSmallIcon(pngIconId)
+    else
+        setSmallIcon(vectorIconId)
+    return this
 }

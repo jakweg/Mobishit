@@ -142,19 +142,30 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
                     info.markPointsValue >= 0 -> info.markPointsValue.toString() trimEndToLength 4
                     else -> "Wut?"
                 }
-                holder.markDescription?.precomputedText = when {
-                    info.abbreviation == null && info.markValueMax > 0 ->
-                        StringBuilder()
-                                .append(info.markPointsValue.div(info.markValueMax).times(100f).prettyMe)
-                                .append("% • maksymalnie ")
-                                .append(info.markValueMax.prettyMe)
-                                .apply {
-                                    if (info.countPointsWithoutBase == true)
-                                        append(" \u2022 Poza bazą")
-                                }
-                                .toString()
-                    info.weight > 0 -> "Waga ${info.weight.prettyMe}"
-                    else -> ""
+                holder.markDescription?.also {
+                    val title = when {
+                        info.markValueMax > 0 && info.markPointsValue >= 0f ->
+                            StringBuilder()
+                                    .append(info.markPointsValue.div(info.markValueMax).times(100f).prettyMe)
+                                    .append("% • maks. ")
+                                    .append(info.markValueMax.prettyMe)
+                                    .apply {
+                                        if (info.countPointsWithoutBase == true)
+                                            append(" • Poza bazą")
+                                    }
+                                    .toString()
+                        info.markValueMax > 0 -> "maks. ${info.markValueMax.prettyMe}"
+                        info.weight > 0
+                                && info.noCountToAverage != true
+                                && info.countPointsWithoutBase != true -> "Waga ${info.weight.prettyMe}"
+                        else -> ""
+                    }
+                    if (title.isEmpty()) {
+                        it.visibility = View.GONE
+                    } else {
+                        it.precomputedText = title
+                        it.visibility = View.VISIBLE
+                    }
                 }
             }
         }

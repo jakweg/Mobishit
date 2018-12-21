@@ -17,6 +17,9 @@ import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.EventDao
+import java.io.File
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.*
 
 
@@ -48,6 +51,8 @@ class TimetableWidgetProvider : AppWidgetProvider() {
         }
 
         fun requestInstantUpdate(context: Context) {
+            MobiregPreferences.get(context).hasReadyWidgetCache = false
+
             val intent = Intent(context, TimetableWidgetProvider::class.java)
             intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
 
@@ -152,13 +157,51 @@ class TimetableWidgetProvider : AppWidgetProvider() {
         override fun getLoadingView(): RemoteViews? = null
 
         override fun onDataSetChanged() {
-            try {
-                val dao = AppDatabase.getAppDatabase(appContext).eventDao
+            getFromCacheOrDb(appContext, MobiregPreferences.get(appContext).hasReadyWidgetCache)
+        }
 
-                events = dao.getShortEventsInfoByDay(getDayMillis(appContext))
+        private fun saveCache(context: Context) {
+            try {
+                ObjectOutputStream(File(context.cacheDir, "widget")
+                        .outputStream()).use {
+                    it.write(events.size)
+                    events.forEach(it::writeObject)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+
+        private fun getFromCacheOrDb(context: Context, isCacheAllowed: Boolean): List<EventDao.EventShortInfo> {
+            try {
+                val file = File(context.cacheDir, "widget")
+                if (!isCacheAllowed || !file.exists())
+                    return getDataFromDb(context).also {
+                        events = it
+                        saveCache(context)
+                    }
+                ObjectInputStream(file.inputStream()).use {
+                    val count = it.readInt()
+                    val list = mutableListOf<EventDao.EventShortInfo>()
+
+                    for (i in 0 until count)
+                        list.add(it.readObject() as EventDao.EventShortInfo)
+
+                    return list
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return getDataFromDb(context).also {
+                    events = it
+                    saveCache(context)
+                }
+            }
+        }
+
+        private fun getDataFromDb(context: Context): List<EventDao.EventShortInfo> {
+            val dao = AppDatabase.getAppDatabase(context).eventDao
+
+            return dao.getShortEventsInfoByDay(getDayMillis(context))
         }
 
         override fun getViewAt(position: Int) =

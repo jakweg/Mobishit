@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="16dp">
+
+        <TextView
+            style="@style/Base.TextAppearance.AppCompat.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="Tutaj możesz obliczyć średnią ważoną i sprawdzić czy jeszcze zdasz gdy znowu dostaniesz jedynkę." />
+
+        <android.support.design.card.MaterialCardView
+            android:id="@+id/cardImport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?backgroundSecondaryColor"
+            android:clickable="true"
+            android:elevation="8dp"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            tools:ignore="UnusedAttribute">
+
+            <TextView
+                android:id="@+id/textImport"
+                style="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:drawablePadding="8dp"
+                android:drawableTint="#000"
+                android:gravity="center_vertical"
+                android:minLines="2"
+                android:text="Zaimportuj otrzymane już oceny z przedmiotu"
+                tools:drawableLeft="@drawable/ic_import" />
+        </android.support.design.card.MaterialCardView>
+
+
+        <android.support.design.card.MaterialCardView
+            android:id="@+id/cardMarkScales"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?backgroundSecondaryColor"
+            android:clickable="true"
+            android:elevation="8dp"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            tools:ignore="UnusedAttribute">
+
+            <TextView
+                android:id="@+id/textMarkScales"
+                style="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:drawablePadding="8dp"
+                android:drawableTint="#000"
+                android:gravity="center_vertical"
+                android:minLines="2"
+                android:text="Nie importuj niczego – obliczaj dla ocen ze skali"
+                tools:drawableLeft="@drawable/nav_marks" />
+        </android.support.design.card.MaterialCardView>
+
+
+        <android.support.design.card.MaterialCardView
+            android:id="@+id/cardPoints"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?backgroundSecondaryColor"
+            android:clickable="true"
+            android:elevation="8dp"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            tools:ignore="UnusedAttribute">
+
+            <TextView
+                android:id="@+id/textPoints"
+                style="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:drawablePadding="8dp"
+                android:drawableTint="#000"
+                android:gravity="center_vertical"
+                android:minLines="2"
+                android:text="Nie importuj niczego – obliczaj ocenę na podstawie punktów"
+                tools:drawableLeft="@drawable/nav_marks" />
+        </android.support.design.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

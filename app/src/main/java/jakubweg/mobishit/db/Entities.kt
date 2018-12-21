@@ -5,6 +5,7 @@ import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
+import java.util.*
 
 
 @Entity(tableName = "Teachers")
@@ -17,7 +18,7 @@ class RoomData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, v
 class TermData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val type: String, val startDate: Long, val endDate: Long)
 
 @Entity(tableName = "Subjects")
-class SubjectData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, @SerializedName("abbr") val abbreviation: String)
+class SubjectData(@PrimaryKey(autoGenerate = false) val id: Int, val name: String, @SerializedName("abbr") val abbreviation: String, val isExcludedFromStats: Boolean)
 
 @Entity(tableName = "Groups")
 class GroupData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val parentId: Int, val type: String, @SerializedName("abbr") val abbreviation: String)
@@ -109,24 +110,20 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
         }
     }
 
-    private inline val Float.str1 get() = String.format("%.1f", this)
-    private inline val Float.str2 get() = String.format("%.2f", this)
-
     private fun buildAverageText(): String {
         val hasPoints = gotPointsSum > 0f || baseSum > 0f
         val hasWeightedAverage = weightedAverage > 0f
         return when {
             hasPoints && hasWeightedAverage ->
-                "Średnia: ${weightedAverage.str2}\n" +
-                        "Zdobyte punkty: ${gotPointsSum.str1} na ${baseSum.str1} " +
-                        "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+                "Średnia: %.2f\nZdobyte punkty: %.1f na %.1f czyli %.1f%%".format(Locale.getDefault(),
+                        weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasPoints ->
-                "Zdobyte punkty: ${gotPointsSum.str1} na ${baseSum.str1} " +
-                        "czyli ${(gotPointsSum / baseSum * 100f).toInt()}%"
+                "Zdobyte punkty: %.1f na %.1f czyli %.1f%%".format(Locale.getDefault(),
+                        gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasWeightedAverage ->
-                "Twoja średnia ważona wynosi ${weightedAverage.str2}"
+                "Twoja średnia ważona wynosi %.2f".format(Locale.getDefault(), weightedAverage)
 
             else -> "Brak danych"
         }.also { _averageText = it }
@@ -142,13 +139,14 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
         val hasWeightedAverage = weightedAverage > 0f
         return when {
             hasPoints && hasWeightedAverage ->
-                "${weightedAverage.str2}\n" +
-                        "${gotPointsSum.str1}/${baseSum.str1} ${(gotPointsSum / baseSum * 100f).toInt()}%"
+                "%.2f\n%.1f/%.1f %.1f%%".format(Locale.getDefault(),
+                        weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasPoints ->
-                "${gotPointsSum.str1}/${baseSum.str1}\n${(gotPointsSum / baseSum * 100f).toInt()}%"
+                "%.1f/%.1f\n%.1f%%".format(Locale.getDefault(),
+                        gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
-            hasWeightedAverage -> weightedAverage.str2
+            hasWeightedAverage -> "%.2f".format(Locale.getDefault(), weightedAverage)
 
             else -> ""
         }.also { _shortAverageText = it }
@@ -197,3 +195,16 @@ class SentMessageData(@PrimaryKey(autoGenerate = true) val id: Int,
         const val STATUS_CANCELLED = 5
     }
 }
+
+@Entity(tableName = "LastMarksCache")
+class LastMarkCacheData(@PrimaryKey(autoGenerate = false) val id: Int,
+                        val description: String,
+                        val value: String,
+                        val addTime: Long)
+
+
+@Entity(tableName = "SavedVirtualMarks")
+class VirtualMarkEntity(@PrimaryKey(autoGenerate = true) val id: Int,
+                        val type: Int,
+                        val value: Float,
+                        val weight: Float)

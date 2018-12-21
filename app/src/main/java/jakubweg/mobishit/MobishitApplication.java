@@ -1,6 +1,7 @@
 package jakubweg.mobishit;
 
 import android.app.Application;
+import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
@@ -16,6 +17,7 @@ public class MobishitApplication extends Application {
             return;
         }
         LeakCanary.install(this);
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         FirebaseApp.initializeApp(this);
 
         if (!BuildConfig.DEBUG)

@@ -25,9 +25,11 @@ interface MarkDao {
     }
 
 
-    class SubjectShortInfo(val id: Int, val name: String)
+    class SubjectShortInfo(val id: Int, val name: String) {
+        override fun toString() = name
+    }
 
-    @Query("""SELECT Subjects.id, Subjects.name FROM Marks
+    @Query("""SELECT Subjects.id as id, Subjects.name FROM Marks
                     INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
                     INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
                     INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
@@ -124,9 +126,9 @@ WHERE Marks.id = :id AND visibility = 0 LIMIT 1""")
     fun getDeletedMarkInfo(id: Int): DeletedMarkData
 
 
-    class MarkScaleShortInfo(val abbreviation: String, val markValue: Float)
+    class MarkScaleShortInfo(val id: Int, val abbreviation: String, val markValue: Float)
 
-    @Query("""SELECT abbreviation, markValue FROM MarkScales
+    @Query("""SELECT id, abbreviation, markValue FROM MarkScales
 WHERE MarkScales.markScaleGroupId = :groupId AND not noCountToAverage AND length(abbreviation) > 0
 ORDER BY markValue""")
     fun getMarkScalesByGroupId(groupId: Int): List<MarkScaleShortInfo>
@@ -140,4 +142,95 @@ ORDER BY markValue""")
 
     @Query("SELECT * FROM AverageCaches")
     fun getAllAverageCache(): List<AverageCacheData>
+
+
+    @Query("""SELECT Marks.id, MarkGroups.description || ' • ' || Subjects.name as description,
+        IFNULL(MarkScales.abbreviation, Marks.markValue) as value, addTime FROM Marks
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+ORDER BY addTime DESC LIMIT :count""")
+    fun getLastMarks(count: Int): List<LastMarkCacheData>
+
+    @Insert(onConflict = OnConflictStrategy.FAIL)
+    fun insertLastMarks(values: List<LastMarkCacheData>)
+
+    @Query("SELECT * FROM LastMarksCache ORDER BY addTime DESC LIMIT :limit")
+    fun getCachedLastMarks(limit: Int): List<LastMarkCacheData>
+
+    @Query("DELETE FROM LastMarksCache")
+    fun deleteCachedLastMarks()
+
+
+    @Query("UPDATE Subjects SET isExcludedFromStats = :isExcluding WHERE id = :subjectId")
+    fun updateSubjectExcluding(subjectId: Int, isExcluding: Boolean)
+
+
+    class MarkScaleGroupShortInfo(val id: Int, val name: String) {
+        override fun toString() = name
+    }
+
+    @Query("""SELECT id, name FROM MarkScaleGroups
+WHERE markType = 'P'
+ORDER BY (isPublic + isDefault) + id * 100 DESC""")
+    fun getUsedMarkScaleGroups(): List<MarkScaleGroupShortInfo>
+
+
+    @Query("""SELECT MarkScaleGroups.id, MarkScaleGroups.name FROM Marks
+INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+LEFT OUTER JOIN MarkScaleGroups ON MarkScaleGroups.id = MarkGroups.markScaleGroupId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+WHERE (MarkGroups.countPointsWithoutBase = 0 OR MarkGroups.countPointsWithoutBase IS NULL)
+    AND (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
+	AND subjectId = :subjectId
+GROUP BY MarkScaleGroups.id
+ORDER BY MarkScaleGroups.id DESC""")
+    fun getUsedMarkScaleGroupsBySubject(subjectId: Int): List<MarkScaleGroupShortInfo>
+
+
+    @Query("""SELECT Subjects.id as id, Subjects.name FROM Marks
+                    INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
+                    LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+                    INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+                    INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+                    INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+                    WHERE (MarkGroups.countPointsWithoutBase = 0 OR MarkGroups.countPointsWithoutBase IS NULL)
+                        AND (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
+                    GROUP BY Subjects.id ORDER BY Subjects.name""")
+    fun getSubjectsWithCountedUsersMarks(): List<SubjectShortInfo>
+
+
+    class MarkToImport(val markValue: Float?, val scaleId: Int?,
+                       val weight: Float, val parentType: Int?, val parentId: Int)
+
+    @Query("""SELECT Marks.markValue, MarkScales.id as scaleId,
+IFNULL( MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase,
+    IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight,
+parentType, IFNULL(parentId, MarkGroups.id) as parentId
+FROM Marks
+INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+LEFT OUTER JOIN MarkScaleGroups ON MarkScaleGroups.id = MarkGroups.markScaleGroupId
+INNER JOIN MarkKinds ON MarkKinds.id = MarkGroups.markKindId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+WHERE (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
+	AND subjectId = :subjectId AND MarkScaleGroups.id = :markScaleGroupId
+    AND addTime BETWEEN :startTime AND :endTime
+ORDER BY addTime DESC""")
+    fun getMarksToImport(subjectId: Int, markScaleGroupId: Int, startTime: Long, endTime: Long): List<MarkToImport>
+
+
+    @Query("DELETE FROM SavedVirtualMarks")
+    fun clearVirtualMarks()
+
+    @Insert()
+    fun insertVirtualMarks(values: List<VirtualMarkEntity>)
+
+    @Query("SELECT * FROM SavedVirtualMarks")
+    fun getVirtualMarksEntities(): List<VirtualMarkEntity>
 }

@@ -111,7 +111,7 @@ class DataCreator {
                 }
             }
 
-            return SubjectData(id, name, abbr).also {
+            return SubjectData(id, name, abbr, false).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
             }
         }

@@ -12,12 +12,13 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
-import jakubweg.mobishit.helper.EmptyAdapter
-import jakubweg.mobishit.helper.textView
+import jakubweg.mobishit.db.LastMarkCacheData
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.SubjectListModel
 import jakubweg.mobishit.view.MarksListView
 import java.lang.ref.WeakReference
@@ -33,7 +34,7 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         viewModel.requestSubjectsAfterTermChanges()
     }
 
-    lateinit var listener: MarkOptionsListener
+    private lateinit var listener: MarkOptionsListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,26 +48,115 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mainList = view.findViewById<RecyclerView>(R.id.main_list)!!
 
-        viewModel.subjects.observe(this,
-                InternalObserver(mainList))
 
         val dividerItemDecoration = DividerItemDecoration(mainList.context,
                 (mainList.layoutManager as LinearLayoutManager).orientation)
         mainList.addItemDecoration(dividerItemDecoration)
+
+        if (MobiregPreferences.get(context!!).showLastMarks) {
+            val lastMarksList = view.findViewById<RecyclerView>(R.id.lastMarksList)!!
+            view.findViewById<TextView?>(R.id.lastMarksTitle)?.also {
+                it.setLeftDrawable(R.drawable.ic_expand_more)
+                it.setOnClickListener {
+                    viewModel.requestMoreLastMarks()
+                }
+            }
+            viewModel.lastMarks.observe(this,
+                    SafeLastMarksObserver(this))
+            lastMarksList.addItemDecoration(dividerItemDecoration)
+        }
+
+        viewModel.subjects.observe(this,
+                SafeSubjectsObserver(mainList))
+
+
         if (mainList.adapter == null)
             mainList.adapter = EmptyAdapter("Ładowanie danych...")
 
     }
 
-    private class InternalObserver(v: RecyclerView)
+    private class SafeLastMarksObserver(v: SubjectListFragment)
+        : Observer<List<LastMarkCacheData>> {
+        private val fragment = WeakReference<SubjectListFragment>(v)
+
+        override fun onChanged(list: List<LastMarkCacheData>?) {
+            this.fragment.get()?.apply {
+                if (list.isNullOrEmpty()) {
+                    view?.findViewById<View?>(R.id.lastMarksLayout)?.visibility = View.GONE
+                } else {
+                    view?.findViewById<View?>(R.id.lastMarksLayout)?.visibility = View.VISIBLE
+                    val lastMarksList = view?.findViewById<RecyclerView?>(R.id.lastMarksList)
+                            ?: return
+                    lastMarksList.adapter.also {
+                        if (it != null && it is LastMarksAdapter) {
+                            it.setNewMarksList(list)
+                        } else
+                            lastMarksList.adapter = LastMarksAdapter(this, list)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun onLastMarkClicked(markId: Int) {
+        MarkDetailsFragment.newInstance(markId)
+                .showSelf(activity)
+    }
+
+    private class LastMarksAdapter(fragment: SubjectListFragment,
+                                   private var list: List<LastMarkCacheData>)
+        : RecyclerView.Adapter<LastMarksAdapter.ViewHolder>() {
+
+        fun setNewMarksList(list: List<LastMarkCacheData>) {
+            val oldList = this.list
+            this.list = list
+            if (list.size > oldList.size)
+                notifyItemRangeInserted(oldList.size, list.size - oldList.size)
+            else
+                notifyDataSetChanged()
+        }
+
+        private val weakFragment = WeakReference(fragment)
+        private val inflater = LayoutInflater.from(fragment.context!!)!!
+        override fun getItemCount() = list.size
+
+        override fun onCreateViewHolder(parent: ViewGroup, type: Int): ViewHolder {
+            return ViewHolder(inflater.inflate(R.layout.last_mark_list_item, parent, false))
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, pos: Int) {
+            list[pos].also {
+                holder.title.precomputedText = it.description
+                holder.markValue.precomputedText = it.value
+            }
+        }
+
+        private fun onItemClicked(pos: Int) {
+            weakFragment.get()?.onLastMarkClicked(list[pos].id)
+        }
+
+        inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            val title = v.findViewById<TextView>(R.id.title)!!
+            val markValue = v.findViewById<TextView>(R.id.markValue)!!
+
+            init {
+                v.setOnClickListener { onItemClicked(adapterPosition) }
+            }
+        }
+    }
+
+
+    private class SafeSubjectsObserver(v: RecyclerView)
         : Observer<List<AverageCacheData>> {
 
         private val mainList = WeakReference<RecyclerView>(v)
 
         override fun onChanged(it: List<AverageCacheData>?) {
             val mainList = this.mainList.get() ?: return
+            mainList.setHasFixedSize(true)
             if (it?.isEmpty() != false)
-                mainList.adapter = EmptyAdapter("Brak przedmiotów z których masz oceny w wybranym semestrze.\nKliknij ikonę powyżej, aby zmienić semestr")
+                mainList.adapter = EmptyAdapter("Brak przedmiotów z których masz oceny w wybranym semestrze.\n" +
+                        "Kliknij ikonę powyżej, aby zmienić semestr")
             else
                 mainList.adapter = SubjectAdapter(mainList.context!!, it).apply {
                     onSubjectClicked = { subject, view, _ ->

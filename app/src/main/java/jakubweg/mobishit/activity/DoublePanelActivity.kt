@@ -90,9 +90,12 @@ abstract class DoublePanelActivity : FragmentActivity() {
     }
 
     private fun FragmentManager.clearStack() = this.apply {
-        if (isVisibleActivity)
+        try {
             while (popBackStackImmediate()) {
             }
+        } catch (e: Exception) {
+            e.printStackTrace() //c***
+        }
     }
 
 

@@ -20,13 +20,13 @@ interface MessageDao {
     fun getMessages(): List<MessageShortInfo>
 
 
-    class MessageLongInfo(val title: String?, val kind: Int, val sender: String?, val sendTime: Long, val content: String) {
+    class MessageLongInfo(val title: String?, val kind: Int, val sender: String?, val senderId: Int, val sendTime: Long, val content: String) {
         @Ignore
         val formattedSendTime = DateHelper.millisToStringTime(sendTime)
     }
 
     @Query("""
-        SELECT title, kind, IFNULL(name || ' ' || surname, 'Nieznany') AS sender, sendTime, content FROM Messages
+        SELECT title, kind, IFNULL(name || ' ' || surname, 'Nieznany') AS sender, senderId, sendTime, content FROM Messages
         LEFT JOIN Teachers ON Teachers.id = Messages.senderId WHERE Messages.id = :messageId LIMIT 1""")
     fun getMessageInfo(messageId: Int): MessageLongInfo
 

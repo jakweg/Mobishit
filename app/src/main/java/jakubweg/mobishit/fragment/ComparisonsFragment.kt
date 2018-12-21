@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.DividerItemDecoration
@@ -149,11 +150,14 @@ class ComparisonsFragment : Fragment() {
         override fun getItemCount() = averages.size
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, type: Int): ViewHolder {
-            return ViewHolder(inflater.inflate(R.layout.comparison_list_item, viewGroup, false), iconColor)
+            return ViewHolder(inflater.inflate(R.layout.comparison_list_item, viewGroup, false))
         }
 
         private val iconColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
 
+        private val drawablePerson = ContextCompat.getDrawable(context, R.drawable.ic_person)!!.tintSelf(iconColor)
+        private val drawableClass = ContextCompat.getDrawable(context, R.drawable.ic_group)!!.tintSelf(iconColor)
+        private val drawableSchool = ContextCompat.getDrawable(context, R.drawable.ic_school)!!.tintSelf(iconColor)
 
         override fun onBindViewHolder(holder: ViewHolder, pos: Int) {
             val item = averages[pos]
@@ -176,7 +180,7 @@ class ComparisonsFragment : Fragment() {
         }
 
 
-        private class ViewHolder(v: View, iconColor: Int) : RecyclerView.ViewHolder(v) {
+        private inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val subjectName = v.textView(R.id.subject_name)!!
             val avgPerson = v.textView(R.id.avg_person)!!
             val avgClass = v.textView(R.id.avg_class)!!
@@ -184,9 +188,12 @@ class ComparisonsFragment : Fragment() {
 
             init {
                 run {
-                    avgPerson.setTopDrawable(R.drawable.ic_person, iconColor)
+                    avgPerson.setCompoundDrawablesWithIntrinsicBounds(null, drawablePerson, null, null)
+                    avgClass.setCompoundDrawablesWithIntrinsicBounds(null, drawableClass, null, null)
+                    avgSchool.setCompoundDrawablesWithIntrinsicBounds(null, drawableSchool, null, null)
+                    /*avgPerson.setTopDrawable(R.drawable.ic_person, iconColor)
                     avgClass.setTopDrawable(R.drawable.ic_group, iconColor)
-                    avgSchool.setTopDrawable(R.drawable.ic_school, iconColor)
+                    avgSchool.setTopDrawable(R.drawable.ic_school, iconColor)*/
                 }
             }
 

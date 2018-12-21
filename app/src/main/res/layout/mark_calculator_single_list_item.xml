@@ -53,8 +53,8 @@
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@drawable/ic_navigate_before"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:srcCompat="@drawable/ic_navigate_before"
+            tools:tint="?android:attr/textColorPrimary" />
 
         <TextView
             android:id="@+id/markValue"
@@ -68,7 +68,7 @@
             android:minWidth="40dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:text="bdb" />
+            tools:text="bdb" />
 
         <ImageButton
             android:id="@+id/btnIncrease"
@@ -77,8 +77,8 @@
             android:background="?android:selectableItemBackground"
             android:contentDescription=""
             android:padding="8dp"
-            android:src="@drawable/ic_navigate_next"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:src="@drawable/ic_navigate_next"
+            tools:tint="?android:attr/textColorPrimary" />
 
     </LinearLayout>
 
@@ -98,8 +98,8 @@
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@drawable/ic_navigate_before"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:src="@drawable/ic_navigate_before"
+            tools:tint="?android:attr/textColorPrimary" />
 
         <TextView
             android:id="@+id/markValue2"
@@ -113,7 +113,7 @@
             android:minWidth="40dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:text="5" />
+            tools:text="5" />
 
         <ImageButton
             android:id="@+id/btnIncrease2"
@@ -122,8 +122,8 @@
             android:background="?android:selectableItemBackground"
             android:contentDescription=""
             android:padding="8dp"
-            android:src="@drawable/ic_navigate_next"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:src="@drawable/ic_navigate_next"
+            tools:tint="?android:attr/textColorPrimary" />
 
     </LinearLayout>
 
@@ -137,8 +137,8 @@
         android:layout_gravity="right"
         android:background="?android:selectableItemBackground"
         android:padding="8dp"
-        android:src="@drawable/ic_delete"
-        android:tint="?android:attr/textColorPrimary" />
+        tools:src="@drawable/ic_delete"
+        tools:tint="?android:attr/textColorPrimary" />
 
     <ImageButton
         android:id="@+id/btnMore"
@@ -150,6 +150,6 @@
         android:layout_gravity="right"
         android:background="?android:selectableItemBackground"
         android:padding="8dp"
-        android:src="@drawable/ic_more"
-        android:tint="?android:attr/textColorPrimary" />
+        tools:src="@drawable/ic_more"
+        tools:tint="?android:attr/textColorPrimary" />
 </RelativeLayout>

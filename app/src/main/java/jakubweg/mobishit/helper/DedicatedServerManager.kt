@@ -2,6 +2,7 @@ package jakubweg.mobishit.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import com.google.gson.JsonParser
 import org.jsoup.Jsoup
 import java.io.BufferedInputStream
@@ -21,6 +22,7 @@ class DedicatedServerManager(
 
         private const val KEY_LAST_SYNC_TIME = "last_sync"
 
+        private const val KEY_TERMS_OF_USE = "rules"
         private const val KEY_VERSION_INFO = "version_info"
         private const val KEY_FCM_HANDLER = "fcm_handler"
         private const val KEY_AVERAGES = "averages"
@@ -86,6 +88,7 @@ class DedicatedServerManager(
                 .parse(body)!!
                 .asJsonObject!!
 
+        val termsOfUse = jo[KEY_TERMS_OF_USE]?.asString!!
         val fcmHandler = jo[KEY_FCM_HANDLER]?.asString!!
         val averages = jo[KEY_AVERAGES]?.asString!!
         val tests = jo[KEY_TESTS]?.asString!!
@@ -96,6 +99,7 @@ class DedicatedServerManager(
         preferences
                 .edit()
                 .putLong(KEY_LAST_SYNC_TIME, System.currentTimeMillis())
+                .putString(KEY_TERMS_OF_USE, termsOfUse)
                 .putString(KEY_VERSION_INFO, versionInfo)
                 .putString(KEY_FCM_HANDLER, fcmHandler)
                 .putString(KEY_AVERAGES, averages)
@@ -107,21 +111,26 @@ class DedicatedServerManager(
 
     private fun getAndUpdateIfNeeded(key: String): String? {
         synchronized(mutex) {
-            updateServerInfoIfNeeded()
+            try {
+                updateServerInfoIfNeeded()
+            } catch (e: Exception) {
+                Log.e("DedicatedServerManager", "Can't get information", e)
+            }
             return preferences.getString(key, null)
         }
     }
 
+    val termsOfUseLink get() = getAndUpdateIfNeeded(KEY_TERMS_OF_USE)
 
-    val versionInfoLink get() = getAndUpdateIfNeeded(KEY_VERSION_INFO)!!
+    val versionInfoLink get() = getAndUpdateIfNeeded(KEY_VERSION_INFO)
 
-    val fcmHandlerLink get() = getAndUpdateIfNeeded(KEY_FCM_HANDLER)!!
+    val fcmHandlerLink get() = getAndUpdateIfNeeded(KEY_FCM_HANDLER)
 
-    val testsLink get() = getAndUpdateIfNeeded(KEY_TESTS)!!
+    val testsLink get() = getAndUpdateIfNeeded(KEY_TESTS)
 
-    val averagesLink get() = getAndUpdateIfNeeded(KEY_AVERAGES)!!
+    val averagesLink get() = getAndUpdateIfNeeded(KEY_AVERAGES)
 
-    val crashReportsLink get() = getAndUpdateIfNeeded(KEY_CRASH_REPORTS)!!
+    val crashReportsLink get() = getAndUpdateIfNeeded(KEY_CRASH_REPORTS)
 
-    val messagesLink get() = getAndUpdateIfNeeded(KEY_MESSAGES)!!
+    val messagesLink get() = getAndUpdateIfNeeded(KEY_MESSAGES)
 }

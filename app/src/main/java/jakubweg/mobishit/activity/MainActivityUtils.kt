@@ -186,6 +186,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
                     MainActivity.ACTION_SHOW_COMPARISONS -> checkItemId = R.id.nav_comparisons
                     MainActivity.ACTION_SHOW_PREFERENCES -> checkItemId = R.id.nav_settings
                     MainActivity.ACTION_ABOUT_APP -> checkItemId = R.id.nav_about
+                    MainActivity.ACTION_CALCULATE_AVERAGE -> checkItemId = R.id.nav_calculate_average
                     MainActivity.ACTION_UPDATE_PASSWORD -> {
                         checkItemId = R.id.nav_settings
                         navigationView.postDelayed(::showUpdatePasswordDialog, 500)
@@ -364,17 +365,18 @@ class MainActivitySyncObserver(
     private inline val errorSnackbar
         get() = SnackbarController.ShowRequest("Wystąpił błąd", 3000)
 
-    private var lastStatus = UpdateWorker.STATUS_STOPPED
+    //private var lastStatus = UpdateWorker.STATUS_STOPPED
 
     private val listener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            lastStatus = intent?.getIntExtra("status", UpdateWorker.STATUS_STOPPED) ?: return
+            //lastStatus = intent?.getIntExtra("status", UpdateWorker.STATUS_STOPPED) ?: return
             requestTaskOnStart()
         }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     private fun onCreate() {
+        doOnVisible()
         LocalBroadcastManager.getInstance(weakActivity.get() ?: return)
                 .registerReceiver(listener,
                         IntentFilter(UpdateWorker.ACTION_REFRESH_STATE_CHANGED))
@@ -390,8 +392,8 @@ class MainActivitySyncObserver(
         val activity = weakActivity.get() ?: return
         val snackbar = activity.snackbar
 
-
-        when (lastStatus) {
+        //when (lastStatus) {
+        when (UpdateWorker.currentStatus) {
             UpdateWorker.STATUS_RUNNING -> snackbar.showCancelingCurrent(loadingSnackbar)
             UpdateWorker.STATUS_STOPPED -> snackbar.cancelCurrentIfIndefinite()
             UpdateWorker.STATUS_FINISHED_NOTHING_NEW -> snackbar.showCancelingCurrent(nothingNewSnackbar)
@@ -401,6 +403,7 @@ class MainActivitySyncObserver(
                 activity.requestNewMainFragment()
             }
         }
+        UpdateWorker.currentStatus = UpdateWorker.STATUS_STOPPED
 
         updateUpdateTimeText(activity)
     }

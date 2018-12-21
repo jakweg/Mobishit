@@ -47,6 +47,11 @@ abstract class BaseViewModel(application: Application)
         currentTask = null
     }
 
+    protected fun rerunTask() {
+        currentTask?.cancel(false)
+        currentTask = BackgroundTask(this).apply { execute() }
+    }
+
     @WorkerThread
     protected abstract fun doInBackground()
 

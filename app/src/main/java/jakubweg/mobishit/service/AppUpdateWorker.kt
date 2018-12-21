@@ -17,6 +17,7 @@ import jakubweg.mobishit.helper.NotificationHelper
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 
@@ -48,7 +49,8 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
     override fun doWork(): Result {
         return try {
             val body = Jsoup
-                    .connect(DedicatedServerManager(applicationContext).versionInfoLink)
+                    .connect(DedicatedServerManager(applicationContext).versionInfoLink
+                            ?: return Result.failure())
                     .ignoreContentType(true)
                     .execute().body()
 
@@ -68,6 +70,8 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
 
             Result.success()
         } catch (ste: SocketTimeoutException) {
+            Result.retry()
+        } catch (uhe: UnknownHostException) {
             Result.retry()
         } catch (ie: IOException) {
             ie.printStackTrace()

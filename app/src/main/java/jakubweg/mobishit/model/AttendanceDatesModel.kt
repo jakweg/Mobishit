@@ -35,7 +35,6 @@ class AttendanceDatesModel(application: Application)
 
         val days = when (subjectId) {
             -1 -> dao.getAttendanceDatesByAnySubject(start, end, attendanceType)
-            0 -> dao.getAttendanceDatesByNullSubject(start, end, attendanceType)
             else -> dao.getAttendanceDatesBySubject(start, end, subjectId, attendanceType)
         }
 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="4dp">
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/markValue"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="@drawable/background_mark_single"
+        android:gravity="center"
+        android:maxLines="1"
+        android:padding="4dp"
+        app:autoSizeTextType="uniform"
+        tools:text="5" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Base.TextAppearance.AppCompat.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        tools:ignore="RtlHardcoded"
+        tools:text="Sprawdzian z sad ds grometrii analitycznej • Matematyka" />
+</LinearLayout>

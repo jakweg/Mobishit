@@ -17,7 +17,6 @@ import jakubweg.mobishit.fragment.*
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SnackbarController
-import jakubweg.mobishit.service.MessageUploadWorker
 import jakubweg.mobishit.service.UpdateWorker
 
 class MainActivity : DoublePanelActivity() {
@@ -33,6 +32,7 @@ class MainActivity : DoublePanelActivity() {
         const val ACTION_SHOW_ATTENDANCE_STATS = "showAttendances"
         const val ACTION_UPDATE_PASSWORD = "upPass"
         const val ACTION_ABOUT_APP = "about"
+        const val ACTION_CALCULATE_AVERAGE = "calculateAvg"
 
         const val FRAGMENT_MARKS = "mk"
         const val FRAGMENT_TIMETABLE = "tt"
@@ -107,13 +107,9 @@ class MainActivity : DoublePanelActivity() {
 
     fun onNavigationItemSelected(itemId: Int, requestNewLayout: Boolean) {
         when (itemId) {
-            R.id.nav_force_refresh ->
-                MessageUploadWorker.requestMessageSent(
-                        this,
-                        0,
-                        "chuj",
-                        "chujchuj")
-            //tryToRefresh()
+            R.id.nav_force_refresh -> {
+                tryToRefresh()
+            }
 
             R.id.nav_app_update ->
                 startActivity(Intent(Intent.ACTION_VIEW,

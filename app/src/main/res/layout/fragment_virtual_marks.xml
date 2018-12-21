@@ -4,25 +4,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="RtlHardcoded,UnusedAttribute">
 
     <TextView
+        android:background="?backgroundSecondaryColor"
+        android:elevation="8dp"
         android:id="@+id/title"
         style="@style/Base.TextAppearance.AppCompat.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/nav_info"
-        android:drawableTint="#000"
         android:gravity="center"
         android:padding="8dp"
-        android:text="Obliczanie średnich jeszcze w budowie..."
-        tools:ignore="RtlHardcoded,UnusedAttribute" />
+        tools:text="Tu powinna byc twoja średnia..." />
 
-    <Button
-        android:id="@+id/addNewMark"
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEE" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dodaj ocenę z poprawy" />
+        android:background="?backgroundSecondaryColor"
+        android:elevation="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/goToMenu"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Wyczyść" />
+
+        <Button
+            android:id="@+id/addNewMark"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dodaj ocenę" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEE" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/markParentsList"

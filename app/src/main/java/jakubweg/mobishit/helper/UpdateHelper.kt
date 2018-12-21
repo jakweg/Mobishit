@@ -82,8 +82,14 @@ class UpdateHelper(private val context: Context) {
             append("&get_all_mark_groups="); append(preferences.getAllMarkGroups.to0or1())
             append("&student_id="); append(preferences.studentId)
         }, preferences.host!!, preferences.deviceId, saveEverySyncEnabled, context.applicationInfo.dataDir).use {
-            parseUpdate(JsonReader(it))
+            parseUpdate(JsonReader(it), false)
         }
+
+        insertNoEventSubject()
+    }
+
+    private fun insertNoEventSubject() {
+        database.mainDao.insert(SubjectData(0, "Inne wydarzenia", "IW", false))
     }
 
     private val database by lazy { AppDatabase.getAppDatabase(context) }
@@ -135,12 +141,12 @@ class UpdateHelper(private val context: Context) {
                 }, host = preferences.host!!, deviceId = preferences.deviceId,
                 logEverythingEnabled = saveEverySyncEnabled, dataDir = context.applicationInfo.dataDir)
                 .use {
-                    parseUpdate(JsonReader(it))
+                    parseUpdate(JsonReader(it), false)
                 }
     }
 
     @SuppressLint("ApplySharedPref")
-    private fun parseUpdate(reader: JsonReader) {
+    private fun parseUpdate(reader: JsonReader, ignoreLmt: Boolean) {
         reader.apply {
             var millisOfRequest = 0L
             val db = AppDatabase.getAppDatabase(context)
@@ -193,11 +199,12 @@ class UpdateHelper(private val context: Context) {
 
                             val time = nextString()
 
-                            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
-                            sdf.timeZone = TimeZone.getTimeZone("GMT")
-                            millisOfRequest = sdf.parse(time).time
+                            if (!ignoreLmt) {
+                                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+                                sdf.timeZone = TimeZone.getTimeZone("GMT")
+                                millisOfRequest = sdf.parse(time).time
 
-
+                            }
                             while (peek() != JsonToken.END_OBJECT) {
                                 nextName(); skipValue()
                             }

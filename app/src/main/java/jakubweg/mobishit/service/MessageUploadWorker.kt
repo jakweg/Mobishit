@@ -79,7 +79,7 @@ class MessageUploadWorker(context: Context,
             jo.addProperty("version", BuildConfig.VERSION_CODE)
 
             val response = DedicatedServerManager.makePostRequest(
-                    DedicatedServerManager(applicationContext).messagesLink
+                    DedicatedServerManager(applicationContext).messagesLink!!
                     , jo.toString().toByteArray())
 
 

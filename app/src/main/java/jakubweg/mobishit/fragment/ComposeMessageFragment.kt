@@ -28,11 +28,12 @@ import jakubweg.mobishit.service.MessageUploadWorker
 @Suppress("NOTHING_TO_INLINE")
 class ComposeMessageFragment : Fragment() {
     companion object {
-        fun newInstance() = newInstance(0)
+        fun newInstance() = newInstance(0, null)
 
-        fun newInstance(receiverId: Int) = ComposeMessageFragment().apply {
+        fun newInstance(receiverId: Int, subject: String?) = ComposeMessageFragment().apply {
             arguments = Bundle().also {
                 it.putInt("receiver", receiverId)
+                it.putString("subject", subject)
             }
         }
     }
@@ -99,6 +100,12 @@ class ComposeMessageFragment : Fragment() {
         }
     }
 
+    private fun isValidIso88591Text(s: String) =
+            java.lang.String(s).run {
+                this == java.lang.String(
+                        getBytes("iso-8859-2"), "iso-8859-2")
+            }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val context = context ?: return
 
@@ -111,10 +118,17 @@ class ComposeMessageFragment : Fragment() {
                 view.edit(R.id.editContent).text = SpannableStringBuilder(it)
             }
         } else {
+            viewModel.selectedTeacherId = arguments?.getInt("receiver", 0) ?: 0
             context.getSharedPreferences("mail", Context.MODE_PRIVATE)?.also { prefs ->
-                viewModel.selectedTeacherId = prefs.getInt("selectedTeacherId", 0)
-                prefs.getString("subject", null)?.also {
-                    view.edit(R.id.editSubject).text = SpannableStringBuilder(it)
+                if (viewModel.selectedTeacherId == 0) {
+                    viewModel.selectedTeacherId = prefs.getInt("selectedTeacherId", 0)
+                    prefs.getString("subject", null)?.also {
+                        view.edit(R.id.editSubject).text = SpannableStringBuilder(it)
+                    }
+                } else {
+                    arguments?.getString("subject", null)?.also {
+                        view.edit(R.id.editSubject).text = SpannableStringBuilder(it)
+                    }
                 }
                 prefs.getString("content", null)?.also {
                     view.edit(R.id.editContent).text = SpannableStringBuilder(it)
@@ -127,6 +141,7 @@ class ComposeMessageFragment : Fragment() {
             teachers ?: return@Observer
             if (viewModel.selectedTeacherId != 0) {
                 viewModel.selectedTeacher = teachers.find { it.id == viewModel.selectedTeacherId }
+                        ?: MessageDao.TeacherIdAndName(viewModel.selectedTeacherId, "nieznany ${viewModel.selectedTeacherId}")
                 viewModel.selectedTeacher?.also { view.btn(R.id.btnChooseReceiver).text = it.fullName }
             }
         })
@@ -184,6 +199,10 @@ class ComposeMessageFragment : Fragment() {
                 view.edit(R.id.editSubject).error = "Za długi tytuł"
                 return@setOnClickListener
             }
+            if (!isValidIso88591Text(subject.toString())) {
+                alertUnsupportedCharacters("temat")
+                return@setOnClickListener
+            }
 
             val content = view.edit(R.id.editContent).text
             if (content.isNullOrBlank()) {
@@ -192,6 +211,10 @@ class ComposeMessageFragment : Fragment() {
             }
             if (content.length > 2000) {
                 view.edit(R.id.editContent).error = "Za długa treść wiadomości"
+                return@setOnClickListener
+            }
+            if (!isValidIso88591Text(content.toString())) {
+                alertUnsupportedCharacters("treść wiadomości")
                 return@setOnClickListener
             }
 
@@ -226,5 +249,14 @@ class ComposeMessageFragment : Fragment() {
                     .setNegativeButton("Anuluj", null)
                     .show()
         }
+    }
+
+    private fun alertUnsupportedCharacters(`in`: String) {
+        AlertDialog.Builder(context!!)
+                .setTitle("Ups, coś poszło nie tak")
+                .setMessage("Wygląda na to, że $`in` zawiera znaki, które nie mogą zostać wysłane. " +
+                        "Upewnij się, że tekst nie zawiera emotikonek i innych \"dziwnych\" znaków.")
+                .setNeutralButton("OK", null)
+                .show()
     }
 }

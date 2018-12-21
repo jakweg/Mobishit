@@ -1,9 +1,6 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,18 +8,16 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
+import android.support.v7.content.res.AppCompatResources
 import android.support.v7.preference.EditTextPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.SwitchPreferenceCompat
-import android.util.Log
 import android.view.inputmethod.EditorInfo
 import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
-import jakubweg.mobishit.activity.WelcomeActivity
-import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
@@ -90,11 +85,7 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
                     else -> "a/y"
                 }
 
-                @Suppress("DEPRECATION")
-                val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    context.resources.getDrawable(R.drawable.ic_notifications_off_black, context.theme)
-                else
-                    context.resources.getDrawable(R.drawable.ic_notifications_off_black)
+                val icon = AppCompatResources.getDrawable(context, R.drawable.ic_notifications_off_black)
 
                 AlertDialog.Builder(context)
                         .setIcon(icon)
@@ -153,13 +144,6 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        findPreference("key_random_device_id")?.setOnPreferenceClickListener {
-            val deviceId = prefs.setRandomizedDeviceId()
-            Toast.makeText(context
-                    ?: return@setOnPreferenceClickListener true, "Wylosowano $deviceId", Toast.LENGTH_SHORT).show()
-            true
-        }
-
         findPreference("runCountdownService")?.setOnPreferenceChangeListener { _, value ->
             if (value !is Boolean) return@setOnPreferenceChangeListener false
             try {
@@ -178,25 +162,6 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        var clicks = 0
-        findPreference("refreshWeekends")?.setOnPreferenceClickListener {
-            clicks++
-            if (clicks >= 8) {
-                val activity = this.activity ?: return@setOnPreferenceClickListener true
-                if (prefs.isDeveloper)
-                    Toast.makeText(activity, "Już jesteś programistą", Toast.LENGTH_SHORT).show()
-                else {
-                    prefs.becomeDeveloper()
-                    Toast.makeText(activity, "Zostałeś programistą", Toast.LENGTH_SHORT).show()
-                    activity.finish()
-                    activity.startActivity(activity.intent.apply {
-                        action = MainActivity.ACTION_SHOW_PREFERENCES
-                    })
-                }
-            }
-            true
-        }
-
         findPreference("theme")?.setOnPreferenceChangeListener { _, newTheme ->
             if (newTheme == null || newTheme !is String) return@setOnPreferenceChangeListener false
 
@@ -208,44 +173,6 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
             }
 
             true
-        }
-
-
-        findPreference("key_clear_averages")?.setOnPreferenceClickListener { _ ->
-            context?.apply {
-                MobiregPreferences.get(this).hasReadyAverageCache = false
-                AppDatabase.getAppDatabase(this)
-                        .markDao.clearAverageCache()
-            }
-            false
-        }
-
-        findPreference("key_open_welcome_screen")?.setOnPreferenceClickListener { _ ->
-            val context = this.context ?: return@setOnPreferenceClickListener false
-            prefs.seenWelcomeActivity = false
-            startActivity(Intent(context, WelcomeActivity::class.java).also {
-                it.putExtra("isPreview", true)
-            })
-            false
-        }
-
-
-
-        findPreference("key_debug_options")?.isVisible = prefs.isDeveloper
-
-        findPreference("key_show_fcm_token")?.setOnPreferenceClickListener {
-            val token = prefs.firebaseToken
-            Log.i("TOKEN", "FCM TOKEN: [$token]")
-            AlertDialog.Builder(it.context ?: return@setOnPreferenceClickListener false)
-                    .setMessage("Ostatni znany token FCM:\n${token ?: "nie istnieje:\\"}")
-                    .setPositiveButton("OK") { d, _ -> d.dismiss() }
-                    .setNegativeButton("Kopiuj do schowka") { d, _ ->
-                        d.dismiss()
-                        (it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)
-                                ?.primaryClip = ClipData.newPlainText("FCM token", token ?: "null")
-                    }
-                    .show()
-            false
         }
     }
 

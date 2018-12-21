@@ -3,11 +3,11 @@
     <android.support.v7.preference.PreferenceCategory android:title="Mobireg">
         <Preference
             android:key="key_log_out"
-            android:summary="Zapomnij mnie w tej aplikacji"
+            android:summary="Zapomnij mnie w aplikacji"
             android:title="Wyloguj się" />
 
         <android.support.v7.preference.ListPreference
-            android:defaultValue="720"
+            android:defaultValue="1440"
             android:entries="@array/refresh_frequency"
             android:entryValues="@array/refresh_frequency_values"
             android:key="refreshFrequency"
@@ -50,15 +50,15 @@
             android:key="defFrag"
             android:summary="Ustaw domyślny ekran widoczny po włączeniu aplikacji"
             android:title="Ekran domyślny" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="sLM"
+            android:summary="Gdy włączone, niedawno otrzymane oceny będą widoczne na ekranie głównym"
+            android:title="Pokazuj ostatnie oceny" />
     </android.support.v7.preference.PreferenceCategory>
 
     <android.support.v7.preference.PreferenceCategory android:title="Powiadomienia">
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="refreshWeekends"
-            android:summary="Weekend w znaczeniu piątek 16:00 do niedziela 16:00"
-            android:title="Odświeżaj w weekend" />
-
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="notifyAboutAttendances"
@@ -81,50 +81,5 @@
             android:key="key_open_notification_settings"
             android:title="Otwórz ustawienia powiadomień" />
 
-    </android.support.v7.preference.PreferenceCategory>
-
-    <android.support.v7.preference.PreferenceCategory
-        android:key="key_debug_options"
-        android:title="Programistyczne">
-        <android.support.v7.preference.Preference
-            android:key="key_show_fcm_token"
-            android:summary="Wyświetla token FCM (o ile istnieje)"
-            android:title="Pokaż token FCM" />
-
-        <android.support.v7.preference.Preference
-            android:key="key_clear_averages"
-            android:summary="Usuwa pamięć podręczną średnich"
-            android:title="Przelicz średnie" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="getAllMarkGroups"
-            android:summaryOff="Wysyła parametr get_all_mark_groups=0"
-            android:summaryOn="Wysyła parametr get_all_mark_groups=1"
-            android:title="Pobieraj wszystkie tabelki" />
-
-        <android.support.v7.preference.Preference
-            android:key="key_open_welcome_screen"
-            android:summary="Otwórz ponownie powitalny ekran"
-            android:title="Powitaj mnie ponownie" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="logEverySync"
-            android:summary="Zapisuje treść każdej synchronizacji w katalogu /data/data/jakubweg.mobishit/syncs/"
-            android:title="Zapisuj ruch sieciowy" />
-
-        <android.support.v7.preference.EditTextPreference
-            android:defaultValue="213769"
-            android:hint="device_id"
-            android:inputType="numberSigned"
-            android:key="deviceId"
-            android:summary="Używaj innego deviceId przy łączeniu z serwerem"
-            android:title="Inne deviceId" />
-
-        <android.support.v7.preference.Preference
-            android:key="key_random_device_id"
-            android:summary="Losuje na zasadzie (Random().nextInt() % 10000 + 50000) * 3"
-            android:title="Losuj deviceId" />
     </android.support.v7.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>

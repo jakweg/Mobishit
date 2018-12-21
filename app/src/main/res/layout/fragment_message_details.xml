@@ -1,121 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:ignore="HardcodedText">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?backgroundSecondaryColor"
-        android:elevation="5dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="HardcodedText">
 
-
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="7dp">
+            android:background="?backgroundSecondaryColor"
+            android:elevation="4dp"
+            tools:ignore="UnusedAttribute,RtlHardcoded">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="3"
+                android:id="@+id/textView1"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/textTitleHolder"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:drawablePadding="4dp"
                 android:gravity="center_vertical"
-                android:text="Tytuł: "
-                android:textSize="16sp" />
+                android:padding="8dp"
+                android:text="Tytuł"
+                tools:drawableLeft="@drawable/ic_short_text"
+                tools:drawableTint="?android:textColorPrimary" />
+
+            <FrameLayout
+                android:id="@+id/textTitleHolder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="8dp"
+                android:layout_toRightOf="@id/textView1"
+                android:minHeight="40dp"
+                tools:ignore="RtlSymmetry">
+
+                <TextView
+                    android:id="@+id/textTitle"
+                    style="@style/Base.TextAppearance.AppCompat.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|center_vertical"
+                    android:gravity="right|center_vertical"
+                    tools:ignore="RtlSymmetry"
+                    tools:text="To jest tytuł wiadmości wiadmości" />
+            </FrameLayout>
+
+            <View
+                android:id="@+id/separator1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/textTitleHolder"
+                android:background="#AAA" />
+
 
             <TextView
-                android:id="@+id/textTitle"
-                android:layout_width="0dp"
+                android:id="@+id/textView2"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:textSize="16sp"
-                tools:text="To jest tytuł wiadomości wysłanej do ucznia w niewiadomo jakim celu xd" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#AAA" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="7dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:text="Nadawca: "
-                android:textSize="16sp" />
+                android:layout_below="@id/separator1"
+                android:drawablePadding="4dp"
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:text="Nadawca"
+                tools:drawableLeft="@drawable/ic_person"
+                tools:drawableTint="?android:textColorPrimary" />
 
             <TextView
                 android:id="@+id/textSender"
-                android:layout_width="0dp"
+                style="@style/Base.TextAppearance.AppCompat.Body1"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:ellipsize="end"
+                android:layout_alignTop="@id/textView2"
+                android:layout_alignBottom="@id/textView2"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="8dp"
+                android:layout_toRightOf="@id/textView2"
+                android:gravity="right|center_vertical"
                 android:maxLines="1"
-                android:textSize="16sp"
+                android:padding="4dp"
                 tools:text="Jan Kowalski" />
-        </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#AAA" />
+            <View
+                android:id="@+id/separator2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/textView2"
+                android:background="#AAA" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="7dp">
 
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/textView3"
+                style="@style/Base.TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:text="Wysłano: "
-                android:textSize="16sp" />
+                android:layout_below="@id/separator2"
+                android:drawablePadding="4dp"
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:text="Wysłano"
+                tools:drawableLeft="@drawable/ic_access_time"
+                tools:drawableTint="?android:textColorPrimary" />
 
             <TextView
-                android:id="@+id/textSendDate"
-                android:layout_width="0dp"
+                android:id="@+id/textDate"
+                style="@style/Base.TextAppearance.AppCompat.Body1"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:ellipsize="end"
+                android:layout_alignTop="@id/textView3"
+                android:layout_alignBottom="@id/textView3"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="8dp"
+                android:layout_toRightOf="@id/textView3"
+                android:gravity="right|center_vertical"
                 android:maxLines="1"
-                android:textSize="16sp"
-                tools:text="30.02.2018" />
-        </LinearLayout>
+                android:padding="4dp"
+                tools:text="2018-09-01 21:37:69" />
 
-        <View
+        </RelativeLayout>
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#AAA" />
+            android:layout_height="match_parent">
 
+            <TextView
+                android:id="@+id/textContent"
+                style="@style/Base.TextAppearance.AppCompat.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:autoLink="web|email|phone"
+                android:linksClickable="true"
+                android:paddingBottom="32dp"
+                android:text="hafksnfjsa nfk\n\n\nasn fkjsan fkjn sfakjnsfkaj"
+                tools:ignore="RtlHardcoded" />
+        </ScrollView>
     </LinearLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <TextView
-            android:autoLink="web|email|phone"
-            android:linksClickable="true"
-            android:id="@+id/textContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="7dp"
-            android:paddingBottom="20dp"
-            android:textSize="16sp"
-            tools:text="To jest treść wiadmości" />
-    </ScrollView>
-</LinearLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btnReply"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
+        app:srcCompat="@drawable/ic_reply"
+        app:fabCustomSize="48dp"
+        app:fabSize="normal"
+        tools:ignore="RtlHardcoded" />
+</FrameLayout>

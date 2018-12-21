@@ -3,6 +3,7 @@ package jakubweg.mobishit.db
 import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.Query
+import java.io.Serializable
 
 @Dao
 interface EventDao {
@@ -37,7 +38,7 @@ ORDER BY startTime, number, substitution""")
     fun getAllEventsByDay(day: Long): List<EventLongInfo>
 
 
-    class EventShortInfo(val subjectName: String?, val number: Int?, val time: String, val roomName: String?)
+    class EventShortInfo(val subjectName: String?, val number: Int?, val time: String, val roomName: String?) : Serializable //we use serialization for widget cache
 
     @Query("""SELECT IFNULL(Subjects.name, Events.name) AS subjectName, number,
         startTime || '|'|| endTime AS time, Rooms.name AS roomName

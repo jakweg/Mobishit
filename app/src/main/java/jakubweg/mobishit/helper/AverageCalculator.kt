@@ -268,7 +268,7 @@ class AverageCalculator private constructor() {
             if (!ignorePreviousCalculation && hasCalculatedAverage) return
             hasCalculatedAverage = true
             if (markScaleValue >= 0 && noCountToAverage != null) {
-                if (!noCountToAverage)
+                if (noCountToAverage)
                     return@apply
                 averageWeight += weight
                 val weight = if (weight >= 0f) weight else 1f
@@ -293,7 +293,7 @@ class AverageCalculator private constructor() {
             mark.hasCalculatedAverage = true
             mark.apply {
                 if (markScaleValue >= 0 && noCountToAverage != null) {
-                    if (noCountToAverage == true)
+                    if (noCountToAverage)
                         return@apply
                     averageValue += markScaleValue
                     marksCount++

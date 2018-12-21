@@ -7,6 +7,7 @@ import android.os.Bundle
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.ThemeHelper
 
+
 @SuppressLint("Registered")
 open class FragmentActivity : android.support.v4.app.FragmentActivity() {
 

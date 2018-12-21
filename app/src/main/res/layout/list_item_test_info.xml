@@ -17,11 +17,12 @@
         android:textColor="#FFF"
         android:textSize="15sp"
         android:textStyle="bold"
-        tools:text="2018-11-20" />
+        tools:text="2018-11-20\nPoniedziałek" />
 
     <LinearLayout
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
         <TextView
@@ -44,8 +45,8 @@
             android:layout_marginLeft="8dp"
             android:layout_marginRight="2dp"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:maxLines="2"
             android:textSize="14sp"
-            tools:text="Matematyka \u2022 Jan Kowalski o długim nazwisku" />
+            tools:text="Matematyka \u2022 Jan Kowalski o długim " />
     </LinearLayout>
 </LinearLayout>

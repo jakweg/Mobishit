@@ -2,18 +2,26 @@ package jakubweg.mobishit.fragment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.LocalBroadcastManager
+import android.support.v7.content.res.AppCompatResources
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import jakubweg.mobishit.R
+import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AttendanceDao
 import jakubweg.mobishit.helper.*
+import jakubweg.mobishit.model.AboutAttendancesModel
 import jakubweg.mobishit.model.AttendancesModel
 import jakubweg.mobishit.view.AttendanceBarView
 import java.lang.ref.WeakReference
@@ -33,10 +41,44 @@ class AttendancesSummaryFragment : Fragment() {
 
     private val mainList get() = view?.findViewById<RecyclerView>(R.id.main_list)
 
+    private val settingsListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AboutAttendancesModel.ACTION_SUBJECT_EXCLUDED_CHANGED) {
+                (activity as? MainActivity)?.onNavigationItemSelected(R.id.nav_attendances, true)
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (!MobiregPreferences.get(context!!).seenAboutAttendanceFragment) {
+            view.findViewById<TextView?>(R.id.textAboutExcludingAttendances)?.apply {
+                visibility = View.VISIBLE
+                val drawable = AppCompatResources.getDrawable(context!!, R.drawable.ic_help)
+                        ?.constantState?.newDrawable()?.also { it.mutate() }?.tintSelf(context
+                        .themeAttributeToColor(android.R.attr.textColorTertiary))
+
+                setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null)
+
+                setOnClickListener {
+                    AboutAttendancesFragment.newInstance()
+                            .showSelf(activity)
+                }
+            }
+        }
+
         mainList?.addItemDecoration(DividerItemDecoration(context!!, LinearLayoutManager.VERTICAL))
 
         viewModel.attendanceStats.observe(this, AttendancesObserver(this))
+
+        LocalBroadcastManager.getInstance(context!!)
+                .registerReceiver(settingsListener, IntentFilter(
+                        AboutAttendancesModel.ACTION_SUBJECT_EXCLUDED_CHANGED))
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        LocalBroadcastManager.getInstance(context!!)
+                .unregisterReceiver(settingsListener)
     }
 
 

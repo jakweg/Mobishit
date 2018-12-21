@@ -38,8 +38,8 @@
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
             android:padding="4dp"
-            android:src="@drawable/ic_navigate_before"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:srcCompat="@drawable/ic_navigate_before"
+            tools:tint="?android:attr/textColorPrimary" />
 
         <TextView
             android:id="@+id/markValue"
@@ -62,8 +62,8 @@
             android:background="?android:selectableItemBackground"
             android:contentDescription=""
             android:padding="4dp"
-            android:src="@drawable/ic_navigate_next"
-            android:tint="?android:attr/textColorPrimary" />
+            tools:srcCompat="@drawable/ic_navigate_next"
+            tools:tint="?android:attr/textColorPrimary" />
     </LinearLayout>
 
     <TextView
@@ -91,12 +91,14 @@
         android:background="?android:selectableItemBackground"
         android:contentDescription=""
         android:padding="4dp"
-        android:src="@drawable/ic_add_box"
-        android:tint="?android:attr/textColorPrimary" />
+        tools:srcCompat="@drawable/ic_add_box"
+        tools:tint="?android:attr/textColorPrimary" />
 
     <ImageButton
+        android:minWidth="36dp"
         android:id="@+id/btnDeleteMark"
         android:layout_width="wrap_content"
+        android:tag="1"
         android:layout_height="0px"
         android:layout_alignBottom="@id/parentTypeText"
         android:layout_alignParentTop="true"
@@ -104,8 +106,9 @@
         android:background="?android:selectableItemBackground"
         android:contentDescription=""
         android:padding="4dp"
-        android:src="@drawable/ic_delete_sweep"
-        android:tint="?android:attr/textColorPrimary" />
+        tools:ignore="RtlSymmetry"
+        tools:srcCompat="@drawable/ic_delete_sweep"
+        tools:tint="?android:attr/textColorPrimary" />
 
 
     <View

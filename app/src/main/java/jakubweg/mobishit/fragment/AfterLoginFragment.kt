@@ -5,8 +5,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
+import android.support.v7.content.res.AppCompatResources
 import android.support.v7.widget.AppCompatTextView
 import android.view.LayoutInflater
 import android.view.View
@@ -99,7 +99,7 @@ class AfterLoginFragment : Fragment() {
                 val context = context ?: return@setOnCheckedChangeListener
 
                 AlertDialog.Builder(context)
-                        .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_notifications_off_black))
+                        .setIcon(AppCompatResources.getDrawable(context, R.drawable.ic_notifications_off_black))
                         .setCancelable(false)
                         .setTitle("Czy na pewno?")
                         .setMessage("Gdy wyłączysz tę funkcję, zostaniesz powiadomion$ending tylko raz na kilka godzin.\n" +

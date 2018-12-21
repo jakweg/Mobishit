@@ -1,7 +1,6 @@
 package jakubweg.mobishit.service
 
 import android.content.Context
-import androidx.work.Result
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.gson.JsonObject
@@ -26,7 +25,8 @@ class CrashUploadWorker(context: Context,
 
             val response = DedicatedServerManager
                     .makePostRequest(
-                            DedicatedServerManager(applicationContext).crashReportsLink,
+                            DedicatedServerManager(applicationContext).crashReportsLink
+                                    ?: return Result.failure(),
                             jo.toString().toByteArray(Charsets.UTF_8))
 
             jo = JsonParser()

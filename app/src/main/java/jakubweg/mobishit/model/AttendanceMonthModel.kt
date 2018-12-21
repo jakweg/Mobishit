@@ -33,7 +33,6 @@ class AttendanceMonthModel(application: Application)
         val attendances =
                 when (mSubjectId) {
                     -1 -> dao.getDetailedAttendancesBetweenDates(mStart, mEnd)
-                    0 -> dao.getDetailedAttendancesBetweenDatesNoSubject(mStart, mEnd)
                     else -> dao.getDetailedAttendancesBetweenDates(mStart, mEnd, mSubjectId)
                 }
 

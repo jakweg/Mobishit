@@ -38,7 +38,9 @@ interface AttendanceDao {
     @Query("""SELECT countAs, count(Attendances.id) AS count FROM Attendances
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
-                WHERE date BETWEEN :start AND :end
+                INNER JOIN EventTypes ON EventTypes.id = eventTypeId
+                INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
+                WHERE date BETWEEN :start AND :end AND isExcludedFromStats = 0
                 AND status != 2 AND substitution != 2 GROUP BY countAs""")
     fun getAttendancesBetweenDates(start: Long, end: Long): List<AttendanceCountInfo>
 
@@ -48,7 +50,9 @@ interface AttendanceDao {
     @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
-                WHERE date BETWEEN :start AND :end
+                INNER JOIN EventTypes ON EventTypes.id = eventTypeId
+                INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
+                WHERE date BETWEEN :start AND :end AND isExcludedFromStats = 0
                 AND status != 2 AND substitution != 2 GROUP BY typeId""")
     fun getDetailedAttendancesBetweenDates(start: Long, end: Long): List<AttendanceTypeAndCountInfo>
 
@@ -56,18 +60,10 @@ interface AttendanceDao {
                 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
                 INNER JOIN Events ON Events.id = Attendances.eventId
                 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-                WHERE subjectId = :subjectId AND date BETWEEN :start AND :end
+                INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
+                WHERE subjectId = :subjectId AND date BETWEEN :start AND :end AND isExcludedFromStats = 0
                 AND status != 2 AND substitution != 2 GROUP BY typeId""")
     fun getDetailedAttendancesBetweenDates(start: Long, end: Long, subjectId: Int): List<AttendanceTypeAndCountInfo>
-
-    @Query("""SELECT AttendanceTypes.id, AttendanceTypes.name, count(Attendances.id) AS count, color FROM Attendances
-                INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
-                INNER JOIN Events ON Events.id = Attendances.eventId
-                INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-                WHERE subjectId IS NULL AND date BETWEEN :start AND :end
-                AND status != 2 AND substitution != 2
-                GROUP BY typeId""")
-    fun getDetailedAttendancesBetweenDatesNoSubject(start: Long, end: Long): List<AttendanceTypeAndCountInfo>
 
 
     @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
@@ -82,10 +78,9 @@ COUNT(Attendances.id) as total FROM Attendances
 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE date BETWEEN :start AND :end AND status != 2 AND substitution != 2
-GROUP BY subjectId
-ORDER BY Subjects.abbreviation""")
+INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
+WHERE date BETWEEN :start AND :end AND status != 2 AND substitution != 2 AND isExcludedFromStats = 0
+GROUP BY subjectId ORDER BY Subjects.abbreviation""")
     fun getAttendanceSubjectInfoBetweenDates(start: Long, end: Long): List<AttendanceSubjectInfo>
 
 
@@ -96,7 +91,7 @@ ORDER BY Subjects.abbreviation""")
 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
+INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
 WHERE subjectId = :subjectId AND typeId = :typeId AND status != 2 AND substitution != 2
 AND date BETWEEN :start AND :end
 ORDER BY date, number""")
@@ -107,21 +102,8 @@ ORDER BY date, number""")
 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE subjectId IS NULL AND typeId = :typeId AND status != 2 AND substitution != 2
-AND date BETWEEN :start AND :end
-ORDER BY date, number""")
-    fun getAttendanceDatesByNullSubject(start: Long, end: Long, typeId: Int): List<AttendanceLesson>
-
-    @Query("""SELECT IFNULL(Subjects.name, Events.name) as title,
-         date, IFNULL(number, -1) as number FROM Attendances
-INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
-INNER JOIN Events ON Events.id = Attendances.eventId
-INNER JOIN EventTypes ON EventTypes.id = eventTypeId
-LEFT OUTER JOIN Subjects ON Subjects.id = subjectId
-WHERE typeId = :typeId AND date BETWEEN :start AND :end AND status != 2 AND substitution != 2
+INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
+WHERE typeId = :typeId AND date BETWEEN :start AND :end AND status != 2 AND substitution != 2 AND isExcludedFromStats = 0
 ORDER BY date, number""")
     fun getAttendanceDatesByAnySubject(start: Long, end: Long, typeId: Int): List<AttendanceLesson>
-
-
 }

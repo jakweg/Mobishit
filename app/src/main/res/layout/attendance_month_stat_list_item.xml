@@ -58,7 +58,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:drawableLeft="@drawable/event_busy"
+        tools:drawableLeft="@drawable/event_busy"
         android:drawablePadding="2dp"
         android:gravity="center_horizontal"
         android:text="Nieobecności\n9 (78,8%)"
