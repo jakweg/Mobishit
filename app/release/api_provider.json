@@ -1,4 +1,5 @@
 {
+  "rules": "https://jakubwe.ga/mobishit/terms_of_use.pdf",
   "version_info": "https://jakubwe.ga/mobishit/version_info.php",
   "fcm_handler": "https://jakubwe.ga/mobishit/fcm_handler.py",
   "averages": "https://jakubwe.ga/mobishit/averages.py",
