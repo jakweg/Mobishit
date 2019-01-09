@@ -15,7 +15,7 @@ interface MessageDao {
 
     class MessageShortInfo(val id: Int, val title: String?, val kind: Int, val sender: String, val sendTime: Long)
 
-    @Query("""SELECT Messages.id, kind,  title, IFNULL(name || ' ' || surname, 'Od nieznanego') AS sender, sendTime
+    @Query("""SELECT Messages.id, kind,  title, IFNULL(name || ' ' || surname, 'Od nieznanego (' || Messages.senderId || ')') AS sender, sendTime
             FROM Messages LEFT JOIN Teachers ON Teachers.id = Messages.senderId ORDER BY sendTime DESC""")
     fun getMessages(): List<MessageShortInfo>
 
@@ -26,7 +26,7 @@ interface MessageDao {
     }
 
     @Query("""
-        SELECT title, kind, IFNULL(name || ' ' || surname, 'Nieznany') AS sender, senderId, sendTime, content FROM Messages
+        SELECT title, kind, IFNULL(name || ' ' || surname, 'Nieznany (' || senderId || ')') AS sender, senderId, sendTime, content FROM Messages
         LEFT JOIN Teachers ON Teachers.id = Messages.senderId WHERE Messages.id = :messageId LIMIT 1""")
     fun getMessageInfo(messageId: Int): MessageLongInfo
 

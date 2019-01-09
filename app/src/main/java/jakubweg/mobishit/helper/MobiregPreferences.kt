@@ -176,6 +176,7 @@ class MobiregPreferences private constructor(
                     .remove("sex")
                     .remove("lastTestRefresh")
                     .remove("readyAverage")
+                    .remove("lmsg")
                     .commit()
 
             AppDatabase.deleteDatabase(appContext)

@@ -86,11 +86,11 @@
             style="@style/Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="Masz jakąś sugestię lub znalazłaś/eś błąd? - skontaktuj się ze mną!" />
+            tools:text="Masz jakąś sugestię lub znalazłaś/eś błąd? \u2013 skontaktuj się ze mną!" />
 
         <TextView
             style="@style/Base.TextAppearance.AppCompat.Caption"
-            tools:text="Mobishit 1.0 (1) - release"
+            tools:text="Mobishit 1.0 (1)"
             android:id="@+id/textVersionInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

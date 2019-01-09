@@ -75,6 +75,7 @@ class DataCreator {
             var type = ""
             var startDate = ""
             var endDate = ""
+            var parentId: Int? = null
             jr.beginObject()
             var isDeleted = false
             while (jr.hasNext()) {
@@ -84,12 +85,14 @@ class DataCreator {
                     "type" -> type = jr.nextString()!!
                     "start_date" -> startDate = jr.nextString()!!
                     "end_date" -> endDate = jr.nextString()!!
+                    "parent_id" -> parentId = jr.nextIntOrNull()
                     "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
 
-            return TermData(id, name, type, DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate)).also {
+            return TermData(id, name, type, parentId,
+                    DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate)).also {
                 if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
             }
         }

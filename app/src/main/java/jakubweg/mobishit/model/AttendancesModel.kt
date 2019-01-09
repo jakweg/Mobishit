@@ -26,7 +26,7 @@ class AttendancesModel(application: Application)
         val stats = mutableListOf<AttendanceDao.AttendanceCountInfoHolder>()
 
         terms.forEach {
-            val events = dao.getAttendancesBetweenDates(it.startDate, it.endDate)
+            val events = dao.getAttdnadancesByTerm(it.id)
             if (events.isEmpty())
                 return@forEach
 

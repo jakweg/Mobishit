@@ -6,6 +6,7 @@ import android.util.SparseArray
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.fragment.SubjectsMarkFragment
 import java.util.ArrayList
 import kotlin.Comparator
@@ -39,7 +40,7 @@ class AverageCalculator private constructor() {
             val db = AppDatabase.getAppDatabase(context)
             val markDao = db.markDao
 
-            checkIfSelectedTermIsValid(context, db.termDao.getTermIds())
+            checkIfSelectedTermIsValid(context, db.termDao.getTermsShortInfo())
 
             val termId = MobiregPreferences.get(context).lastSelectedTerm
             val term = db.termDao.getStartEnd(termId) ?: return emptyList()
@@ -47,7 +48,7 @@ class AverageCalculator private constructor() {
             val subjects = markDao.getSubjectsWithUsersMarks(term.startDate, term.endDate)
             val output = ArrayList<AverageCacheData>(subjects.size)
             for (subject in subjects) {
-                val marks = markDao.getMarksBySubject(subject.id)
+                val marks = markDao.getMarksBySubject(subject.id, termId)
                 val result = calculateAverage(marks)
 
                 output.add(AverageCacheData(0, subject.id, subject.name, null,
@@ -174,9 +175,10 @@ class AverageCalculator private constructor() {
             val dao = db.markDao
             val terms = db.termDao.getTermsShortInfo()
 
-            checkIfSelectedTermIsValid(context, terms.map { it.id })
+            checkIfSelectedTermIsValid(context, terms)
 
-            val allMarks = sortMarks(dao.getMarksBySubject(subjectId), sortOrder, groupByParents)
+            MobiregPreferences.get(context).lastSelectedTerm
+            val allMarks = sortMarks(dao.getMarksBySubject(subjectId, null), sortOrder, groupByParents)
 
             // termId, marks
             val marksMap = SparseArray<List<MarkDao.MarkShortInfo>>(terms.size)
@@ -199,11 +201,11 @@ class AverageCalculator private constructor() {
 
 
         private fun checkIfSelectedTermIsValid(context: Context,
-                                               terms: List<Int>) {
+                                               terms: List<TermDao.TermShortInfo>) {
             MobiregPreferences.get(context).apply {
                 val id = lastSelectedTerm
-                if (terms.find { it == id } == null)
-                    lastSelectedTerm = terms.firstOrNull() ?: 0
+                if (terms.find { it.id == id } == null)
+                    lastSelectedTerm = (terms.firstOrNull { it.type == "Y" } ?: terms.firstOrNull())?.id ?: -1
             }
         }
 

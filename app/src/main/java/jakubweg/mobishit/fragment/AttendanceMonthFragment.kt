@@ -44,18 +44,18 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
         ViewModelProviders.of(this)[AttendanceMonthModel::class.java]
     }
 
-    private var start = 0L
-    private var end = 0L
+    private var start = -1L
+    private var end = -1L
     private var title = ""
-    private var subjectId = 0
+    private var subjectId = -1
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         arguments!!.also { args ->
-            start = args.getLong("start")
-            end = args.getLong("end")
+            start = args.getLong("start", -1L)
+            end = args.getLong("end", -1L)
             title = args.getString("name", null)
                     ?: "Statystyki obecności"
-            subjectId = args.getInt("subject")
+            subjectId = args.getInt("subject", -1)
 
             if (!MobiregPreferences.get(context!!).seenAttendanceDates) {
                 view.textView(R.id.hintClickAttendanceType)?.also {

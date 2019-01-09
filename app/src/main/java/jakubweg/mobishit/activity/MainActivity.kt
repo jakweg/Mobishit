@@ -18,6 +18,7 @@ import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.SnackbarController
 import jakubweg.mobishit.service.UpdateWorker
+import java.util.*
 
 class MainActivity : DoublePanelActivity() {
 

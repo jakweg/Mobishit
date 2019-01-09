@@ -1,6 +1,7 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
+import android.arch.persistence.db.SupportSQLiteQueryBuilder
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -18,6 +19,7 @@ import android.widget.EditText
 import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
@@ -55,6 +57,34 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
         addPreferencesFromResource(R.xml.pref_general)
 
         val prefs = MobiregPreferences.get(context!!)
+
+        //TODO
+        findPreference("key_change_subjects_name")?.setOnPreferenceClickListener {
+            val cursor = AppDatabase.getAppDatabase(context!!).query("SELECT id AS _id, name FROM Subjects ORDER BY name", emptyArray())
+            AlertDialog.Builder(context!!)
+                    .setTitle("Wybierz przedmiot")
+                    .setCursor(cursor, { _, which ->
+                        val textView = EditText(context)
+                        AlertDialog.Builder(context!!)
+                                .setView(textView)
+                                .setTitle("Zmień nazwę przedmiotu na")
+                                .setNegativeButton("Anuluj", null)
+                                .setPositiveButton("Zapisz") { _, _ ->
+                                    val value = textView.text?.toString() ?: return@setPositiveButton
+                                    cursor.moveToPosition(which)
+                                    val _id = cursor.getInt(cursor.getColumnIndex("_id"))
+                                    AppDatabase.getAppDatabase(context!!).markDao.setSubjectsName(_id, value)
+                                    MobiregPreferences.get(context!!).apply {
+                                        hasReadyAverageCache = false
+                                        hasReadyLastMarksCache = false
+                                    }
+                                    Toast.makeText(context!!, "Zmieniono!", Toast.LENGTH_SHORT).show()
+                                }
+                                .show()
+                    }, "name")
+                    .show()
+            true
+        }
 
         findPreference("key_log_out")?.also { pref ->
 

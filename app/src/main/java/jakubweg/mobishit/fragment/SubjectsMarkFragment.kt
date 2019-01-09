@@ -116,7 +116,6 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
             const val TYPE_PARENT_LAST = 3
         }
 
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             return ViewHolder(inflater.inflate(when (viewType) {
                 TYPE_SINGLE -> R.layout.mark_single_list_item

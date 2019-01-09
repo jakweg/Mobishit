@@ -114,7 +114,7 @@ class VirtualMarksFragment : Fragment() {
 
     private fun onMarkScaleGroupsLoaded() {
         askUsingDialog(viewModel.markScaleGroups, if (viewModel.subjectId <= 0) "Wybierz typ ocen" else
-            "Wybierz skalę z której mają być importowane oceny",
+            "Wybierz skalę z której mają być zaimportowane oceny",
                 true) {
             viewModel.apply {
                 markScaleGroupId = it.id
@@ -138,7 +138,7 @@ class VirtualMarksFragment : Fragment() {
     }
 
     private fun onTermsLoaded() {
-        askUsingDialog(viewModel.terms, "Wybierz semestr z którego importować oceny",
+        askUsingDialog(viewModel.terms, "Wybierz semestr z którego zaimportować oceny",
                 true) {
             viewModel.apply {
                 termId = it.id
@@ -189,7 +189,7 @@ class VirtualMarksFragment : Fragment() {
             when (arguments.getInt("method", NO_METHOD)) {
                 METHOD_SELECTED_MARK_SCALE_GROUPS -> {
                     viewModel.apply {
-                        markScaleGroupId = arguments.getInt("markScaleGroupId", -1)
+                        //markScaleGroupId = arguments.getInt("markScaleGroupId", -1)
                         requestState(State.PREPARE_FOR_SCALE_MARKS)
                     }
                 }

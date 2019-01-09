@@ -66,8 +66,9 @@ interface MarkDao {
                     INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
                     INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
                     WHERE Subjects.id = :subjectId AND MarkGroups.visibility = 0
+                     AND (:termId IS NULL OR Terms.id = :termId OR Terms.parentId = :termId)
                     ORDER BY getDate DESC""")
-    fun getMarksBySubject(subjectId: Int): List<MarkShortInfo>
+    fun getMarksBySubject(subjectId: Int, termId: Int?): List<MarkShortInfo>
 
 
     /// this class is used to show notifications
@@ -178,7 +179,7 @@ ORDER BY (isPublic + isDefault) + id * 100 DESC""")
     fun getUsedMarkScaleGroups(): List<MarkScaleGroupShortInfo>
 
 
-    @Query("""SELECT MarkScaleGroups.id, MarkScaleGroups.name FROM Marks
+    @Query("""SELECT MarkScaleGroups.id, IFNULL(MarkScaleGroups.name, "??") as name FROM Marks
 INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
 LEFT OUTER JOIN MarkScaleGroups ON MarkScaleGroups.id = MarkGroups.markScaleGroupId
@@ -233,4 +234,8 @@ ORDER BY addTime DESC""")
 
     @Query("SELECT * FROM SavedVirtualMarks")
     fun getVirtualMarksEntities(): List<VirtualMarkEntity>
+
+    // TODO
+    @Query("UPDATE Subjects SET name = :value WHERE id = :id")
+    fun setSubjectsName(id: Int, value: String)
 }

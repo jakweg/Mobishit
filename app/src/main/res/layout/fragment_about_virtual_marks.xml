@@ -76,6 +76,7 @@
 
 
         <android.support.design.card.MaterialCardView
+            android:layout_marginBottom="16dp"
             android:id="@+id/cardPoints"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

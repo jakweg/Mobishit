@@ -67,7 +67,7 @@ class AboutFragment : Fragment() {
                 else -> "aś/eś"
             }
 
-            text = "Masz jakąś sugestię lub znalazł$ending błąd? - skontaktuj się ze mną!"
+            text = "Masz jakąś sugestię lub znalazł$ending błąd? – skontaktuj się ze mną!"
 
             setOnClickListener {
                 sendMessage()

@@ -15,7 +15,7 @@ class Teacher(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, va
 class RoomData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val description: String)
 
 @Entity(tableName = "Terms")
-class TermData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val type: String, val startDate: Long, val endDate: Long)
+class TermData(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val type: String, val parentId: Int?, val startDate: Long, val endDate: Long)
 
 @Entity(tableName = "Subjects")
 class SubjectData(@PrimaryKey(autoGenerate = false) val id: Int, val name: String, @SerializedName("abbr") val abbreviation: String, val isExcludedFromStats: Boolean)

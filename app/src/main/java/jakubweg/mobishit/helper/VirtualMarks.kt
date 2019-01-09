@@ -89,6 +89,7 @@ abstract class VirtualMarkListItem {
             it.lastWeight = newWeight
             it.notifyMarkChanged()
         }
+        weight = newWeight
         return newWeight
     }
 }
@@ -210,8 +211,9 @@ open class VirtualMarkChild(
 
     override fun bindToView(viewHolder: VirtualMarksFragment.VirtualMarkViewHolder) {
         val adapter = adapter.get() ?: parent?.adapter?.get() ?: return
-        if (markScaleIndex == -1) {
+        if (markScaleIndex < 0) {
             markScalesAdapter?.also { markScaleIndex = changeMarkIndex(it.lastMarkScaleIndex) }
+            if (markScaleIndex < 0) markScaleIndex = 0
         }
 
         viewHolder.btnIncrease.setOnClickListener {

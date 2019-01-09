@@ -9,8 +9,8 @@ class AttendanceMonthModel(application: Application)
     : BaseViewModel(application) {
 
 
-    private var mStart = 0L
-    private var mEnd = 0L
+    private var mStart = -1L
+    private var mEnd = -1L
     private var mSubjectId = -1
     fun init(start: Long, end: Long, subjectId: Int) {
         mStart = start
@@ -27,7 +27,7 @@ class AttendanceMonthModel(application: Application)
 
 
     override fun doInBackground() {
-        require(mStart != 0L && mEnd != 0L)
+        require(mStart >= 0L && mEnd >= 0L)
         val dao = AppDatabase.getAppDatabase(context).attendanceDao
 
         val attendances =

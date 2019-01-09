@@ -4,8 +4,11 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewCompat
+import android.support.v4.widget.NestedScrollView
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -13,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MarkOptionsListener
@@ -58,7 +62,7 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
             view.findViewById<TextView?>(R.id.lastMarksTitle)?.also {
                 it.setLeftDrawable(R.drawable.ic_expand_more)
                 it.setOnClickListener {
-                    viewModel.requestMoreLastMarks()
+                    viewModel.onClickedExpand()
                 }
             }
             viewModel.lastMarks.observe(this,
@@ -69,10 +73,21 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         viewModel.subjects.observe(this,
                 SafeSubjectsObserver(mainList))
 
-
         if (mainList.adapter == null)
             mainList.adapter = EmptyAdapter("Ładowanie danych...")
 
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.scrollPosition = view?.findViewById<NestedScrollView?>(R.id.scrollView)?.scrollY ?: 0
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Handler(Looper.getMainLooper()).post {
+            view?.findViewById<NestedScrollView?>(R.id.scrollView)?.scrollTo(0, viewModel.scrollPosition)
+        }
     }
 
     private class SafeLastMarksObserver(v: SubjectListFragment)
@@ -110,10 +125,11 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         fun setNewMarksList(list: List<LastMarkCacheData>) {
             val oldList = this.list
             this.list = list
-            if (list.size > oldList.size)
-                notifyItemRangeInserted(oldList.size, list.size - oldList.size)
-            else
-                notifyDataSetChanged()
+            when {
+                list.size > oldList.size -> notifyItemRangeInserted(oldList.size, list.size - oldList.size)
+                list.size < oldList.size -> notifyItemRangeRemoved(list.size, oldList.size - list.size)
+                else -> notifyDataSetChanged()
+            }
         }
 
         private val weakFragment = WeakReference(fragment)
@@ -127,7 +143,8 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         override fun onBindViewHolder(holder: ViewHolder, pos: Int) {
             list[pos].also {
                 holder.title.precomputedText = it.description
-                holder.markValue.precomputedText = it.value
+                holder.markValue.precomputedText = if (it.value.contains('.'))
+                    it.value.replace('.', ',') else it.value
             }
         }
 

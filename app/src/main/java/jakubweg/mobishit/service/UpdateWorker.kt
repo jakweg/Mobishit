@@ -19,6 +19,7 @@ import jakubweg.mobishit.helper.*
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
@@ -127,6 +128,10 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
             TimetableWidgetProvider.requestInstantUpdate(applicationContext)
 
             Result.success()
+        } catch (uhe: UnknownHostException) {
+            Log.e("UpdateWorker", "Got UnknownHostException, should retry in 1/2 minute")
+            publishStatus(STATUS_ERROR)
+            Result.retry()
         } catch (ste: SocketTimeoutException) {
             Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
             publishStatus(STATUS_ERROR)

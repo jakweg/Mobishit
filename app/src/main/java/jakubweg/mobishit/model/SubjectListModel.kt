@@ -27,8 +27,12 @@ class SubjectListModel(application: Application)
             }
 
     private var isShowingMoreMarks = false
-    fun requestMoreLastMarks() {
-        if (isShowingMoreMarks) return
+    fun onClickedExpand() {
+        if (isShowingMoreMarks) {
+            mLastMarks.postValue(mLastMarks.value?.take(3))
+            isShowingMoreMarks = false
+            return
+        }
         isShowingMoreMarks = true
         lastMarksTask?.cancel(false)
         lastMarksTask = LoadLastMarksTask(this).apply { execute() }
@@ -70,6 +74,7 @@ class SubjectListModel(application: Application)
     }
 
     private var lastTerm = Int.MIN_VALUE
+    var scrollPosition = 0
 
     override fun doInBackground() {
         val data = AverageCalculator

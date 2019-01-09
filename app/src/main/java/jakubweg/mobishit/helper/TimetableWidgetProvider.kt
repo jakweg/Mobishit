@@ -50,7 +50,10 @@ class TimetableWidgetProvider : AppWidgetProvider() {
             return millis
         }
 
+        private var cachedLessons: List<EventDao.EventShortInfo>? = null
+
         fun requestInstantUpdate(context: Context) {
+            cachedLessons = null
             MobiregPreferences.get(context).hasReadyWidgetCache = false
 
             val intent = Intent(context, TimetableWidgetProvider::class.java)
@@ -157,7 +160,27 @@ class TimetableWidgetProvider : AppWidgetProvider() {
         override fun getLoadingView(): RemoteViews? = null
 
         override fun onDataSetChanged() {
-            getFromCacheOrDb(appContext, MobiregPreferences.get(appContext).hasReadyWidgetCache)
+            val prefs = MobiregPreferences.get(appContext)
+            if (prefs.hasReadyWidgetCache) {
+                cachedLessons.also {
+                    if (it != null)
+                        events = it
+                    else {
+                        val tmp = getDataFromCachedFile(appContext)
+                        if (tmp == null) {
+                            events = getDataFromDb(appContext)
+                            saveCache(appContext)
+                        } else events = tmp
+
+                        cachedLessons = events
+                    }
+                }
+            } else {
+                events = getDataFromDb(appContext)
+                saveCache(appContext)
+                cachedLessons = events
+                prefs.hasReadyWidgetCache = true
+            }
         }
 
         private fun saveCache(context: Context) {
@@ -172,14 +195,11 @@ class TimetableWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        private fun getFromCacheOrDb(context: Context, isCacheAllowed: Boolean): List<EventDao.EventShortInfo> {
+        private fun getDataFromCachedFile(context: Context): List<EventDao.EventShortInfo>? {
             try {
                 val file = File(context.cacheDir, "widget")
-                if (!isCacheAllowed || !file.exists())
-                    return getDataFromDb(context).also {
-                        events = it
-                        saveCache(context)
-                    }
+                if (!file.exists()) return null
+
                 ObjectInputStream(file.inputStream()).use {
                     val count = it.readInt()
                     val list = mutableListOf<EventDao.EventShortInfo>()
@@ -191,11 +211,8 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                return getDataFromDb(context).also {
-                    events = it
-                    saveCache(context)
-                }
             }
+            return null
         }
 
         private fun getDataFromDb(context: Context): List<EventDao.EventShortInfo> {

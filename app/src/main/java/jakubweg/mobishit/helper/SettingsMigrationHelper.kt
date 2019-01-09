@@ -10,7 +10,7 @@ import jakubweg.mobishit.service.UpdateWorker
 
 @Suppress("NOTHING_TO_INLINE")
 object SettingsMigrationHelper {
-    private const val CURRENT_APP_SETTINGS_VERSION = 10
+    private const val CURRENT_APP_SETTINGS_VERSION = 11
 
     @SuppressLint("ApplySharedPref")
     fun onSettingsLoaded(prefs: SharedPreferences?,
@@ -22,7 +22,13 @@ object SettingsMigrationHelper {
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 
-            deleteDatabaseAndRequestNew(prefs, context)
+            if (version == 10) { //TODO delete in future
+
+                //this handles crashes
+                prefs.edit().putBoolean("hsVm", false).commit()
+            } else {
+                deleteDatabaseAndRequestNew(prefs, context)
+            }
         }
     }
 
@@ -34,6 +40,7 @@ object SettingsMigrationHelper {
                 .remove("endDate")
                 .remove("lastCheck")
                 .remove("lmt")
+                .remove("hsVm")
                 .apply()
 
         UpdateWorker.requestUpdates(context)

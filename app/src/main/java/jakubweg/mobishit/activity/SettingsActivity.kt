@@ -10,7 +10,7 @@ import jakubweg.mobishit.helper.MobiregPreferences
 /**
  * This class is used only for starting MainActivity with action MainActivity.ACTION_SHOW_PREFERENCES
  * Why haven't I deleted it? Because it's started when notification settings are launched
- * The second thing it does - it shows up the crash dialog
+ * The second thing it does – it shows up the crash dialog
  */
 class SettingsActivity : Activity() {
     companion object {

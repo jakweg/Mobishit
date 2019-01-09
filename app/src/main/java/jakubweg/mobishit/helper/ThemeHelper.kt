@@ -54,7 +54,7 @@ object ThemeHelper {
         if (theme == null)
             return
         activity.setTheme(when (theme) {
-            THEME_LIGHT -> return // ignore - default is light
+            THEME_LIGHT -> return // ignore \u2013 default is light
             THEME_DARK -> R.style.AppDarkTheme
             THEME_BLACK -> R.style.AppBlackTheme
             THEME_AUTO_DARK -> if (shouldUseLightTheme()) return else R.style.AppDarkTheme
