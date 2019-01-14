@@ -69,14 +69,17 @@ class AttendancesSummaryFragment : Fragment() {
         mainList?.addItemDecoration(DividerItemDecoration(context!!, LinearLayoutManager.VERTICAL))
 
         viewModel.attendanceStats.observe(this, AttendancesObserver(this))
+    }
 
+    override fun onStart() {
+        super.onStart()
         LocalBroadcastManager.getInstance(context!!)
                 .registerReceiver(settingsListener, IntentFilter(
                         AboutAttendancesModel.ACTION_SUBJECT_EXCLUDED_CHANGED))
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onStop() {
+        super.onStop()
         LocalBroadcastManager.getInstance(context!!)
                 .unregisterReceiver(settingsListener)
     }

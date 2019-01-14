@@ -21,12 +21,8 @@ class OneDayModel(application: Application) : BaseViewModel(application) {
     override fun doInBackground() {
         val day = mDay
 
-        val events = doAtLeast(0L) {
-            //250
-            val dao = AppDatabase.getAppDatabase(context).eventDao
-
-            return@doAtLeast dao.getAllEventsByDay(day).toTypedArray()
-        }
+        val dao = AppDatabase.getAppDatabase(context).eventDao
+        val events = dao.getAllEventsByDay(day).toTypedArray()
         mEvents.postValue(events)
     }
 }

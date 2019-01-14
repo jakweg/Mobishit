@@ -16,16 +16,15 @@ import android.view.View
 import android.view.ViewGroup
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.EventDao
-import jakubweg.mobishit.helper.EmptyAdapter
-import jakubweg.mobishit.helper.precomputedText
-import jakubweg.mobishit.helper.textView
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.OneDayModel
 import java.lang.ref.WeakReference
 
 
 class OneDayFragment : Fragment() {
     companion object {
-        @JvmStatic
+        private var lastListViewCreationTime = 0L
+
         fun newInstance(millis: Long) = OneDayFragment().apply { arguments = Bundle().also { it.putLong("millis", millis) } }
     }
 
@@ -52,10 +51,21 @@ class OneDayFragment : Fragment() {
         : Observer<Array<EventDao.EventLongInfo>> {
         private val eventsList = WeakReference<RecyclerView>(v)
         override fun onChanged(it: Array<EventDao.EventLongInfo>?) {
-            eventsList.get()?.also { eventsList ->
+            eventsList.get()?.also { view->
+                view.postDelayed({
+                    requestAdapterCreation(it)
+                }, 350L)
+            }
+        }
+
+        private fun requestAdapterCreation(it: Array<EventDao.EventLongInfo>?) {
+            val eventsList = eventsList.get() ?: return
+            if (lastListViewCreationTime + 350L > System.currentTimeMillis()) {
+                eventsList.postDelayed({ requestAdapterCreation(it) }, 350L)
+            } else {
+                lastListViewCreationTime = System.currentTimeMillis()
                 if (it?.isNotEmpty() == true)
-                    eventsList.adapter = Adapter(eventsList.context
-                            ?: return@also, it)
+                    eventsList.adapter = Adapter(eventsList.context ?: return, it)
                 else
                     eventsList.adapter = EmptyAdapter("Brak lekcji w ten dzień")
             }
@@ -72,12 +82,13 @@ class OneDayFragment : Fragment() {
         }
 
         private val inflater = LayoutInflater.from(context)!!
+        private val showLessonNumber = MobiregPreferences.get(context).showLessonNumberOnTimetable
 
         override fun getItemCount() = lessons.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
                 : BaseViewHolder = when (viewType) {
-            TYPE_NORMAL -> NormalLessonViewHolder(inflater.inflate(R.layout.lesson_list_item, parent, false))
+            TYPE_NORMAL -> NormalLessonViewHolder(inflater.inflate(R.layout.lesson_list_item, parent, false), showLessonNumber)
             TYPE_CANCELLED -> CancelledLessonViewHolder(inflater.inflate(R.layout.cancelled_lesson_list_item, parent, false))
             else -> throw IllegalArgumentException()
         }
@@ -117,10 +128,12 @@ class OneDayFragment : Fragment() {
             abstract fun bindSelf(params: EventDao.EventLongInfo)
         }
 
-        private class NormalLessonViewHolder(v: View) : BaseViewHolder(v) {
+        private class NormalLessonViewHolder(v: View,
+                                             private val showLessonNumber: Boolean) : BaseViewHolder(v) {
             private val colorView = v.findViewById<View>(R.id.eventColorView)!!
             private val secondaryText = v.textView(R.id.secondaryText)!!
             private val hoursText = v.textView(R.id.hoursText)!!
+            private val lessonNumber = v.textView(R.id.lessonNumber)
 
 
             @SuppressLint("SetTextI18n")
@@ -156,6 +169,10 @@ class OneDayFragment : Fragment() {
                     }
 
                     hoursText.precomputedText = "${normalizeHour(startTime)}\n${normalizeHour(endTime)}"
+                    if (showLessonNumber)
+                        lessonNumber?.precomputedText = number?.toString() ?: "-"
+                    else
+                        lessonNumber?.visibility = View.GONE
                 }
             }
 

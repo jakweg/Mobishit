@@ -10,6 +10,7 @@ import com.google.firebase.messaging.RemoteMessage
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.NotificationHelper
 import java.net.URLEncoder
@@ -34,6 +35,7 @@ class MobishitFcmService : FirebaseMessagingService() {
         private const val ACTION_SAY_HELLO = "sayHello"
         private const val ACTION_SHOW_NOTIFICATION = "showNotification"
         private const val ACTION_RESEND_TOKEN = "resendToken"
+        private const val ACTION_EXPIRE_DEDICATED_SERVER = "expireServer"
 
         private const val EXTRA_TITLE = "n_title"
         private const val EXTRA_CONTENT = "n_content"
@@ -42,6 +44,8 @@ class MobishitFcmService : FirebaseMessagingService() {
         private const val EXTRA_ACTION_ON_CLICK = "n_onclick"
         private const val EXTRA_NOTIFY_WITH_SOUND = "n_sound"
         private const val EXTRA_NOTIFICATION_CHANNEL = "n_channel"
+        private const val EXTRA_NOTIFICATION_ID = "n_id"
+        private const val EXTRA_NOTIFICATION_TIMEOUT = "n_timeout"
 
         private const val BEGIN_URL = "url:"
         private const val BEGIN_MAIN_ACTIVITY = "main_act:"
@@ -92,6 +96,7 @@ class MobishitFcmService : FirebaseMessagingService() {
             ACTION_SAY_HELLO -> sayHello()
             ACTION_SHOW_NOTIFICATION -> showNotificationFromFcm(body)
             ACTION_RESEND_TOKEN -> resendToken()
+            ACTION_EXPIRE_DEDICATED_SERVER -> expireDedicatedServer()
 
             else -> postErrorNotification("Unknown action: $action")
         }
@@ -106,6 +111,9 @@ class MobishitFcmService : FirebaseMessagingService() {
         FcmServerNotifierWorker.requestPeriodicServerNotifications()
     }
 
+    private fun expireDedicatedServer() {
+        DedicatedServerManager(this).makeExpired()
+    }
 
     private fun showNotificationFromFcm(body: Map<String, String>) {
         val fillFragments = body[EXTRA_FORMAT_TEXT] == TRUE
@@ -119,6 +127,7 @@ class MobishitFcmService : FirebaseMessagingService() {
 
         val defaults = if (body[EXTRA_NOTIFY_WITH_SOUND] == TRUE)
             NotificationCompat.DEFAULT_ALL else 0
+        val timeout = body[EXTRA_NOTIFICATION_TIMEOUT]?.toLongOrNull() ?: 7 * 24 * 60 * 60 * 1000L
         val channel = body[EXTRA_NOTIFICATION_CHANNEL].takeUnless { it.isNullOrBlank() }
                 ?: NotificationHelper.CHANNEL_APP_STATE
 
@@ -132,6 +141,7 @@ class MobishitFcmService : FirebaseMessagingService() {
 
         val context = applicationContext ?: return
         NotificationHelper(context).apply {
+            val id = body[EXTRA_NOTIFICATION_ID]?.toIntOrNull() ?: getNotificationId()
             createNotificationChannels()
 
             val notification = NotificationCompat
@@ -147,8 +157,9 @@ class MobishitFcmService : FirebaseMessagingService() {
                             .bigText(content))
                     .setContentIntent(contentIntent)
                     .setDefaults(defaults)
+                    .setTimeoutAfter(timeout)
 
-            postNotification(notification)
+            postNotification(id, notification)
         }
     }
 

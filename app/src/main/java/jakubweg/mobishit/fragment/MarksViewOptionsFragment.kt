@@ -31,9 +31,10 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
     }
 
     interface OptionsChangedListener {
-        fun onTermChanged()
 
-        fun onOtherOptionsChanged()
+        fun onOptionsChanged(changedTerm: Boolean,
+                             changedOrder: Boolean,
+                             changedGrouping: Boolean)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,14 +70,15 @@ class MarksViewOptionsFragment : BottomSheetDialogFragment() {
 
     override fun onStop() {
         super.onStop()
-        if (previousIsEnabledGrouping != viewModel.isGroupingByParentsEnabled
-                || previousOrder != viewModel.selectedOrderMethod) {
-            viewModel.savePreferences()
-            MarkOptionsListener.notifyOtherOptionsChanged(context)
-        } else if (previousTerm != viewModel.selectedTermId) {
-            viewModel.savePreferences()
-            MarkOptionsListener.notifyTermChanged(context)
-        }
+        notifyAboutChanges()
+    }
+
+    private fun notifyAboutChanges() {
+        viewModel.savePreferences()
+        MarkOptionsListener.notifyOptionsChanged(context,
+                previousTerm != viewModel.selectedTermId,
+                previousOrder != viewModel.selectedOrderMethod,
+                previousIsEnabledGrouping != viewModel.isGroupingByParentsEnabled)
     }
 
     private var previousTerm = 0

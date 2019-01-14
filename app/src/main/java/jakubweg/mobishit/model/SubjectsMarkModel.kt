@@ -11,6 +11,7 @@ import jakubweg.mobishit.helper.MobiregPreferences
 class SubjectsMarkModel(application: Application)
     : BaseViewModel(application) {
 
+    var shouldReorderEverything = false
 
     private var mSubjectId = 0
     fun init(subjectId: Int) {
@@ -18,12 +19,6 @@ class SubjectsMarkModel(application: Application)
         if (mSubjectId == subjectId) return
         check(mSubjectId == 0) { "SubjectsMarkModel.init was already called!" }
         mSubjectId = subjectId
-    }
-
-    fun requestMarksAgain() {
-        require(mSubjectId != 0) { "init not called!" }
-        cancelLastTask()
-        handleBackground()
     }
 
     private val preferences = MobiregPreferences.get(application)
@@ -42,7 +37,9 @@ class SubjectsMarkModel(application: Application)
 
         val (marksMap, averagesMap) =
                 AverageCalculator.getMarksAndCalculateAverage(
-                        context, mSubjectId, preferences.markSortingOrder, preferences.groupMarksByParent)
+                        context, mSubjectId,
+                        preferences.markSortingOrder,
+                        preferences.groupMarksByParent)
 
         mAverages.postValue(averagesMap)
         mMarks.postValue(marksMap)

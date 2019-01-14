@@ -1,10 +1,5 @@
 <android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--TODO-->
-    <android.support.v7.preference.Preference
-        android:key="key_change_subjects_name"
-        android:title="Zmień nazwę przedmiotu" />
-
     <android.support.v7.preference.PreferenceCategory android:title="Mobireg">
         <Preference
             android:key="key_log_out"
@@ -22,7 +17,7 @@
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="allowIN"
-            android:summary="Zezwala na optymalizację powiadomień przez dedykowany serwer"
+            android:summary="Zezwala na dodatkowe funkcje i optymalizację powiadomień przez dedykowany serwer"
             android:title="Używaj serwera do synchronizacji powiadomień (zalecane)" />
 
         <SwitchPreferenceCompat
@@ -61,6 +56,24 @@
             android:key="sLM"
             android:summary="Gdy włączone, niedawno otrzymane oceny będą widoczne na ekranie głównym"
             android:title="Pokazuj ostatnie oceny" />
+
+        <android.support.v7.preference.ListPreference
+            android:defaultValue="11"
+            android:entries="@array/showing_numbers_hr"
+            android:entryValues="@array/showing_numbers_values"
+            android:key="sn"
+            android:summary="Możesz zdecydować gdzie numery lekcji mają być widoczne"
+            android:title="Numery lekcji" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_change_subjects_name"
+            android:title="Zmień nazwę przedmiotu"
+            android:summary="Zmieniona nazwa będzie w planie lekcji, powiadomieniach i ocenach" />
+
+        <android.support.v7.preference.Preference
+            android:key="key_change_teacher_name"
+            android:title="Nazwij inaczej nauczyciela"
+            android:summary="Ustaw ksywkę nauczycielowi" />
     </android.support.v7.preference.PreferenceCategory>
 
     <android.support.v7.preference.PreferenceCategory android:title="Powiadomienia">
@@ -87,4 +100,5 @@
             android:title="Otwórz ustawienia powiadomień" />
 
     </android.support.v7.preference.PreferenceCategory>
+
 </android.support.v7.preference.PreferenceScreen>

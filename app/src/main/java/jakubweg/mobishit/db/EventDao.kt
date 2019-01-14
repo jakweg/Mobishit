@@ -17,8 +17,20 @@ interface EventDao {
         const val SUBSTITUTION_NEW_LESSON = 2
     }
 
-    @Query("SELECT date FROM Events GROUP BY date ORDER BY date ASC")
-    fun getDaysWithEventsAsMillis(): List<Long>
+    @Query("""SELECT date FROM Events
+WHERE date >= :since GROUP BY date
+ORDER BY date ASC LIMIT :limit""")
+    fun getDaysWithEventsAsMillisSince(since: Long, limit: Int): LongArray
+
+    @Query("""SELECT date FROM Events
+WHERE date < :toDate GROUP BY date
+ORDER BY date DESC LIMIT :limit""")
+    fun getDaysWithEventsAsMillisTo(toDate: Long, limit: Int): LongArray
+
+    @Query("""SELECT date FROM Events
+WHERE date < :end AND date > :start
+GROUP BY date ORDER BY date ASC""")
+    fun getDaysWithEventAsMillisBetween(start: Long, end: Long): LongArray
 
 
     class EventLongInfo(val subjectName: String?, val description: String?, val status: Int, val teacherName: String?, val number: Int?, val startTime: String, val endTime: String, val substitution: Int, val attendanceName: String?, val color: Int?, val roomName: String?)
@@ -126,4 +138,10 @@ INNER JOIN Teachers ON Teachers.id = EventTypeTeachers.teacherId
 WHERE EventTypes.id = :eventTypeId""")
     fun getTeacherFullNameByEventType(eventTypeId: Int): String?
 
+
+    @Query("SELECT MIN(date) FROM Events LIMIT 1")
+    fun getFirstDayOfSchool(): Long?
+
+    @Query("SELECT MAX(date) FROM Events LIMIT 1")
+    fun getLastDayOfSchool(): Long?
 }

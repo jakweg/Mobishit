@@ -4,6 +4,8 @@ import android.app.DatePickerDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
@@ -12,6 +14,7 @@ import android.support.v4.view.ViewPager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.model.TimetableModel
 import java.lang.ref.WeakReference
@@ -22,7 +25,7 @@ class TimetableFragment : Fragment() {
     companion object {
         fun newInstance() = TimetableFragment()
 
-        private var mRequestedDate = 0L
+        private var mRequestedDate = -1L
         var requestedDate
             get() = mRequestedDate.div(1000L).toInt()
             set(value) {
@@ -30,37 +33,73 @@ class TimetableFragment : Fragment() {
             }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        retainInstance = true
-    }
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
             : View? = inflater.inflate(R.layout.fragment_timetable, container, false)
 
 
-    private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
-        ViewModelProviders.of(this)[TimetableModel::class.java]
-    }
+    //private lateinit var viewModel: TimetableModel
+    private val viewModel get() = ViewModelProviders.of(this)[TimetableModel::class.java]
 
     private var viewPager: ViewPager? = null
     private var tabs: TabLayout? = null
+    private var scrollSmoothly = true
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewPager = view.findViewById(R.id.dayViewPager)!!
         tabs = view.findViewById(R.id.dayTabs)!!
 
+        viewPager?.apply {
+            adapter = DayViewPagerAdapter(this@TimetableFragment, fragmentManager!!)
+            tabs?.apply {
+                setupWithViewPager(viewPager, true)
+            }
+        }
+
         viewModel.days.observe(this, Observer {
             it ?: return@Observer
             viewPager?.apply {
-                adapter = DayViewPagerAdapter(it, fragmentManager!!)
-                setCurrentItem(viewModel.currentSelectedDayIndex, false)
-                tabs?.apply {
-                    setupWithViewPager(viewPager, false)
-                    addOnTabSelectedListener(tabSelectedListener)
+                (adapter as? DayViewPagerAdapter?)?.apply {
+                    setDays(it)
+                    postOnMainLooper {
+                        tabs?.removeOnTabSelectedListener(tabSelectedListener)
+                        shouldReturnEmptyFragments = false
+                        setCurrentItem(viewModel.currentSelectedDayIndex, scrollSmoothly)
+                        scrollSmoothly = false
+                        tabs?.addOnTabSelectedListener(tabSelectedListener)
+                    }
                 }
             }
         })
+
+        if (viewModel.days.value == null) {
+            if (savedInstanceState == null) {
+                if (requestedDate > 0) {
+                    viewModel.requestDate(requestedDate.toLong() * 1000L)
+                    requestedDate = -1
+                } else {
+                    val calendar = Calendar.getInstance()!!
+                    calendar.timeInMillis = System.currentTimeMillis()
+                    val millisInDay = 24 * 60 * 60 * 1000L
+                    viewModel.requestDate(if (calendar[Calendar.HOUR_OF_DAY] >= 17) {
+                        calendar.timeInMillis / millisInDay * millisInDay + millisInDay
+                    } else calendar.timeInMillis / millisInDay * millisInDay)
+                }
+            } else if (savedInstanceState.containsKey("currentDay")) {
+                viewModel.requestDate(savedInstanceState.getLong("currentDay"))
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.days.value?.takeIf { it.isNotEmpty() }?.also {
+            if (viewModel.currentSelectedDayIndex in 0 until it.size)
+                outState.putLong("currentDay", it[viewModel.currentSelectedDayIndex].time)
+        }
+    }
+
+    private inline fun postOnMainLooper(crossinline function: () -> Unit) {
+        Handler(Looper.getMainLooper()).post { function() }
     }
 
     override fun onDestroyView() {
@@ -75,10 +114,16 @@ class TimetableFragment : Fragment() {
 
     private class TabSelectedListener(f: TimetableFragment)
         : TabLayout.OnTabSelectedListener {
+        var ignoreNextSelection = false
         private val fragment = WeakReference<TimetableFragment>(f)
 
         override fun onTabSelected(tab: TabLayout.Tab?) {
-            fragment.get()?.viewModel?.currentSelectedDayIndex = tab?.position ?: return
+            if (ignoreNextSelection) {
+                ignoreNextSelection = false
+                return
+            }
+            val position = tab?.position ?: return
+            fragment.get()?.viewModel?.currentSelectedDayIndex = position
         }
 
         override fun onTabReselected(p0: TabLayout.Tab?) = Unit
@@ -93,30 +138,73 @@ class TimetableFragment : Fragment() {
             return@run Triple(get(Calendar.YEAR), get(Calendar.MONTH), get(Calendar.DAY_OF_MONTH))
         }
 
-        DatePickerDialog(requireContext(), DatePickerDialog.OnDateSetListener { _, newYear, newMonth, newDayOfMonth ->
+        DatePickerDialog(context!!, DatePickerDialog.OnDateSetListener { _, newYear, newMonth, newDayOfMonth ->
             val millis = Calendar.getInstance().run {
                 set(newYear, newMonth, newDayOfMonth - 1)
                 timeInMillis
             }
-            viewPager?.setCurrentItem((viewPager?.adapter as? DayViewPagerAdapter?)?.getIndexOfOrNext(millis)
-                    ?: 0, true)
+            val index = (viewPager?.adapter as? DayViewPagerAdapter?)?.getIndexOfOrNext(millis)
+            if (index != null)
+                viewPager?.setCurrentItem(index, true)
+            else {
+                viewModel.requestDate(millis)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    val index2 = (viewPager?.adapter as? DayViewPagerAdapter?)?.getIndexOfOrNext(millis)
+                    if (index2 != null) {
+                        viewPager?.setCurrentItem(index2, true)
+                    } else {
+                        Toast.makeText(context!!, "Dzień poza moim zasięgiem \uD83D\uDE1E", Toast.LENGTH_SHORT).show()
+                    }
+                }, 300L)
+            }
         }, year, month, dayOfMonth).show()
     }
 
-    private class DayViewPagerAdapter(private val days: Array<TimetableModel.Date>,
+    private class DayViewPagerAdapter(f: TimetableFragment?,
                                       fm: FragmentManager)
-    //: FragmentPagerAdapter(fm) {
         : FragmentStatePagerAdapter(fm) {
-        override fun getCount() = days.size
+        var shouldReturnEmptyFragments = true
+        private val parent = WeakReference(f)
+        private var days = arrayListOf<TimetableModel.Date>()
 
-        fun getIndexOfOrNext(time: Long): Int {
-            val index = days.indexOfFirst { it.time >= time }
-            return if (index == -1) 0 else index
+        fun setDays(days: ArrayList<TimetableModel.Date>) {
+            this.days.clear()
+            this.days.addAll(days)
+            notifyDataSetChanged()
         }
 
-        fun getTime(index: Int): Long = days[index].time
+        override fun getCount() = days.size
 
-        override fun getItem(index: Int): Fragment = OneDayFragment.newInstance(days[index].time)
+        fun getIndexOfOrNext(time: Long): Int? {
+            if (days.isNotEmpty() && time in days.first().time..days.last().time) {
+                val index = days.indexOfFirst { it.time >= time }
+                return if (index == -1) 0 else index
+            }
+            return null
+        }
+
+        fun getTime(index: Int): Long {
+            if (days.isEmpty())
+                return System.currentTimeMillis()
+            return days[index].time
+        }
+
+        override fun getItem(index: Int): Fragment? {
+            if (shouldReturnEmptyFragments)
+                return Fragment()
+            if (index == 0 && days.first().isActionButton) {
+                parent.get()?.apply {
+                    tabSelectedListener.ignoreNextSelection = true
+                    viewModel.requestDate(days.first().time)
+                }
+            } else if (index == days.size - 1 && days.last().isActionButton) {
+                parent.get()?.apply {
+                    tabSelectedListener.ignoreNextSelection = true
+                    viewModel.requestDate(days.last().time)
+                }
+            }
+            return OneDayFragment.newInstance(days[index].time)
+        }
 
         override fun getPageTitle(position: Int): CharSequence = days[position].formatted
     }

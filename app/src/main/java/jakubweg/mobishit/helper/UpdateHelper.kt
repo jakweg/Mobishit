@@ -20,12 +20,11 @@ class UpdateHelper(private val context: Context) {
     var newEvents = mutableListOf<EventData>()
     var deletedMarks = mutableListOf<MarkDao.DeletedMarkData>()
 
-
-    private var onNewMark: (MarkData) -> Unit = { }
-    private var onNewMessage: (MessageData) -> Unit = { }
-    private var onNewAttendance: (AttendanceData) -> Unit = { }
-    private var onNewEvents: (EventData) -> Unit = { }
-    private var onDeleteMark: (MarkData) -> Unit = { }
+    private var onNewMark: SimpleCallback<MarkData> = doNothingCallback()
+    private var onNewMessage: SimpleCallback<MessageData> = doNothingCallback()
+    private var onNewAttendance: SimpleCallback<AttendanceData> = doNothingCallback()
+    private var onNewEvents: SimpleCallback<EventData> = doNothingCallback()
+    private var onDeleteMark: SimpleCallback<MarkData> = doNothingCallback()
 
     val isFirstTime get() = mIsFirstTime
 
@@ -61,11 +60,11 @@ class UpdateHelper(private val context: Context) {
         val endDate = "2019-06-30"
 
         //ignore everything
-        onNewMark = { }
-        onNewMessage = { }
-        onNewAttendance = { }
-        onNewEvents = { }
-        onDeleteMark = { }
+        onNewMark = doNothingCallback()
+        onNewMessage = doNothingCallback()
+        onNewAttendance = doNothingCallback()
+        onNewEvents = doNothingCallback()
+        onDeleteMark = doNothingCallback()
 
 
         mIsFirstTime = true
@@ -108,16 +107,16 @@ class UpdateHelper(private val context: Context) {
         newEvents.clear()
         deletedMarks.clear()
 
-        onNewMessage = { newMessages.add(it) }
-        onNewMark = { newMarks.add(it) }
-        onNewAttendance = { newAttendances.add(it) }
-        onNewEvents = { data ->
+        onNewMessage = makeCallback { newMessages.add(it) }
+        onNewMark = makeCallback { newMarks.add(it) }
+        onNewAttendance = makeCallback { newAttendances.add(it) }
+        onNewEvents = makeCallback { data ->
             if (data.status == EventDao.STATUS_CANCELED ||
                     (data.status == EventDao.STATUS_SCHEDULED &&
                             data.substitution.let { it == EventDao.SUBSTITUTION_NEW_LESSON || it == EventDao.SUBSTITUTION_OLD_LESSON }))
                 newEvents.add(data)
         }
-        onDeleteMark = {
+        onDeleteMark = makeCallback {
             deletedMarks.add(database.markDao.getDeletedMarkInfo(it.id))
         }
 
@@ -242,7 +241,7 @@ class UpdateHelper(private val context: Context) {
             creator.invoke()
         } catch (deleted: DataCreator.ObjectDeletedNotifier) {
             when (deleted.item) {
-                is MarkData -> onDeleteMark.invoke(deleted.item)
+                is MarkData -> onDeleteMark.call(deleted.item)
             }
             dao.deleteAny(deleted.item)
             return
@@ -253,16 +252,16 @@ class UpdateHelper(private val context: Context) {
 
         when (element) {
             is MarkData -> {
-                dao.insert(element); onNewMark.invoke(element)
+                dao.insert(element); onNewMark.call(element)
             }
             is MessageData -> {
-                dao.insert(element); onNewMessage.invoke(element)
+                dao.insert(element); onNewMessage.call(element)
             }
             is AttendanceData -> {
-                dao.insert(element); onNewAttendance.invoke(element)
+                dao.insert(element); onNewAttendance.call(element)
             }
             is EventData -> {
-                dao.insert(element); onNewEvents.invoke(element)
+                dao.insert(element); onNewEvents.call(element)
             }
             else -> dao.insertAny(element as Any)
         }
@@ -400,3 +399,22 @@ class UpdateHelper(private val context: Context) {
     class InvalidPasswordException : IllegalStateException("Can't log in, probably password has changed")
 }
 
+interface SimpleCallback<T> {
+    fun call(obj: T)
+}
+
+interface SimpleCallback2<T1, T2> {
+    fun call(obj1: T1, obj2: T2)
+}
+
+inline fun <T> makeCallback(crossinline function: (T) -> Unit) = object : SimpleCallback<T> {
+    override fun call(obj: T) = function(obj)
+}
+
+inline fun <T1, T2> makeCallback2(crossinline function: (T1, T2) -> Unit) = object : SimpleCallback2<T1, T2> {
+    override fun call(obj1: T1, obj2: T2) = function(obj1, obj2)
+}
+
+fun <T> doNothingCallback() = object : SimpleCallback<T> {
+    override fun call(obj: T) {}
+}

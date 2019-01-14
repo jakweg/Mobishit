@@ -22,7 +22,7 @@ object SettingsMigrationHelper {
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 
-            if (version == 10) { //TODO delete in future
+            if (version <= 10) { //TODO delete in future
 
                 //this handles crashes
                 prefs.edit().putBoolean("hsVm", false).commit()
@@ -32,7 +32,9 @@ object SettingsMigrationHelper {
         }
     }
 
-    fun deleteDatabaseAndRequestNew(pref: SharedPreferences, context: Context) {
+    fun deleteDatabaseAndRequestNew(pref: SharedPreferences,
+                                    context: Context) {
+
         AppDatabase.deleteDatabase(context)
         pref.edit()
                 .remove("lastEndDate")

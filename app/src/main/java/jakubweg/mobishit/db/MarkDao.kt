@@ -234,8 +234,4 @@ ORDER BY addTime DESC""")
 
     @Query("SELECT * FROM SavedVirtualMarks")
     fun getVirtualMarksEntities(): List<VirtualMarkEntity>
-
-    // TODO
-    @Query("UPDATE Subjects SET name = :value WHERE id = :id")
-    fun setSubjectsName(id: Int, value: String)
 }

@@ -1,7 +1,7 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
-import android.arch.persistence.db.SupportSQLiteQueryBuilder
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,8 +11,10 @@ import android.provider.Settings
 import android.support.v7.app.AlertDialog
 import android.support.v7.content.res.AppCompatResources
 import android.support.v7.preference.EditTextPreference
+import android.support.v7.preference.ListPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.SwitchPreferenceCompat
+import android.text.SpannableStringBuilder
 import android.view.inputmethod.EditorInfo
 import android.widget.AbsListView
 import android.widget.EditText
@@ -20,10 +22,11 @@ import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
-import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
 import jakubweg.mobishit.service.UpdateWorker
+import java.lang.ref.WeakReference
 
 class GeneralPreferenceFragment : PreferenceFragmentCompat() {
     companion object {
@@ -58,34 +61,6 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
 
         val prefs = MobiregPreferences.get(context!!)
 
-        //TODO
-        findPreference("key_change_subjects_name")?.setOnPreferenceClickListener {
-            val cursor = AppDatabase.getAppDatabase(context!!).query("SELECT id AS _id, name FROM Subjects ORDER BY name", emptyArray())
-            AlertDialog.Builder(context!!)
-                    .setTitle("Wybierz przedmiot")
-                    .setCursor(cursor, { _, which ->
-                        val textView = EditText(context)
-                        AlertDialog.Builder(context!!)
-                                .setView(textView)
-                                .setTitle("Zmień nazwę przedmiotu na")
-                                .setNegativeButton("Anuluj", null)
-                                .setPositiveButton("Zapisz") { _, _ ->
-                                    val value = textView.text?.toString() ?: return@setPositiveButton
-                                    cursor.moveToPosition(which)
-                                    val _id = cursor.getInt(cursor.getColumnIndex("_id"))
-                                    AppDatabase.getAppDatabase(context!!).markDao.setSubjectsName(_id, value)
-                                    MobiregPreferences.get(context!!).apply {
-                                        hasReadyAverageCache = false
-                                        hasReadyLastMarksCache = false
-                                    }
-                                    Toast.makeText(context!!, "Zmieniono!", Toast.LENGTH_SHORT).show()
-                                }
-                                .show()
-                    }, "name")
-                    .show()
-            true
-        }
-
         findPreference("key_log_out")?.also { pref ->
 
             pref.setOnPreferenceClickListener { _ ->
@@ -106,7 +81,7 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
             if (value !is Boolean)
                 return@setOnPreferenceChangeListener false
 
-            if (!value) {
+            return@setOnPreferenceChangeListener if (!value) {
                 val context = preference.context!!
 
                 val ending = when (prefs.sex) {
@@ -123,16 +98,21 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
                         .setTitle("Czy na pewno?")
                         .setMessage("Gdy wyłączysz tę funkcję, zostaniesz powiadomion$ending tylko raz na kilka godzin.\n" +
                                 "Czy jesteś pewn$ending takiej decyzji?")
-                        .setPositiveButton("Nie, chcę powiadomienia!") { d, _ ->
-                            d.dismiss()
+                        .setPositiveButton("Nie, chcę powiadomienia!") { _, _ ->
                             (preference as SwitchPreferenceCompat?)?.isChecked = true
                             prefs.allowedInstantNotifications = true
                         }
-                        .setNegativeButton("Tak, jestem pewn$ending", null)
+                        .setNegativeButton("Tak, jestem pewn$ending") { _, _ ->
+                            (preference as SwitchPreferenceCompat?)?.isChecked = false
+                            prefs.allowedInstantNotifications = true
+                            FcmServerNotifierWorker.requestPeriodicServerNotifications()
+                        }
                         .show()
+                false
+            } else {
+                FcmServerNotifierWorker.requestPeriodicServerNotifications()
+                true
             }
-            FcmServerNotifierWorker.requestPeriodicServerNotifications()
-            true
         }
 
 
@@ -158,6 +138,10 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
                         Toast.makeText(preference.context!!, "Zbyt duża lub mała liczba", Toast.LENGTH_SHORT).show()
                         return@setOnPreferenceChangeListener false
                     }
+
+                    // yeah, on main thread :/
+                    CountdownService.stop(context ?: return@setOnPreferenceChangeListener true)
+                    CountdownService.startIfNeeded(WeakReference(context))
 
                     true
                 }
@@ -204,6 +188,97 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
 
             true
         }
+
+        (findPreference("sn") as? ListPreference)?.setOnPreferenceClickListener {
+            Handler(Looper.getMainLooper()).postDelayed({
+                TimetableWidgetProvider.requestInstantUpdate(it?.context ?: return@postDelayed)
+            }, 1000L)
+            true
+        }
+
+
+        findPreference("key_change_subjects_name")?.setOnPreferenceClickListener {
+            showRenameDialog(it.context ?: return@setOnPreferenceClickListener false,
+                    "name", "Subjects", "Wybierz przedmiot", "Zmień nazwę przedmotu na", "Nazwa przedmiotu",
+                    makeCallback2 { id, name ->
+                        AppDatabase.getAppDatabase(it.context!!)
+                                .compileStatement("UPDATE Subjects SET name = ? WHERE id = ?").apply {
+                                    bindString(1, name.trim())
+                                    bindLong(2, id.toLong())
+                                }.executeUpdateDelete()
+                    })
+            false
+        }
+
+        findPreference("key_change_teacher_name")?.setOnPreferenceClickListener {
+            val context = it.context ?: return@setOnPreferenceClickListener false
+            showRenameDialog(context, "name || ' ' || surname", "Teachers",
+                    "Wybierz nauczyciela", "Daj mu ksywkę", "ksywka",
+                    makeCallback2 { id, name ->
+                        AppDatabase.getAppDatabase(it.context!!)
+                                .compileStatement("UPDATE Teachers SET name = ?, surname = ? WHERE id = ?").apply {
+                                    val spacePos = name.indexOf(' ')
+                                    if (spacePos >= 0) {
+                                        bindString(1, name.substring(0, spacePos).trim())
+                                        bindString(2, name.substring(spacePos).trim())
+                                    } else {
+                                        bindString(1, name)
+                                        bindString(2, "")
+                                    }
+                                    bindLong(3, id.toLong())
+                                }.executeUpdateDelete()
+                    })
+
+            false
+        }
+    }
+
+    private fun showRenameDialog(context: Context,
+                                 columnName: String,
+                                 tableName: String,
+                                 chooseObjectTitle: String,
+                                 renameObjectTitle: String,
+                                 hint: String,
+                                 successCallback: SimpleCallback2<Int, String>) {
+        val cursor = AppDatabase.getAppDatabase(context)
+                .query("SELECT id AS _id, $columnName as _name FROM $tableName WHERE length(_name) > 1 ORDER BY 2", emptyArray())!!
+        AlertDialog.Builder(context)
+                .setTitle(chooseObjectTitle)
+                .setCursor(cursor, { _, which ->
+                    cursor.moveToPosition(which)
+                    val textView = EditText(context)
+                    textView.hint = hint
+                    textView.text = SpannableStringBuilder(cursor.getString(cursor.getColumnIndex("_name")))
+
+                    AlertDialog.Builder(context)
+                            .setView(textView)
+                            .setTitle(renameObjectTitle)
+                            .setNegativeButton("Anuluj", null)
+                            .setPositiveButton("Zapisz") { _, _ ->
+                                val value = textView.text?.toString()?.takeUnless { it.isBlank() }
+                                        ?: return@setPositiveButton
+                                val subjectId = cursor.getInt(cursor.getColumnIndex("_id"))
+
+                                successCallback.call(subjectId, value)
+
+                                restartServices(context)
+                                Toast.makeText(context, "Zapisano!", Toast.LENGTH_SHORT).show()
+                            }
+                            .show()
+                }, "_name")
+                .show()
+    }
+
+    private fun restartServices(context: Context) {
+        CountdownService.stop(context)
+        Handler(Looper.getMainLooper()).postDelayed({
+            CountdownService.start(context)
+            TimetableWidgetProvider.requestInstantUpdate(context)
+            MobiregPreferences.get(context).apply {
+                hasReadyAverageCache = false
+                hasReadyLastMarksCache = false
+            }
+        }, 250L)
     }
 
     private val openNotificationSettingsIntent

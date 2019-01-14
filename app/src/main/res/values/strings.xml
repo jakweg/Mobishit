@@ -5,6 +5,7 @@
     <string name="navigation_drawer_close">Zamknij nawigację</string>
     <string name="title_activity_settings">Ustawienia</string>
     <string name="timetable">Plan lekcji</string>
+    <string name="calculateAverage">Oblicz średnią</string>
     <string name="countdownServiceLabel">Odliczanie czasu do końca lekcji</string>
     <string name="welcomeText">
         Witaj w Mobishit
@@ -53,11 +54,21 @@
     <string-array name="default_fragment">
         <item>Oceny</item>
         <item>Plan lekcji</item>
-        <item>Wiadomości</item>
     </string-array>
     <string-array name="default_fragment_values">
         <item>mk</item>
         <item>tt</item>
-        <item>mm</item>
+    </string-array>
+    <string-array name="showing_numbers_hr">
+        <item>W aplikacji i na widżecie</item>
+        <item>Tylko w aplikacji</item>
+        <item>Tylko na widżecie</item>
+        <item>Nigdzie</item>
+    </string-array>
+    <string-array name="showing_numbers_values">
+        <item>11</item>
+        <item>10</item>
+        <item>01</item>
+        <item>00</item>
     </string-array>
 </resources>

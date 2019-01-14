@@ -1,66 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground"
-    android:orientation="horizontal">
+    tools:maxHeight="60dp">
 
     <View
-        android:paddingBottom="2dp"
-        android:paddingTop="2dp"
+        android:alpha="1"
         android:id="@+id/eventColorView"
-        android:layout_width="10dp"
-        android:layout_height="match_parent"
+        android:layout_width="6dp"
+        android:layout_height="0px"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         android:background="#006600" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:visibility="visible"
+        android:id="@+id/lessonNumber"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:gravity="center"
+        android:lines="2"
+        android:maxLength="2"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/eventColorView"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="11" />
+
 
     <TextView
         android:id="@+id/hoursText"
+        style="@style/Base.TextAppearance.AppCompat.Small"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_margin="4dp"
         android:gravity="center_vertical"
         android:lines="2"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/lessonNumber"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="11:00\n11:45" />
 
-    <View
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="3dp"
-        android:layout_marginTop="3dp"
-        android:background="#AAA" />
-
-    <LinearLayout
-        android:paddingTop="2dp"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/mainText"
+        style="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:layout_width="0px"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:gravity="center_horizontal"
+        android:maxLines="1"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toRightOf="@id/hoursText"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Matematyka" />
 
-        <TextView
-            android:id="@+id/mainText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:maxLines="1"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            tools:text="Matematyka" />
+    <TextView
+        android:id="@+id/secondaryText"
+        style="@style/Base.TextAppearance.AppCompat.Small"
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:maxLines="2"
+        android:paddingBottom="2dp"
+        app:layout_constraintLeft_toLeftOf="@id/mainText"
+        app:layout_constraintRight_toRightOf="@id/mainText"
+        app:layout_constraintTop_toBottomOf="@id/mainText"
+        tools:text="Jan Kowalski \u2022 101\nZastępstwo" />
 
-        <TextView
-            android:paddingBottom="2dp"
-            android:id="@+id/secondaryText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:paddingEnd="10dp"
-            android:paddingStart="10dp"
-            android:maxLines="2"
-            android:textSize="14sp"
-            tools:text="Jan Kowalski \u2022 101\nZastępstwo" />
-
-    </LinearLayout>
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

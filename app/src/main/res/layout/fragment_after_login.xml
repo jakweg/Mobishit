@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
                 android:gravity="center_horizontal"
-                android:text="Od teraz otrzymasz powiadomienia o nowych ocenach, wiadomościach, zastępstwach itd."
+                android:text="Od teraz otrzymasz powiadomienia o nowych ocenach, wiadomościach, zastępstwach itp."
                 android:textSize="16sp" />
 
 

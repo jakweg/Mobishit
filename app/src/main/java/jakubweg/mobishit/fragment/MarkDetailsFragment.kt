@@ -37,10 +37,6 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
             : View? = inflater.inflate(R.layout.mark_details_fragment, container, false)
 
 
-    private inline val Float.prettyMe: String
-        get() = String.format("%.1f", this)
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val model = ViewModelProviders.of(this).get(MarkDetailsViewModel::class.java)
 
@@ -63,14 +59,14 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
                         ?: "Kulumna bez nazwy")
 
                 if (mark.markPointsValue >= 0f && mark.markValueMax >= 0f && mark.countPointsWithoutBase != null) {
-                    setText(R.id.markValue, mark.markPointsValue.prettyMe)
+                    setText(R.id.markValue, "%.1f".format(mark.markPointsValue))
 
                     setText(R.id.markMarkText, "Zdobyte punkty")
-                    setText(R.id.markMarkValue, "${mark.markPointsValue.prettyMe} pkt.")
+                    setText(R.id.markMarkValue, "%.1f pkt.".format(mark.markPointsValue))
 
 
                     setText(R.id.markWeightText, "Maksymalna suma punktów")
-                    setText(R.id.markWeightValue, "${mark.markValueMax.prettyMe} pkt.")
+                    setText(R.id.markWeightValue, "%.1f pkt.".format(mark.markValueMax))
 
 
                     setText(R.id.markCountToAverageText, "Wliczana do bazy")
@@ -85,8 +81,13 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
                             ?: "Bez nazwy")
 
 
-                    setText(R.id.markWeightText, "Waga")
-                    setText(R.id.markWeightValue, "${mark.defaultWeight}")
+                    if (mark.noCountToAverage) {
+                        findViewById<View?>(R.id.markWeightText)!!.visibility = View.GONE
+                        findViewById<View?>(R.id.markWeightValue)!!.visibility = View.GONE
+                    } else {
+                        setText(R.id.markWeightText, "Waga")
+                        setText(R.id.markWeightValue, "%.1f".format(mark.defaultWeight))
+                    }
 
 
                     setText(R.id.markCountToAverageText, "Wliczana do średniej")

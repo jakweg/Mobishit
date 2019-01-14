@@ -160,7 +160,7 @@ class AverageCalculator private constructor() {
             return outputList
         }
 
-        private fun sortMarks(marks: List<MarkDao.MarkShortInfo>, order: Int, groupByParents: Boolean)
+        fun sortMarks(marks: List<MarkDao.MarkShortInfo>, order: Int, groupByParents: Boolean)
                 : List<MarkDao.MarkShortInfo> {
             return if (groupByParents)
                 groupMarksByParents(marks, order)

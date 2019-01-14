@@ -147,7 +147,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
         toggle.syncState()
 
         activity.menuInflater.inflate(R.menu.activity_main_toolbar, toolbar.menu)
-        if (MobiregPreferences.get(activity).getAppUpdateInfo() != null)
+        if (MobiregPreferences.get(activity).getAppUpdateLink() != null)
             navigationView.menu?.findItem(R.id.nav_app_update)?.isVisible = true
         toolbar.setOnMenuItemClickListener(::onMenuItemClicked)
     }
@@ -160,6 +160,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
         var checkItemId: Int? = null
         var detailsFragment: Fragment? = null
         var requestNewMainLayout = true
+        var forceRecheck = false
         if (savedInstanceState != null) {
             checkItemId = savedInstanceState.getInt("currentSelectedItemId", 0).takeUnless { it == 0 }
             requestNewMainLayout = false
@@ -173,8 +174,10 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
                         checkItemId = R.id.nav_marks
                     }
                     MainActivity.ACTION_SHOW_TIMETABLE -> {
-                        if (idFromIntent != 0)
+                        if (idFromIntent > 0) {
                             TimetableFragment.requestedDate = idFromIntent
+                            forceRecheck = true
+                        } else TimetableFragment.requestedDate = -1
                         checkItemId = R.id.nav_timetable
                     }
                     MainActivity.ACTION_SHOW_MESSAGE -> {
@@ -201,7 +204,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
         tellActivityToRequestNewFragment = requestNewMainLayout
         checkItemId?.also {
             val item = navigationView.menu.findItem(it)
-            if (!item.isChecked) {
+            if (!item.isChecked || forceRecheck) {
                 navigationView.setCheckedItem(item)
                 notifyActivityInstant = true
                 listener.onNavigationItemSelected(item)
@@ -279,21 +282,26 @@ class MarkOptionsListener(private val fragment: Fragment,
     : BaseLifecycleAwareObject(fragment.lifecycle) {
 
     companion object {
-        private const val ACTION_TERM_CHANGED = "termchanged"
-        private const val ACTION_OTHER_OPTIONS_CHANGED = "otherchanged"
+        private const val ACTION_MARK_OPTIONS_CHANGED = "markOptionsChanged"
+        private const val EXTRA_CHANGED_TERM = "term"
+        private const val EXTRA_CHANGED_ORDER = "order"
+        private const val EXTRA_CHANGED_GROUPING = "grouping"
 
-        fun notifyTermChanged(context: Context?) {
+        fun notifyOptionsChanged(context: Context?,
+                                 changedTerm: Boolean,
+                                 changedOrder: Boolean,
+                                 changedGrouping: Boolean) {
+            if (!changedTerm && !changedOrder && !changedGrouping)
+                return
             LocalBroadcastManager
                     .getInstance(context ?: return)
                     .sendBroadcast(Intent()
-                            .apply { action = ACTION_TERM_CHANGED })
-        }
-
-        fun notifyOtherOptionsChanged(context: Context?) {
-            LocalBroadcastManager
-                    .getInstance(context ?: return)
-                    .sendBroadcast(Intent()
-                            .apply { action = ACTION_OTHER_OPTIONS_CHANGED })
+                            .apply {
+                                action = ACTION_MARK_OPTIONS_CHANGED
+                                putExtra(EXTRA_CHANGED_TERM, changedTerm)
+                                putExtra(EXTRA_CHANGED_ORDER, changedOrder)
+                                putExtra(EXTRA_CHANGED_GROUPING, changedGrouping)
+                            })
         }
     }
 
@@ -305,19 +313,16 @@ class MarkOptionsListener(private val fragment: Fragment,
         fragment.lifecycle.addObserver(this)
     }
 
-    private var actionToHandle: String? = null
+    private var intentToHandle: Intent? = null
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            actionToHandle = intent?.action ?: return
+            intentToHandle = intent ?: return
             requestTaskOnStart()
         }
     }
 
     private val intentFilter
-        get() = IntentFilter().apply {
-            addAction(ACTION_TERM_CHANGED)
-            addAction(ACTION_OTHER_OPTIONS_CHANGED)
-        }
+        get() = IntentFilter(ACTION_MARK_OPTIONS_CHANGED)
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun onCreate() {
@@ -334,9 +339,14 @@ class MarkOptionsListener(private val fragment: Fragment,
     }
 
     override fun doOnVisible() {
-        when (actionToHandle ?: return) {
-            ACTION_OTHER_OPTIONS_CHANGED -> listener.onOtherOptionsChanged()
-            ACTION_TERM_CHANGED -> listener.onTermChanged()
+        intentToHandle?.apply {
+            when (action ?: return) {
+                ACTION_MARK_OPTIONS_CHANGED -> listener.onOptionsChanged(
+                    getBooleanExtra(EXTRA_CHANGED_TERM, false),
+                    getBooleanExtra(EXTRA_CHANGED_ORDER, false),
+                    getBooleanExtra(EXTRA_CHANGED_GROUPING, false)
+                )
+            }
         }
     }
 }
@@ -442,7 +452,7 @@ class MainActivitySyncObserver(
 }
 
 
-fun Menu.forEach(func: (MenuItem) -> Unit) {
+inline fun Menu.forEach(func: (MenuItem) -> Unit) {
     for (i in 0 until size())
         func.invoke(getItem(i))
 }

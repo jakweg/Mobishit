@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.AsyncTask
+import android.os.Parcel
+import android.os.Parcelable
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
@@ -77,10 +79,6 @@ class MobiregPreferences private constructor(
         prefs.registerOnSharedPreferenceChangeListener(listener)
     }
 
-    fun unregisterChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        prefs.unregisterOnSharedPreferenceChangeListener(listener)
-    }
-
     fun setUserData(studentId: Int, name: String, surname: String, phone: String, sex: String, loginName: String, host: String, hasHostInLogin: Boolean, password: String) {
         prefs.edit().apply {
             putBoolean("isSignedIn", true)
@@ -129,15 +127,11 @@ class MobiregPreferences private constructor(
                 .apply()
     }
 
-    class AppUpdateInfo(val newCode: Int, val newName: String, val urlDoDownload: String)
-
-    fun getAppUpdateInfo(): AppUpdateInfo? {
+    fun getAppUpdateLink(): String? {
         if (prefs.getInt("aUnewCode", BuildConfig.VERSION_CODE) <= BuildConfig.VERSION_CODE)
             return null
 
-        return AppUpdateInfo(prefs.getInt("aUnewCode", 0),
-                getString("aUnewName") ?: "",
-                getString("aUurl") ?: "https://github.com/JakubekWeg/Mobishit")
+        return getString("aUurl") ?: "https://github.com/JakubekWeg/Mobishit"
     }
 
     fun markLastUsedVersionCurrent() {
@@ -239,9 +233,7 @@ class MobiregPreferences private constructor(
         get() = prefs.getInt("lastTerm", 0)
         set(value) = prefs.edit().putInt("lastTerm", value).apply()
 
-
     val isDeveloper get() = BuildConfig.DEBUG || prefs.getBoolean("is_dev", false)
-
 
     var seenWelcomeActivity
         get() = prefs.getBoolean("seenWA", false)
@@ -330,5 +322,9 @@ class MobiregPreferences private constructor(
     var lastMarkScaleGroupId
         get() = prefs.getInt("lmsg", -1)
         set(value) = prefs.edit().putInt("lmsg", value).apply()
+
+    val showLessonNumberOnTimetable get() = showingLessonsNumberPolicy[0] == '1'
+    val showLessonNumberOnWidget get() = showingLessonsNumberPolicy[1] == '1'
+    private val showingLessonsNumberPolicy get() = getString("sn") ?: "11"
 
 }

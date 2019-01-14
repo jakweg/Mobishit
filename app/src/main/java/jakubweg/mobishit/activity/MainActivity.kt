@@ -1,6 +1,7 @@
 package jakubweg.mobishit.activity
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -8,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.app.Fragment
+import android.support.v4.app.NotificationCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.widget.Toolbar
 import android.view.View
@@ -16,6 +18,7 @@ import jakubweg.mobishit.R
 import jakubweg.mobishit.fragment.*
 import jakubweg.mobishit.helper.MobiregAdjectiveManager
 import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.NotificationHelper
 import jakubweg.mobishit.helper.SnackbarController
 import jakubweg.mobishit.service.UpdateWorker
 import java.util.*
@@ -114,8 +117,7 @@ class MainActivity : DoublePanelActivity() {
 
             R.id.nav_app_update ->
                 startActivity(Intent(Intent.ACTION_VIEW,
-                        Uri.parse(preferences.getAppUpdateInfo()
-                                ?.urlDoDownload ?: return)))
+                        Uri.parse(preferences.getAppUpdateLink() ?: return)))
             else -> {
                 currentSelectedItemId = itemId
                 if (requestNewLayout)

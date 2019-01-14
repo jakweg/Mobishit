@@ -13,10 +13,12 @@ abstract class AttendanceBaseSheetFragment
     override fun getTheme() = ThemeHelper.getBottomSheetTheme(context!!)
 
     fun showSelfInsteadOfMe(me: AttendanceBaseSheetFragment?) = apply {
-        show(me?.activity?.supportFragmentManager, null)
         showingSheetOnDetach = WeakReference(me)
-        me?.savedInstanceState = true
-        me?.dismissAllowingStateLoss()
+        if (me != null) {
+            show(me.activity?.supportFragmentManager, null)
+            me.savedInstanceState = true
+            me.dismissAllowingStateLoss()
+        }
     }
 
     fun showSelf(activity: Activity?) = apply {

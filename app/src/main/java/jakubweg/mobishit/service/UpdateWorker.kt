@@ -29,6 +29,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     : Worker(context, workerParameters) {
 
     companion object {
+        private val mutex = Any()
         const val UNIQUE_WORK_NAME = "updateMobireg"
         const val ACTION_REFRESH_STATE_CHANGED = "mobiregrefreshchanged"
         const val STATUS_STOPPED = 0
@@ -76,81 +77,83 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     }
 
     override fun doWork(): Result {
-        val notificationHelper = NotificationHelper(applicationContext)
-        val prefs = MobiregPreferences.get(applicationContext)
-        return try {
-            if (!prefs.isSignedIn) {
-                WorkManager.getInstance()
-                        .cancelUniqueWork(UNIQUE_WORK_NAME)
-                return Result.success()
-            }
-
-            publishStatus(STATUS_RUNNING)
-
-            if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis()) {
-                publishStatus(STATUS_STOPPED)
-                return Result.success()
-            }
-
-            val updateHelper = UpdateHelper(applicationContext)
-
-            updateHelper.doUpdate()
-
-
-            if (updateHelper.isFirstTime
-                    || updateHelper.newMarks.isNotEmpty()
-                    || updateHelper.deletedMarks.isNotEmpty()) {
-                prefs.hasReadyLastMarksCache = false
-                prefs.hasReadyAverageCache = false
-            }
-
-
-            val db = AppDatabase.getAppDatabase(applicationContext)
-
-            if (!MainActivity.isMainActivityInForeground
-                    || prefs.notifyWhenMainActivityIsInForeground) {
-
-                notificationHelper.createNotificationChannels()
-                if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
-                    makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
-                    makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
-                    makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
-                    makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
-                    makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
+        synchronized(mutex) {
+            val notificationHelper = NotificationHelper(applicationContext)
+            val prefs = MobiregPreferences.get(applicationContext)
+            return try {
+                if (!prefs.isSignedIn) {
+                    WorkManager.getInstance()
+                            .cancelUniqueWork(UNIQUE_WORK_NAME)
+                    return Result.success()
                 }
+
+                publishStatus(STATUS_RUNNING)
+
+                if (prefs.lastCheckTime + 15 * 1000L > System.currentTimeMillis()) {
+                    publishStatus(STATUS_STOPPED)
+                    return Result.success()
+                }
+
+                val updateHelper = UpdateHelper(applicationContext)
+
+                updateHelper.doUpdate()
+
+
+                if (updateHelper.isFirstTime
+                        || updateHelper.newMarks.isNotEmpty()
+                        || updateHelper.deletedMarks.isNotEmpty()) {
+                    prefs.hasReadyLastMarksCache = false
+                    prefs.hasReadyAverageCache = false
+                }
+
+
+                val db = AppDatabase.getAppDatabase(applicationContext)
+
+                if (!MainActivity.isMainActivityInForeground
+                        || prefs.notifyWhenMainActivityIsInForeground) {
+
+                    notificationHelper.createNotificationChannels()
+                    if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                        makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
+                        makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
+                        makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
+                        makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
+                        makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
+                    }
+                }
+
+                if (updateHelper.isAnythingNew)
+                    publishStatus(STATUS_FINISHED_SOMETHING_NEW)
+                else
+                    publishStatus(STATUS_FINISHED_NOTHING_NEW)
+
+                TimetableWidgetProvider.requestInstantUpdate(applicationContext)
+
+                Result.success()
+            } catch (uhe: UnknownHostException) {
+                Log.e("UpdateWorker", "Got UnknownHostException, should retry in 1/2 minute")
+                publishStatus(STATUS_ERROR)
+                Result.retry()
+            } catch (ste: SocketTimeoutException) {
+                Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
+                publishStatus(STATUS_ERROR)
+                Result.retry()
+            } catch (ipe: UpdateHelper.InvalidPasswordException) {
+                postWrongPasswordNotification(notificationHelper, prefs)
+
+                publishStatus(STATUS_ERROR)
+                Result.failure()
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                notificationHelper.postNotification(
+                        makeErrorNotification(getKotlinExceptionMessage(e)))
+
+                publishStatus(STATUS_ERROR)
+                Result.failure()
+            } finally {
+                System.gc()
             }
-
-            if (updateHelper.isAnythingNew)
-                publishStatus(STATUS_FINISHED_SOMETHING_NEW)
-            else
-                publishStatus(STATUS_FINISHED_NOTHING_NEW)
-
-            TimetableWidgetProvider.requestInstantUpdate(applicationContext)
-
-            Result.success()
-        } catch (uhe: UnknownHostException) {
-            Log.e("UpdateWorker", "Got UnknownHostException, should retry in 1/2 minute")
-            publishStatus(STATUS_ERROR)
-            Result.retry()
-        } catch (ste: SocketTimeoutException) {
-            Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
-            publishStatus(STATUS_ERROR)
-            Result.retry()
-        } catch (ipe: UpdateHelper.InvalidPasswordException) {
-            postWrongPasswordNotification(notificationHelper, prefs)
-
-            publishStatus(STATUS_ERROR)
-            Result.failure()
-        } catch (e: Exception) {
-            e.printStackTrace()
-
-            notificationHelper.postNotification(
-                    makeErrorNotification(getKotlinExceptionMessage(e)))
-
-            publishStatus(STATUS_ERROR)
-            Result.failure()
-        } finally {
-            System.gc()
         }
     }
 
@@ -306,17 +309,15 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_SUBSTITUTIONS))
             return
 
-        val contentIntent = PendingIntent.getActivity(applicationContext, 1,
-                Intent(applicationContext, MainActivity::class.java).apply {
-                    action = MainActivity.ACTION_SHOW_TIMETABLE
-                }, 0)
+        val contentIntent = Intent(applicationContext, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_SHOW_TIMETABLE
+        }
 
         val notification = NotificationCompat.Builder(
                 applicationContext, NotificationHelper.CHANNEL_SUBSTITUTIONS)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
                 .setSmallIcon(R.drawable.ic_event_png)
-                .setAutoCancel(true)
-                .setContentIntent(contentIntent)!!
+                .setAutoCancel(true)!!
                 .setDefaultsIf(prefs.notifyWithSound)
 
 
@@ -380,6 +381,9 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
                         notification.setContentTitle(title)
                         notification.setContentText(shortContent)
+                        notification.setContentIntent(PendingIntent.getActivity(applicationContext,
+                                ids[index], contentIntent.apply { putExtra("id", date.div(1000L).toInt()) },
+                                PendingIntent.FLAG_UPDATE_CURRENT))
                         notification.setStyle(NotificationCompat.BigTextStyle()
                                 .setBigContentTitle(title)
                                 .bigText(bigContent))

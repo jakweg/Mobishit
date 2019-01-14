@@ -19,13 +19,17 @@ import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.fragment.SubjectsMarkFragment.MarkAdapter.Companion.TYPE_SINGLE
+import jakubweg.mobishit.helper.AverageCalculator
 import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.helper.textView
 import jakubweg.mobishit.model.SubjectsMarkModel
+import java.lang.ref.WeakReference
 
 
-class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedListener {
+class SubjectsMarkFragment : Fragment(),
+        MarksViewOptionsFragment.OptionsChangedListener {
     companion object {
 
         fun newInstance(subjectId: Int, subjectName: String, viewTransitionName: String?) = SubjectsMarkFragment().apply {
@@ -56,45 +60,63 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     private val viewModel by lazy { ViewModelProviders.of(this)[SubjectsMarkModel::class.java] }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        arguments!!.apply {
+            val subjectId = getInt("subjectId")
+            val subjectName = getString("subjectName")!!
+            val transitionName = getString("transitionName")
 
-        val (subjectId, subjectName, transitionName) =
-                arguments!!.run {
-                    Triple(getInt("subjectId"), getString("subjectName")!!, getString("transitionName")
-                            ?: null)
-                }
 
-        viewModel.init(subjectId)
+            viewModel.init(subjectId)
 
-        val subjectNameText = view.textView(R.id.subject_name)!!
-        subjectNameText.text = subjectName
-        ViewCompat.setTransitionName(subjectNameText, transitionName)
+            val subjectNameText = view.textView(R.id.subject_name)!!
+            subjectNameText.text = subjectName
+            ViewCompat.setTransitionName(subjectNameText, transitionName)
+        }
 
         viewModel.marks.observe(this, Observer {
             it ?: return@Observer
-            onTermChanged()
+            onOptionsChanged(true,
+                    false,
+                    false)
         })
     }
 
-    override fun onTermChanged() {
-        MobiregPreferences.get(context ?: return).apply {
-            val termId = lastSelectedTerm
-            setUpMarksAdapter(viewModel.marks.value?.get(termId) ?: return)
-            setUpAveragesInfo(viewModel.averages.value?.get(termId) ?: return)
-        }
+
+    override fun onOptionsChanged(changedTerm: Boolean,
+                                  changedOrder: Boolean,
+                                  changedGrouping: Boolean) {
+        if (changedGrouping || changedOrder)
+            viewModel.shouldReorderEverything = true
+
+        val prefs = MobiregPreferences.get(context!!)
+        val termId = prefs.lastSelectedTerm
+
+        val averageData = viewModel.averages.value?.get(termId) ?: return
+        val marks = viewModel.marks.value?.get(termId) ?: return
+
+        setUpAveragesInfo(averageData)
+        setMarksAdapter(if (viewModel.shouldReorderEverything) {
+            val isGroupingEnabled = prefs.groupMarksByParent
+            if (!isGroupingEnabled)
+                marks.forEach { it.viewType = TYPE_SINGLE }
+            AverageCalculator.sortMarks(marks, prefs.markSortingOrder, isGroupingEnabled)
+        } else marks)
     }
 
-
-    override fun onOtherOptionsChanged() {
-        viewModel.requestMarksAgain()
-    }
-
-    private fun setUpMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
+    private fun setMarksAdapter(marks: List<MarkDao.MarkShortInfo>) {
         view?.findViewById<RecyclerView>(R.id.marksList)?.apply {
-            startAnimation(AlphaAnimation(0f, 1f).also {
-                it.duration = 400L
-            })
-            adapter = MarkAdapter(context, marks) { item ->
-                MarkDetailsFragment.newInstance(item.id).showSelf(activity as? MainActivity)
+            adapter.also {
+                if (it is MarkAdapter)
+                    it.setMarks(marks)
+                else {
+                    startAnimation(AlphaAnimation(0f, 1f).apply {
+                        duration = 400L
+                    })
+                    adapter = MarkAdapter(context!!, this@SubjectsMarkFragment).apply {
+                        setHasStableIds(true)
+                        setMarks(marks)
+                    }
+                }
             }
         }
     }
@@ -104,10 +126,17 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
     }
 
     class MarkAdapter(context: Context,
-                      private val list: List<MarkDao.MarkShortInfo>,
-                      private var onMarkClickListener: ((MarkDao.MarkShortInfo) -> Unit)? = null)
+                      f: SubjectsMarkFragment?)
         : RecyclerView.Adapter<MarkAdapter.ViewHolder>() {
+        private val weakFragment = WeakReference(f)
         private val inflater = LayoutInflater.from(context)!!
+
+        private var list = emptyList<MarkDao.MarkShortInfo>()
+
+        fun setMarks(list: List<MarkDao.MarkShortInfo>) {
+            this.list = list
+            notifyDataSetChanged()
+        }
 
         companion object {
             const val TYPE_SINGLE = 0
@@ -126,9 +155,6 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
             }, parent, false))
         }
 
-        private inline val Float.prettyMe: String
-            get() = String.format("%.1f", this)
-
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also { info ->
                 holder.markTitle.text = (info.description.takeUnless { it.isBlank() }
@@ -144,19 +170,19 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
                 holder.markDescription?.also {
                     val title = when {
                         info.markValueMax > 0 && info.markPointsValue >= 0f ->
-                            StringBuilder()
-                                    .append(info.markPointsValue.div(info.markValueMax).times(100f).prettyMe)
-                                    .append("% • maks. ")
-                                    .append(info.markValueMax.prettyMe)
-                                    .apply {
-                                        if (info.countPointsWithoutBase == true)
-                                            append(" • Poza bazą")
-                                    }
-                                    .toString()
-                        info.markValueMax > 0 -> "maks. ${info.markValueMax.prettyMe}"
+                            if (info.countPointsWithoutBase == true)
+                                String.format("%.1f%% • maks. %.1f • poza bazą",
+                                        info.markPointsValue / info.markValueMax * 100f,
+                                        info.markValueMax)
+                            else String.format("%.1f%% • maks. %.1f",
+                                    info.markPointsValue / info.markValueMax * 100f,
+                                    info.markValueMax)
+
+                        info.markValueMax > 0 -> String.format("maks. %.1f", info.markValueMax)
                         info.weight > 0
                                 && info.noCountToAverage != true
-                                && info.countPointsWithoutBase != true -> "Waga ${info.weight.prettyMe}"
+                                && info.countPointsWithoutBase != true ->
+                            String.format("Waga %.1f", info.weight)
                         else -> ""
                     }
                     if (title.isEmpty()) {
@@ -173,8 +199,16 @@ class SubjectsMarkFragment : Fragment(), MarksViewOptionsFragment.OptionsChanged
 
         override fun getItemCount() = list.size
 
+        override fun getItemId(position: Int): Long {
+            return list[position].id.toLong()
+        }
+
         private fun onItemClicked(position: Int) {
-            onMarkClickListener?.invoke(list[position])
+            weakFragment.get()?.apply {
+                MarkDetailsFragment
+                        .newInstance(list[position].id)
+                        .showSelf(activity)
+            }
         }
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {

@@ -26,7 +26,7 @@ class AppUpdateWorker(context: Context, workerParameters: WorkerParameters)
 
     companion object {
         private const val UNIQUE_WORK_NAME = "appUpdateChecking"
-        private const val UPDATE_CHECKING_INTERVAL_DAYS = 1L
+        private const val UPDATE_CHECKING_INTERVAL_DAYS = 5L
 
         fun requestChecks() {
             val constraints = Constraints.Builder()

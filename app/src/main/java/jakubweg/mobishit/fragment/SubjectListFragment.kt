@@ -33,9 +33,9 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         fun newInstance() = SubjectListFragment()
     }
 
-    override fun onOtherOptionsChanged() = Unit
-    override fun onTermChanged() {
-        viewModel.requestSubjectsAfterTermChanges()
+    override fun onOptionsChanged(changedTerm: Boolean, changedOrder: Boolean, changedGrouping: Boolean) {
+        if (changedTerm)
+            viewModel.requestSubjectsAfterTermChanges()
     }
 
     private lateinit var listener: MarkOptionsListener

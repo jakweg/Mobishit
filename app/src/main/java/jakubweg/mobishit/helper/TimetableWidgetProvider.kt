@@ -159,8 +159,11 @@ class TimetableWidgetProvider : AppWidgetProvider() {
 
         override fun getLoadingView(): RemoteViews? = null
 
+        private var showLessonNumber = false
+
         override fun onDataSetChanged() {
             val prefs = MobiregPreferences.get(appContext)
+            showLessonNumber = prefs.showLessonNumberOnWidget
             if (prefs.hasReadyWidgetCache) {
                 cachedLessons.also {
                     if (it != null)
@@ -225,6 +228,12 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                 RemoteViews(appContext.packageName, R.layout.widget_list_item).apply {
                     try {
                         events[position].also {
+                            if (showLessonNumber) {
+                                setTextViewText(R.id.lessonNumber, it.number?.toString() ?: "-")
+                                setViewVisibility(R.id.lessonNumber, View.VISIBLE)
+                            } else
+                                setViewVisibility(R.id.lessonNumber, View.GONE)
+                            setTextViewText(R.id.lessonHour, it.time.replace('|', '\n'))
                             setTextViewText(R.id.lessonName, buildString {
                                 append(it.subjectName ?: "Nieznana lekcja")
                                 if (!it.roomName.isNullOrBlank()) {
@@ -232,8 +241,6 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                                     append(it.roomName)
                                 }
                             })
-                            setTextViewText(R.id.lessonHour, it.time.replace('|', '\n'))
-                            setTextViewText(R.id.lessonNumber, it.number?.toString() ?: "-")
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()

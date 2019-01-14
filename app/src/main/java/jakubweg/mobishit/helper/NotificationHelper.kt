@@ -110,7 +110,7 @@ class NotificationHelper(val context: Context) {
         postNotification(id, n)
     }
 
-    fun isChannelMuted(channel: String) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    fun isChannelMuted(channel: String?) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
         mService.getNotificationChannel(channel).importance == NotificationManager.IMPORTANCE_NONE
     else false
 
@@ -122,7 +122,16 @@ class NotificationHelper(val context: Context) {
                 Log.v("NotificationHelper", "Posting notification on channel $channelCompat")
             }
         }
-        mService.notify(id, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                mService.notify(id, notification)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // probably channels not created
+                internalCreateChannels()
+                mService.notify(id, notification)
+            }
+        } else mService.notify(id, notification)
     }
 
     fun cancelNotification(id: Int) {
@@ -130,7 +139,7 @@ class NotificationHelper(val context: Context) {
     }
 
     private inline val Notification.channelCompat
-        get() = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) "null" else channelId
+        get() = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) "null" else channelId ?: "null"
 
 
 }

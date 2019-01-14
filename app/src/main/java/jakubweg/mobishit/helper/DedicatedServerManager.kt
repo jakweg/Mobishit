@@ -18,7 +18,7 @@ class DedicatedServerManager(
         private val mutex = Any()
         private const val API_PROVIDER_LINK = "https://github.com/JakubekWeg/Mobishit/blob/master/app/release/api_provider.json?raw=true"
 
-        private const val MAX_SYNC_DELAY_MILLIS = 12 * 60 * 60 * 1000L
+        private const val MAX_SYNC_DELAY_MILLIS = 2 * 24 * 60 * 60 * 1000L
 
         private const val KEY_LAST_SYNC_TIME = "last_sync"
 
@@ -118,6 +118,13 @@ class DedicatedServerManager(
             }
             return preferences.getString(key, null)
         }
+    }
+
+    fun makeExpired() {
+        preferences
+                .edit()
+                .putLong(KEY_LAST_SYNC_TIME, 0L)
+                .apply()
     }
 
     val termsOfUseLink get() = getAndUpdateIfNeeded(KEY_TERMS_OF_USE)

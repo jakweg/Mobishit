@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
@@ -12,7 +13,8 @@
         android:gravity="center"
         android:padding="3dp"
         android:textColor="@color/widgetTextColorDark"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        tools:text="3" />
 
     <TextView
         android:id="@+id/lessonHour"
@@ -22,10 +24,11 @@
         android:maxLines="2"
         android:minLines="2"
         android:padding="3dp"
-        android:paddingEnd="4dp"
         android:paddingStart="4dp"
+        android:paddingEnd="4dp"
         android:textColor="@color/widgetTextColorDark"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        tools:text="9:20\n10:05" />
 
     <TextView
         android:id="@+id/lessonName"
@@ -36,5 +39,6 @@
         android:minLines="2"
         android:padding="3dp"
         android:textColor="@color/widgetTextColorDark"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        tools:text="Bardzo długa nazwa lekcji tutaj, może się nie mieści, może się mieści" />
 </LinearLayout>

@@ -11,23 +11,6 @@ import android.support.annotation.WorkerThread
 abstract class BaseViewModel(application: Application)
     : AndroidViewModel(application) {
 
-    protected inline fun <reified T> doAtLeast(atLeastMillis: Long, function: () -> T): T {
-        val start = System.currentTimeMillis()
-
-        val returnValue: T = function.invoke()
-
-        (System.currentTimeMillis() - start).also {
-            if (it < atLeastMillis)
-                try {
-                    Thread.sleep(atLeastMillis - it)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-        }
-
-        return returnValue
-    }
-
     protected val context: Application get() = getApplication()
 
     private var currentTask: BackgroundTask? = null

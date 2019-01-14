@@ -125,10 +125,7 @@ class MessagesListFragment : Fragment() {
                     adapter = if (messages.isNullOrEmpty())
                         EmptyAdapter("Brak wiadomości", true)
                     else
-                        ReceivedMessagesAdapter(context!!, messages) { id, title, view ->
-                            (context!! as? DoublePanelActivity)?.applyNewDetailsFragment(
-                                    view, MessageDetailsFragment.newInstance(id, title, ViewCompat.getTransitionName(view)))
-                        }
+                        ReceivedMessagesAdapter(context!!, messages)
                 }
             }
         }
@@ -187,8 +184,8 @@ class MessagesListFragment : Fragment() {
         }
     }
 
-    private class ReceivedMessagesAdapter(context: Context, private val list: List<MessageDao.MessageShortInfo>,
-                                          private val onMessageClicked: ((Int, CharSequence, View) -> Unit)? = null)
+    private class ReceivedMessagesAdapter(private val context: Context,
+                                          private val list: List<MessageDao.MessageShortInfo>)
         : RecyclerView.Adapter<ReceivedMessagesAdapter.ViewHolder>() {
         private val inflater = LayoutInflater.from(context)!!
         override fun getItemCount() = list.size
@@ -215,7 +212,9 @@ class MessagesListFragment : Fragment() {
 
         private fun onItemClicked(pos: Int, title: CharSequence, view: View) {
             val item = list[pos]
-            onMessageClicked?.invoke(item.id, title, view)
+
+            (context as? DoublePanelActivity)?.applyNewDetailsFragment(
+                    view, MessageDetailsFragment.newInstance(item.id, title, ViewCompat.getTransitionName(view)))
         }
 
 
