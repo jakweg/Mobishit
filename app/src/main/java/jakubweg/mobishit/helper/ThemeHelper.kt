@@ -80,6 +80,8 @@ inline var TextView.precomputedText: CharSequence
     get() = throw UnsupportedOperationException()
     set(value) = makePrecomputedText(value)
 
+val Float.oneDigitAfterDot get() = "%.1f".format(this)
+
 fun TextView.makePrecomputedText(text: CharSequence) {
     TextViewCompat.setPrecomputedText(this,
             PrecomputedTextCompat.create(text, TextViewCompat.getTextMetricsParams(this)))

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingBottom="4dp"
-    tools:ignore="ContentDescription,RtlHardcoded">
+    tools:ignore="ContentDescription,RtlHardcoded,HardcodedText">
 
     <View
         android:layout_width="match_parent"
@@ -52,7 +52,7 @@
             android:foreground="?android:selectableItemBackground"
             android:gravity="center"
             android:minWidth="30dp"
-            android:text="13" />
+            tools:text="13" />
 
         <ImageButton
             android:id="@+id/btnIncrease"
@@ -79,7 +79,7 @@
         android:foreground="?android:selectableItemBackground"
         android:gravity="center_horizontal"
         android:padding="8dp"
-        android:text="Liczona jest średnia z wszystkich ocen" />
+        tools:text="Liczona jest średnia z wszystkich ocen" />
 
     <ImageButton
         android:id="@+id/btnAddNewMark"
@@ -95,17 +95,17 @@
         tools:tint="?android:attr/textColorPrimary" />
 
     <ImageButton
-        android:minWidth="36dp"
         android:id="@+id/btnDeleteMark"
         android:layout_width="wrap_content"
-        android:tag="1"
         android:layout_height="0px"
         android:layout_alignBottom="@id/parentTypeText"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:background="?android:selectableItemBackground"
         android:contentDescription=""
+        android:minWidth="36dp"
         android:padding="4dp"
+        android:tag="1"
         tools:ignore="RtlSymmetry"
         tools:srcCompat="@drawable/ic_delete_sweep"
         tools:tint="?android:attr/textColorPrimary" />

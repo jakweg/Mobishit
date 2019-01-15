@@ -209,8 +209,8 @@ ORDER BY MarkScaleGroups.id DESC""")
                        val weight: Float, val parentType: Int?, val parentId: Int)
 
     @Query("""SELECT Marks.markValue, MarkScales.id as scaleId,
-IFNULL( MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase,
-    IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight,
+    IFNULL(MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase,
+        IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight,
 parentType, IFNULL(parentId, MarkGroups.id) as parentId
 FROM Marks
 INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id

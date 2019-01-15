@@ -1,365 +1,81 @@
-package jakubweg.mobishit.fragment
-
-import android.arch.lifecycle.MutableLiveData
+import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_POINTS_SINGLE
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.graphics.PorterDuff
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.support.annotation.MainThread
 import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
+import android.support.v4.text.HtmlCompat
 import android.support.v7.content.res.AppCompatResources
-import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AlphaAnimation
 import android.widget.ImageView
 import android.widget.TextView
 import jakubweg.mobishit.R
-import jakubweg.mobishit.activity.averageBy
+import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.MarkDao
+import jakubweg.mobishit.fragment.AboutVirtualMarksFragment
 import jakubweg.mobishit.helper.*
-import jakubweg.mobishit.model.State
-import jakubweg.mobishit.model.VirtualMarksModel
-import jakubweg.mobishit.model.asImmutable
 import java.lang.ref.WeakReference
 
 class VirtualMarksFragment : Fragment() {
     companion object {
-        fun newInstance() = newInstance(NO_METHOD, -1, -1, Long.MIN_VALUE, Long.MAX_VALUE)
-
-        // launch methods
-        private const val NO_METHOD = 0
-        private const val METHOD_SELECTED_MARK_SCALE_GROUPS = 2
-        private const val METHOD_POINTS = 3
-        private const val METHOD_IMPORT_FROM_SUBJECT = 4
-        private const val METHOD_IMPORTED = 5 //don't do anything
-
-        fun newInstance(method: Int,
-                        markScaleGroupId: Int,
-                        subjectId: Int,
-                        start: Long,
-                        end: Long) = VirtualMarksFragment().apply {
-            arguments = Bundle(4).also {
-                it.putInt("method", method)
-                it.putInt("markScaleGroupId", markScaleGroupId)
-                it.putInt("subjectId", subjectId)
-                it.putLong("start", start)
-                it.putLong("end", end)
-            }
-        }
+        fun newInstance() = VirtualMarksFragment()
     }
 
-    val viewModel get() = ViewModelProviders.of(this)[VirtualMarksModel::class.java]
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val fragmentId = if ((arguments?.getInt("method", NO_METHOD) ?: NO_METHOD) == NO_METHOD)
-            R.layout.fragment_about_virtual_marks else R.layout.fragment_virtual_marks
-        return inflater.inflate(fragmentId, container, false)
+        return inflater.inflate(R.layout.fragment_virtual_marks, container, false)
     }
 
-    private fun onMethodSelected(view: View) {
-        when (view.id) {
-            R.id.cardImport -> viewModel.requestState(State.CHOOSE_SUBJECT)
-            R.id.cardMarkScales -> viewModel.requestState(State.CHOOSE_SCALE_GROUP)
-            R.id.cardPoints -> viewModel.requestState(State.PREPARE_FOR_POINTS_MARKS)
-        }
-    }
+    private val viewModel get() = ViewModelProviders.of(this)[VirtualMarksModel::class.java]
 
-    private interface OnAnySelected<T> {
-        fun onSelected(item: T)
-    }
-
-    private inline fun <T> askUsingDialog(items: List<T>, title: String,
-                                          allowSkippingWhenOneElement: Boolean,
-                                          crossinline listener: (T) -> Unit) {
-        askUsingDialog(items, title, allowSkippingWhenOneElement, object : OnAnySelected<T> {
-            override fun onSelected(item: T) {
-                listener.invoke(item)
-            }
-        })
-    }
-
-    private fun <T> askUsingDialog(items: List<T>, title: String,
-                                   allowSkippingWhenOneElement: Boolean,
-                                   listener: OnAnySelected<T>) {
-        if (allowSkippingWhenOneElement && items.size == 1) {
-            listener.onSelected(items.first())
-            return
-        }
-        AlertDialog.Builder(context ?: return)
-                .setTitle(title)
-                .setItems(Array(items.size) { items[it].toString() }) { _, pos ->
-                    listener.onSelected(items[pos])
-                }
-                .setNegativeButton("Anuluj") { di, _ -> di.cancel() }
-                .setOnCancelListener {
-                    viewModel.requestState(State.NOTHING)
-                }
-                .show()
-    }
-
-    private fun recreate() {
-        activity?.supportFragmentManager
-                ?.beginTransaction()
-                ?.detach(this)
-                ?.attach(this)
-                ?.commitAllowingStateLoss()
-    }
-
-    private fun onMarkScaleGroupsLoaded() {
-        askUsingDialog(viewModel.markScaleGroups, if (viewModel.subjectId <= 0) "Wybierz typ ocen" else
-            "Wybierz skalę z której mają być zaimportowane oceny",
-                true) {
-            viewModel.apply {
-                markScaleGroupId = it.id
-                if (subjectId > 0)
-                    requestState(State.CHOOSE_TERM)
-                else
-                    requestState(State.PREPARE_FOR_SCALE_MARKS)
-            }
-        }
-    }
-
-    private fun onSubjectsToImportLoaded() {
-        askUsingDialog(viewModel.subjects,
-                "Wybierz przedmiot z którego chcesz zaimportować oceny",
-                false) {
-            viewModel.apply {
-                subjectId = it.id
-                requestState(State.CHOOSE_SCALE_GROUP)
-            }
-        }
-    }
-
-    private fun onTermsLoaded() {
-        askUsingDialog(viewModel.terms, "Wybierz semestr z którego zaimportować oceny",
-                true) {
-            viewModel.apply {
-                termId = it.id
-                requestState(State.IMPORT_MARKS_BY_ARGUMENTS)
-            }
-        }
-    }
-
-    private fun setLeftDrawable(textView: TextView, id: Int, color: Int) {
-        textView.setCompoundDrawablesWithIntrinsicBounds(
-                AppCompatResources.getDrawable(context!!, id)!!.apply {
-                    mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN)
-                }, null, null, null)
-    }
+    private val listView get() = this.view?.findViewById<RecyclerView?>(R.id.markParentsList)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val context = context ?: return
-        view.startAnimation(AlphaAnimation(0f, 1f).apply { duration = 400 })
 
-
-        val textColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
-        view.findViewById<CardView>(R.id.cardImport)?.also { card ->
-            setLeftDrawable(card.findViewById(R.id.textImport)!!, R.drawable.ic_import, textColor)
-
-            card.foreground = context.themeAttributeToDrawable(android.R.attr.selectableItemBackground)
-
-            card.setOnClickListener(::onMethodSelected)
+        view.findViewById<View?>(R.id.addNewMark)?.setOnClickListener {
+            (listView?.adapter as? VirtualMarksAdapter?)?.onAddRequested()
+            listView?.scrollToPosition(0)
         }
 
-        view.findViewById<CardView>(R.id.cardMarkScales)?.also { card ->
-            setLeftDrawable(card.findViewById(R.id.textMarkScales)!!, R.drawable.nav_marks, textColor)
+        view.findViewById<View?>(R.id.clearAllMarks)?.setOnClickListener {
+            context!!.also { context ->
+                MobiregPreferences.get(context).markHavingNoSavedMarks()
+                (context as? MainActivity?)?.onBackPressed()
 
-            card.foreground = context.themeAttributeToDrawable(android.R.attr.selectableItemBackground)
-
-            card.setOnClickListener(::onMethodSelected)
-        }
-
-        view.findViewById<CardView>(R.id.cardPoints)?.also { card ->
-            setLeftDrawable(card.findViewById(R.id.textPoints)!!, R.drawable.ic_more, textColor)
-
-            card.foreground = context.themeAttributeToDrawable(android.R.attr.selectableItemBackground)
-
-            card.setOnClickListener(::onMethodSelected)
-        }
-
-        if (savedInstanceState == null) {
-            val arguments = arguments!!
-            when (arguments.getInt("method", NO_METHOD)) {
-                METHOD_SELECTED_MARK_SCALE_GROUPS -> {
-                    viewModel.apply {
-                        //markScaleGroupId = arguments.getInt("markScaleGroupId", -1)
-                        requestState(State.PREPARE_FOR_SCALE_MARKS)
-                    }
-                }
-                METHOD_POINTS -> viewModel.requestState(State.PREPARE_FOR_POINTS_MARKS)
-                METHOD_IMPORTED -> viewModel.requestState(State.IMPORT_MARKS_BY_ARGUMENTS)
-
-                METHOD_IMPORT_FROM_SUBJECT -> {
-                    viewModel.apply {
-                        subjectId = arguments.getInt("subjectId", -1)
-                        markScaleGroupId = arguments.getInt("markScaleGroupId", -1)
-                        startTime = arguments.getLong("start")
-                        endTime = arguments.getLong("end")
-                        if (currentState != State.IMPORT_MARKS_BY_ARGUMENTS) {
-                            requestState(State.CHOOSE_SUBJECT)
-                        }
-                    }
-                }
             }
         }
 
-        view.findViewById<View?>(R.id.goToMenu)?.setOnClickListener {
-            MobiregPreferences.get(it.context).hasSavedAnyVirtualMark = false
-            viewModel.marksList.clear()
-            viewModel.requestState(State.NOTHING)
-        }
+        if (viewModel.marks.value == null)
+            viewModel.requestLoad()
 
-        viewModel.currentState.also {
-            it.removeObserver(stateObserver)
-            it.observe(this, stateObserver)
-            if (it.value == State.INITIALIZING || it.value == null)
-                viewModel.requestState(State.NOTHING)
-        }
-    }
-
-    private val stateObserver = Observer<State> {
-        it ?: return@Observer
-        when (it) {
-            State.INITIALIZING -> viewModel.requestState(State.NOTHING)
-            State.NOTHING -> {
-                if (view?.findViewById<View?>(R.id.cardImport) == null) {
-                    arguments?.putInt("method", NO_METHOD)
-                    recreate()
-                }
-            }
-            State.CHOOSE_SUBJECT -> onSubjectsToImportLoaded()
-            State.CHOOSE_SCALE_GROUP -> onMarkScaleGroupsLoaded()
-            State.CHOOSE_TERM -> onTermsLoaded()
-            State.IMPORT_MARKS_BY_ARGUMENTS, State.IMPORTED -> {
-                arguments?.putInt("method", METHOD_IMPORTED)
-                if (view?.findViewById<View?>(R.id.cardImport) != null)
-                    recreate()
-                else {
-                    onMarksToImportLoaded(it)
-                    viewModel.requestState(State.IMPORTED)
-                }
-
-            }
-            State.PREPARE_FOR_SCALE_MARKS -> {
-                if (view?.findViewById<View?>(R.id.cardImport) != null) {
-                    arguments?.putInt("method", METHOD_SELECTED_MARK_SCALE_GROUPS)
-                    recreate()
-                } else {
-                    setAdapter(VirtualScaleMarksAdapter(this, viewModel.markScales))
-                }
-            }
-            State.PREPARE_FOR_POINTS_MARKS -> {
-                if (view?.findViewById<View?>(R.id.cardImport) != null) {
-                    arguments?.putInt("method", METHOD_POINTS)
-                    recreate()
-                } else {
-                    setAdapter(VirtualMarkPointsAdapter(this))
-                }
-            }
-        }
-    }
-
-    private fun onMarksToImportLoaded(it: State) {
-        val result = viewModel.marksToImport
-        val shouldAddAgain = it != State.IMPORTED
-        if (result.any { it.markValue != null }) {
-            // mamy oceny punktowe
-            setAdapter(VirtualMarkPointsAdapter(this).apply {
-                if (shouldAddAgain)
-                    result.forEach {
-                        insertImported(it.markValue ?: 0f, it.weight)
-                    }
-            })
-        } else {
-            // mamy klasyczne oceny
-            setAdapter(VirtualScaleMarksAdapter(this,
-                    viewModel.markScales).apply {
-
-                if (shouldAddAgain)
-                    result.groupBy { it.parentId }.forEach { group ->
-                        if (group.value.size == 1) {
-                            // oceny bez poprawy
-                            group.value.forEach {
-                                insertImported(it.scaleId!!, it.weight)
-                            }
-                        } else {
-                            val first = group.value.first()
-                            val parent = insertImported(first.weight,
-                                    first.parentType ?: MarkDao.PARENT_TYPE_COUNT_WORSE)
-
-                            group.value.forEach {
-                                insertImported(it.scaleId!!, parent)
-                            }
-                        }
-                    }
-            })
-        }
-    }
-
-
-    @MainThread
-    private fun setAdapter(adapter: VirtualBaseAdapter) {
-        val mainList = view?.findViewById<RecyclerView?>(R.id.markParentsList) ?: return
-        mainList.adapter = adapter
-        view?.findViewById<View>(R.id.addNewMark)?.setOnClickListener {
-            mainList.scrollToPosition(0)
-            adapter.onNewMarkRequested()
-        }
-        val weakTitle = WeakReference(view?.findViewById<TextView?>(R.id.title))
-        adapter.average.observe(this, Observer {
-            weakTitle.get()?.apply {
-                text = adapter.getNiceText(it)
-            }
+        viewModel.marks.observe(this, Observer {
+            listView?.adapter = VirtualMarksAdapter(this, context!!,
+                    it?.toMutableList() ?: return@Observer,
+                    viewModel.markScales)
         })
-        mainList.postDelayed({
-            adapter.notifyMarkChanged()
-        }, 100)
     }
 
-
-    class VirtualMarkViewHolder(adapter: VirtualBaseAdapter, v: View) : RecyclerView.ViewHolder(v) {
-        val btnIncrease = v.findViewById<ImageView>(R.id.btnIncrease)!!
-        val btnDecrease = v.findViewById<ImageView>(R.id.btnDecrease)!!
-
-        val btnIncrease2 = v.findViewById<ImageView?>(R.id.btnIncrease2)
-        val btnDecrease2 = v.findViewById<ImageView?>(R.id.btnDecrease2)
-        val textValue2 = v.findViewById<TextView?>(R.id.markValue2)
-
-        val btnMore = v.findViewById<ImageView?>(R.id.btnMore)
-
-        private val btnDelete = v.findViewById<ImageView>(R.id.btnDeleteMark)!!
-        val btnAddNewMark = v.findViewById<ImageView?>(R.id.btnAddNewMark)
-        val textParentType = v.findViewById<TextView?>(R.id.parentTypeText)
-        val textValue = v.findViewById<TextView>(R.id.markValue)!!
-
-        val title1 = v.findViewById<TextView?>(R.id.textWeight)
-        val title2 = v.findViewById<TextView?>(R.id.title)
-
-        init {
-            btnDelete.setOnClickListener { adapter.deleteMarkAt(adapterPosition) }
-            btnIncrease.setImageDrawable(adapter.increaseDrawable)
-            btnDecrease.setImageDrawable(adapter.decreaseDrawable)
-            btnIncrease2?.setImageDrawable(adapter.increaseDrawable)
-            btnDecrease2?.setImageDrawable(adapter.decreaseDrawable)
-            if (btnDelete.tag !is Int?)
-                btnDelete.setImageDrawable(adapter.deleteAllDrawable)
-            else
-                btnDelete.setImageDrawable(adapter.deleteDrawable)
-            btnAddNewMark?.setImageDrawable(adapter.addMarkDrawable)
-            btnMore?.setImageDrawable(adapter.expandDrawable)
-        }
+    private fun onAverageCalculated(average: CharSequence) {
+        view?.textView(R.id.title)?.text = average
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewModel.marks.removeObservers(this)
+        viewModel.marks.value = (listView?.adapter as? VirtualMarksAdapter)?.marksList ?: return
+    }
 
-    abstract class VirtualBaseAdapter(f: VirtualMarksFragment
-    ) : RecyclerView.Adapter<VirtualMarkViewHolder>() {
+    class VirtualMarksAdapter(private val fragment: VirtualMarksFragment,
+                              val context: Context,
+                              val marksList: MutableList<VirtualMarkBase>,
+                              val markScales: List<MarkDao.MarkScaleShortInfo>)
+        : RecyclerView.Adapter<VirtualMarkViewHolder>() {
         companion object {
             const val TYPE_SCALE_PARENT = 0
             const val TYPE_SCALE_CHILD = 1
@@ -368,7 +84,190 @@ class VirtualMarksFragment : Fragment() {
             const val TYPE_POINTS_SINGLE = 3
         }
 
-        val context = f.context!!
+        var lastScaleIndex = markScales.size / 2
+        var lastWeight = 1f
+
+        private val recalculationRunnable = Runnable {
+            val iterator = marksList.peekableIterator()
+            var gotPointsSum = 0f
+            var basePointsSum = 0f
+            var scaleValueSum = 0f
+            var weightSum = 0f
+
+            while (iterator.hasNext()) {
+                val it = iterator.next()
+                when (it.type) {
+                    TYPE_POINTS_SINGLE -> {
+                        (it as VirtualMarkPoints).also {
+                            gotPointsSum += it.pointsValue
+                            basePointsSum += it.baseValue
+                        }
+                    }
+                    TYPE_SCALE_SINGLE -> {
+                        (it as VirtualMarkScaleSingle).also {
+                            scaleValueSum += markScales[it.scaleIndex].markValue * it.weight
+                            weightSum += it.weight
+                        }
+                    }
+                    TYPE_SCALE_PARENT -> {
+                        (it as VirtualMarkParent).also { parent ->
+                            when (parent.parentType) {
+                                MarkDao.PARENT_TYPE_COUNT_EVERY -> {
+                                    while (iterator.hasNext()) {
+                                        if (iterator.peek().type != TYPE_SCALE_CHILD)
+                                            break
+                                        (iterator.next() as VirtualMarkChild).also {
+                                            scaleValueSum += markScales[it.scaleIndex].markValue * parent.weight
+                                            weightSum += parent.weight
+                                        }
+                                    }
+                                }
+
+                                MarkDao.PARENT_TYPE_COUNT_AVERAGE -> {
+                                    var scaleValueSum1 = 0f
+                                    var count = 0f
+                                    while (iterator.hasNext()) {
+                                        if (iterator.peek().type != TYPE_SCALE_CHILD)
+                                            break
+                                        (iterator.next() as VirtualMarkChild).also {
+                                            scaleValueSum1 += markScales[it.scaleIndex].markValue * parent.weight
+                                            count++
+                                        }
+                                    }
+                                    if (count > 0) {
+                                        scaleValueSum += scaleValueSum1 / count
+                                        weightSum += parent.weight
+                                    }
+                                }
+
+
+                                MarkDao.PARENT_TYPE_COUNT_BEST -> {
+                                    val values = mutableListOf<Float>()
+                                    while (iterator.hasNext()) {
+                                        if (iterator.peek().type != TYPE_SCALE_CHILD)
+                                            break
+                                        (iterator.next() as VirtualMarkChild).also {
+                                            values += markScales[it.scaleIndex].markValue
+                                        }
+                                    }
+                                    if (values.isNotEmpty()) {
+                                        scaleValueSum += values.max()!! * parent.weight
+                                        weightSum += parent.weight
+                                    }
+                                }
+
+                                MarkDao.PARENT_TYPE_COUNT_WORSE -> {
+                                    val values = mutableListOf<Float>()
+                                    while (iterator.hasNext()) {
+                                        if (iterator.peek().type != TYPE_SCALE_CHILD)
+                                            break
+                                        (iterator.next() as VirtualMarkChild).also {
+                                            values += markScales[it.scaleIndex].markValue
+                                        }
+                                    }
+                                    if (values.isNotEmpty()) {
+                                        scaleValueSum += values.min()!! * parent.weight
+                                        weightSum += parent.weight
+                                    }
+                                }
+
+                                MarkDao.PARENT_TYPE_COUNT_LAST -> {
+                                    var value = Float.NaN
+                                    while (iterator.hasNext()) {
+                                        if (iterator.peek().type != TYPE_SCALE_CHILD)
+                                            break
+                                        (iterator.next() as VirtualMarkChild).also {
+                                            value = markScales[it.scaleIndex].markValue
+                                        }
+                                    }
+                                    if (!value.isNaN()) {
+                                        scaleValueSum += value * parent.weight
+                                        weightSum += parent.weight
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            val text = HtmlCompat.fromHtml(when {
+                gotPointsSum > 0f || basePointsSum > 0f -> "Zdobyto %.1f na %.1f pkt. czyli %.2f%%"
+                        .format(gotPointsSum, basePointsSum, gotPointsSum / basePointsSum * 100f)
+                weightSum > 0f -> "Średnia ważona z tych ocen to %.2f"
+                        .format(scaleValueSum / weightSum)
+                else -> "Tu wyświetli się średnia"
+            }, HtmlCompat.FROM_HTML_MODE_COMPACT)
+
+            fragment.onAverageCalculated(text)
+        }
+
+        init {
+            marksList.forEach { it.adapter = WeakReference(this) }
+            requestAverageRecalculation()
+        }
+
+        private val addNewType =
+                if (MobiregPreferences.get(context).savedVirtualMarksState == AboutVirtualMarksFragment.STATE_HAVING_SCALE_MARKS)
+                    TYPE_SCALE_SINGLE else TYPE_POINTS_SINGLE
+
+        fun onAddChildRequested(position: Int) {
+            val item = VirtualMarkChild(lastScaleIndex)
+            item.adapter = WeakReference(this)
+            marksList.add(position + 1, item)
+            notifyItemInserted(position + 1)
+            requestAverageRecalculation()
+        }
+
+        fun onAddRequested() {
+            val item = when (addNewType) {
+                TYPE_POINTS_SINGLE -> VirtualMarkPoints(10f, 10f)
+                TYPE_SCALE_SINGLE -> VirtualMarkScaleSingle(lastScaleIndex, lastWeight)
+                else -> null
+            } ?: return
+
+            item.adapter = WeakReference(this)
+            marksList.add(0, item)
+            notifyItemInserted(0)
+            requestAverageRecalculation()
+        }
+
+        fun onDeleteRequested(position: Int) {
+            val item = marksList[position]
+
+            var removedCount = 1
+            if (item.type == TYPE_SCALE_PARENT) {
+                val iterator = marksList.iterator()
+                for (i in 0..position) iterator.next()
+                iterator.remove()
+                while (iterator.hasNext()) {
+                    if (iterator.next().type == TYPE_SCALE_CHILD) {
+                        iterator.remove()
+                        removedCount++
+                    } else break
+                }
+            } else {
+                marksList.removeAt(position)
+            }
+
+            notifyItemRangeRemoved(position, removedCount)
+            requestAverageRecalculation()
+        }
+
+        fun onExpandScaleMarkRequested(position: Int) {
+            val item = marksList[position] as VirtualMarkScaleSingle
+            marksList.removeAt(position)
+            marksList.add(position, VirtualMarkParent(MarkDao.PARENT_TYPE_COUNT_AVERAGE, item.weight)
+                    .also { it.adapter = WeakReference(this) })
+            notifyItemChanged(position)
+            marksList.add(position + 1, VirtualMarkChild(item.scaleIndex)
+                    .also { it.adapter = WeakReference(this) })
+            notifyItemInserted(position + 1)
+        }
+
+        fun requestAverageRecalculation() {
+            Handler(Looper.getMainLooper()).postDelayed(recalculationRunnable, 50L)
+        }
 
         private val drawablesColor = context.themeAttributeToColor(android.R.attr.textColorPrimary)
         private fun getDrawable(id: Int): Drawable {
@@ -382,244 +281,108 @@ class VirtualMarksFragment : Fragment() {
         val addMarkDrawable = getDrawable(R.drawable.ic_add_box)
         val expandDrawable = getDrawable(R.drawable.ic_more)
 
-        private val mAverageData = MutableLiveData<String?>().apply { value = null }
-        val average = mAverageData.asImmutable
+        private val inflater = LayoutInflater.from(context)!!
 
-        fun notifyMarkChanged() {
-            Handler(Looper.getMainLooper()).post(updateAverageRunnable)
+        override fun getItemCount() = marksList.size
+
+        override fun getItemViewType(position: Int) = marksList[position].type
+
+        override fun onCreateViewHolder(viewGroup: ViewGroup, type: Int): VirtualMarkViewHolder {
+            return VirtualMarkViewHolder(this, inflater.inflate(
+                    when (type) {
+                        TYPE_POINTS_SINGLE, TYPE_SCALE_SINGLE -> R.layout.mark_calculator_single_list_item
+                        TYPE_SCALE_PARENT -> R.layout.mark_calculator_parent_list_item
+                        TYPE_SCALE_CHILD -> R.layout.mark_calculator_child_list_item
+                        else -> throw IllegalArgumentException()
+                    }, viewGroup, false), type)
         }
 
-        private val updateAverageRunnable = Runnable {
-            mAverageData.value = calculateAverage()
+        override fun onBindViewHolder(holder: VirtualMarkViewHolder, position: Int) {
+            val item = marksList[position]
+            item.currentViewHolder = WeakReference(holder)
+            holder.setListener(item)
+            item.applyToViews()
+        }
+    }
+
+    abstract class VirtualMarksChangeListener {
+        /**
+         * @param valueChange it is positive when clicked plus, negative when minus,
+         * and zero when value clicked
+         */
+        open fun onFirstRowClicked(valueChange: Byte) = Unit
+
+        /**
+         * @param valueChange it is positive when clicked plus, negative when minus,
+         * and zero when value clicked
+         */
+        open fun onSecondRowClicked(valueChange: Byte) = Unit
+
+        open fun onDeleteClicked() = Unit
+
+        open fun onExpandClicked() = Unit
+
+        open fun onAddMarkClicked() = Unit
+
+        open fun onParentTypeTextClicked() = Unit
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    class VirtualMarkViewHolder(parent: VirtualMarksAdapter, v: View, type: Int) : RecyclerView.ViewHolder(v) {
+
+        val plusBtn1 = v.findViewById<ImageView?>(R.id.btnIncrease)!!
+        val minusBtn1 = v.findViewById<ImageView?>(R.id.btnDecrease)!!
+        val markValue1 = v.textView(R.id.markValue)!!
+
+        val plusBtn2 = v.findViewById<ImageView?>(R.id.btnIncrease2)
+        val minusBtn2 = v.findViewById<ImageView?>(R.id.btnDecrease2)
+        val markValue2 = v.textView(R.id.markValue2)
+
+        val addMarkBtn = v.findViewById<ImageView?>(R.id.btnAddNewMark)
+        val deleteBtn = v.findViewById<ImageView?>(R.id.btnDeleteMark)!!
+        val expandBtn = v.findViewById<ImageView?>(R.id.btnMore)
+        val parentTypeText = v.findViewById<TextView?>(R.id.parentTypeText)
+
+        private var currentListener = WeakReference<VirtualMarksChangeListener?>(null)
+        fun setListener(l: VirtualMarksChangeListener?) {
+            currentListener = WeakReference(l)
         }
 
-        protected abstract fun calculateAverage(): String?
-
-        protected val mainList = f.viewModel.marksList
-        protected val inflater = LayoutInflater.from(context)!!
+        private inline fun View?.onClick(crossinline function: (VirtualMarksChangeListener) -> Unit) {
+            if (this == null) return
+            setOnClickListener {
+                if (adapterPosition != RecyclerView.NO_POSITION)
+                    function(currentListener.get() ?: return@setOnClickListener)
+            }
+        }
 
         init {
-            mainList.forEach { it.adapter = WeakReference(this) }
-        }
+            addMarkBtn.onClick { it.onAddMarkClicked() }
+            expandBtn.onClick { it.onExpandClicked() }
+            deleteBtn.onClick { it.onDeleteClicked() }
+            parentTypeText.onClick { it.onParentTypeTextClicked() }
 
-        override fun getItemCount() = mainList.size
+            plusBtn1.onClick { it.onFirstRowClicked(+1) }
+            markValue1.onClick { it.onFirstRowClicked(0) }
+            minusBtn1.onClick { it.onFirstRowClicked(-1) }
 
-        override fun onBindViewHolder(holder: VirtualMarkViewHolder, pos: Int) {
-            val item = mainList[pos]
-            item.bindToView(holder)
-        }
+            plusBtn2.onClick { it.onSecondRowClicked(+1) }
+            markValue2.onClick { it.onSecondRowClicked(0) }
+            minusBtn2.onClick { it.onSecondRowClicked(-1) }
 
-        override fun getItemViewType(position: Int): Int {
-            return mainList[position].type
-        }
+            plusBtn1.setImageDrawable(parent.increaseDrawable)
+            minusBtn1.setImageDrawable(parent.decreaseDrawable)
+            plusBtn2?.setImageDrawable(parent.increaseDrawable)
+            minusBtn2?.setImageDrawable(parent.decreaseDrawable)
+            deleteBtn.setImageDrawable(if (deleteBtn.tag !is Int?) parent.deleteAllDrawable
+            else parent.deleteDrawable)
+            addMarkBtn?.setImageDrawable(parent.addMarkDrawable)
+            expandBtn?.setImageDrawable(parent.expandDrawable)
 
-        override fun onCreateViewHolder(parent: ViewGroup, type: Int): VirtualMarkViewHolder {
-            return VirtualMarkViewHolder(this, inflater.inflate(when (type) {
-                TYPE_SCALE_SINGLE -> R.layout.mark_calculator_single_list_item
-                TYPE_SCALE_CHILD -> R.layout.mark_calculator_child_list_item
-                TYPE_SCALE_PARENT -> R.layout.mark_calculator_parent_list_item
-                TYPE_POINTS_SINGLE -> R.layout.mark_calculator_single_list_item
-                else -> throw IllegalStateException()
-            }, parent, false))
-        }
-
-        protected fun insertMark(mark: VirtualMarkListItem, pos: Int) {
-            mark.adapter = WeakReference(this)
-            mainList.add(pos, mark)
-            notifyItemInserted(pos)
-        }
-
-        fun deleteMarkAt(pos_: Int) {
-            var pos = pos_
-            notifyMarkChanged()
-            val iterator = mainList.iterator()
-            var previous: VirtualMarkListItem? = null
-            for (i in 0 until pos)
-                previous = iterator.next()
-
-
-            val item = iterator.next()
-            iterator.remove()
-            var removed = 1
-
-            when (item) {
-                is VirtualMarkParent -> while (iterator.hasNext()) {
-                    val it = iterator.next()
-                    if (it !is VirtualMarkChild || it.parent != item)
-                        break
-                    iterator.remove()
-                    removed++
-                }
-                is VirtualMarkChild -> if (previous is VirtualMarkParent
-                        && (!iterator.hasNext() || iterator.next().type != TYPE_SCALE_CHILD)) {
-                    mainList.removeAt(--pos)
-                    removed += 1
-                }
-            }
-
-
-            notifyItemRangeRemoved(pos, removed)
-        }
-
-        abstract fun getNiceText(value: String?): CharSequence
-
-        abstract fun onNewMarkRequested()
-    }
-
-    class VirtualScaleMarksAdapter(
-            f: VirtualMarksFragment,
-            val markScales: List<MarkDao.MarkScaleShortInfo>)
-        : VirtualBaseAdapter(f) {
-
-        val markScalesTitles = Array(markScales.size) { markScales[it].abbreviation }
-        var lastWeight = 1f
-        var lastMarkScaleIndex = markScalesTitles.size.div(2)
-
-        private fun insertImported(markScaleId: Int,
-                                   weight: Float,
-                                   parent: VirtualMarkParent?) {
-            if (parent != null) {
-                val pos = mainList.indexOf(parent) + 1
-                insertMark(VirtualMarkChild(parent)
-                        .apply { markScaleIndex = markScales.indexOfFirst { it.id == markScaleId } }, pos)
-            } else {
-                insertMark(VirtualMarkSingle().apply {
-                    markScaleIndex = markScales.indexOfFirst { it.id == markScaleId }
-                    this.weight = weight
-                }, if (mainList.isEmpty()) 0 else mainList.size - 1)
+            if (type == TYPE_POINTS_SINGLE) {
+                v.textView(R.id.textWeight)?.precomputedText = "Zdobyte:"
+                v.textView(R.id.title)?.precomputedText = "Baza:"
             }
         }
-
-        fun insertImported(markScaleId: Int, parent: VirtualMarkParent) = insertImported(markScaleId, 0f, parent)
-
-        fun insertImported(markScaleId: Int,
-                           weight: Float) = insertImported(markScaleId, weight, null)
-
-        fun insertImported(weight: Float,
-                           parentType: Int): VirtualMarkParent {
-            val mark = VirtualMarkParent().apply {
-                this.parentType = parentType
-                this.weight = weight
-            }
-            insertMark(mark, if (mainList.isEmpty()) 0 else mainList.size - 1)
-            return mark
-        }
-
-
-        private fun calculateAverageScaleMarks(): Float {
-            var totalSum = 0f
-            var totalWeight = 0f
-            mainList.filterIsInstance<VirtualMarkChild>()
-                    .groupBy { it.parent }
-                    .filterNot { it.value.isEmpty() }
-                    .forEach { entry ->
-                        val key = entry.key
-                        // no parent
-                        if (key == null || key.parentType == MarkDao.PARENT_TYPE_COUNT_EVERY) {
-                            entry.value.forEach {
-                                totalSum += markScales[it.markScaleIndex].markValue * it.weight
-                                totalWeight += it.weight
-                            }
-                            return@forEach
-                        }
-
-                        when (key.parentType) {
-                            MarkDao.PARENT_TYPE_COUNT_AVERAGE -> {
-                                totalSum += entry.value.averageBy {
-                                    markScales[it.markScaleIndex].markValue.toDouble()
-                                }.toFloat() * key.weight
-                                totalWeight += key.weight
-                            }
-                            MarkDao.PARENT_TYPE_COUNT_BEST -> {
-                                totalSum += markScales[entry.value
-                                        .maxBy { markScales[it.markScaleIndex].markValue }
-                                !!.markScaleIndex].markValue * key.weight
-                                totalWeight += key.weight
-                            }
-                            MarkDao.PARENT_TYPE_COUNT_LAST -> {
-                                totalSum += markScales[entry.value
-                                        .last().markScaleIndex].markValue * key.weight
-                                totalWeight += key.weight
-                            }
-                            MarkDao.PARENT_TYPE_COUNT_WORSE -> {
-                                totalSum += markScales[entry.value
-                                        .minBy { markScales[it.markScaleIndex].markValue }
-                                !!.markScaleIndex].markValue * key.weight
-                                totalWeight += key.weight
-                            }
-                        }
-                    }
-            return totalSum / totalWeight
-        }
-
-        override fun calculateAverage(): String? {
-            return calculateAverageScaleMarks().let {
-                if (it.isNaN()) null else "%.2f".format(it)
-            }
-        }
-
-        override fun onNewMarkRequested() {
-            insertMark(VirtualMarkSingle(), 0)
-        }
-
-        fun replaceSingle(pos: Int) {
-            val item = mainList[pos] as VirtualMarkSingle
-            mainList.removeAt(pos)
-
-            val new = VirtualMarkParent()
-            new.adapter = WeakReference(this)
-            mainList.add(pos, new)
-
-            notifyItemChanged(pos)
-
-            insertMark(VirtualMarkChild(new).also {
-                it.markScaleIndex = item.markScaleIndex
-                new.weight = item.weight
-            }, pos + 1)
-
-            notifyMarkChanged()
-        }
-
-        fun createNewChildMark(parent: VirtualMarkParent) {
-            insertMark(VirtualMarkChild(parent),
-                    mainList.indexOf(parent) + 1)
-
-            notifyMarkChanged()
-        }
-
-        override fun getNiceText(value: String?) = if (value == null) "Tu pokaże się twoja średnia"
-        else "Średnia ważona wynosi $value"
-    }
-
-    class VirtualMarkPointsAdapter(f: VirtualMarksFragment) : VirtualBaseAdapter(f) {
-        override fun onNewMarkRequested() {
-            insertMark(VirtualPointsMark(), 0)
-        }
-
-        fun insertImported(value: Float,
-                           maxValue: Float) {
-            insertMark(VirtualPointsMark().also {
-                it.gotPointsSum = value
-                it.weight = maxValue
-            }, if (mainList.isEmpty()) 0 else mainList.size - 1)
-        }
-
-        override fun calculateAverage(): String? {
-            var totalSum = 0f
-            var totalBase = 0f
-
-            mainList.filterIsInstance<VirtualPointsMark>()
-                    .forEach {
-                        totalSum += it.gotPointsSum
-                        totalBase += it.basePointsSum
-                    }
-
-            if (totalBase == 0f)
-                return null
-            return "%.1f na %.1f czyli %.2f%%".format(totalSum, totalBase, totalSum / totalBase * 100f)
-        }
-
-        override fun getNiceText(value: String?) = if (value != null) "Twój wynik punktowy: $value"
-        else "Tu pokaże się ilość zdobytych punktów"
     }
 }

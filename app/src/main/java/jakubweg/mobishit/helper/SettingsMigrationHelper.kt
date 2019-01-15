@@ -22,13 +22,7 @@ object SettingsMigrationHelper {
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 
-            if (version <= 10) { //TODO delete in future
-
-                //this handles crashes
-                prefs.edit().putBoolean("hsVm", false).commit()
-            } else {
-                deleteDatabaseAndRequestNew(prefs, context)
-            }
+            deleteDatabaseAndRequestNew(prefs, context)
         }
     }
 

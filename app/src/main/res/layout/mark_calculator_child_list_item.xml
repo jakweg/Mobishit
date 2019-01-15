@@ -7,7 +7,7 @@
     android:paddingLeft="16dp"
     android:paddingTop="4dp"
     android:paddingBottom="4dp"
-    tools:ignore="ContentDescription,RtlHardcoded,RtlSymmetry">
+    tools:ignore="ContentDescription,RtlHardcoded,RtlSymmetry,HardcodedText">
 
     <TextView
         android:id="@+id/textWeight"
@@ -52,7 +52,7 @@
             android:minWidth="30dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:text="bdb" />
+            tools:text="bdb" />
 
         <ImageButton
             android:id="@+id/btnIncrease"

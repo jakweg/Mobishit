@@ -1,14 +1,15 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package jakubweg.mobishit.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.AsyncTask
-import android.os.Parcel
-import android.os.Parcelable
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
+import jakubweg.mobishit.fragment.AboutVirtualMarksFragment
 import jakubweg.mobishit.helper.ThemeHelper.THEME_DEFAULT
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
@@ -315,16 +316,24 @@ class MobiregPreferences private constructor(
         get() = prefs.getBoolean("sAAf", false)
         set(value) = prefs.edit().putBoolean("sAAf", value).apply()
 
-    var hasSavedAnyVirtualMark
-        get() = prefs.getBoolean("hsVm", false)
-        set(value) = prefs.edit().putBoolean("hsVm", value).apply()
-
-    var lastMarkScaleGroupId
-        get() = prefs.getInt("lmsg", -1)
-        set(value) = prefs.edit().putInt("lmsg", value).apply()
-
     val showLessonNumberOnTimetable get() = showingLessonsNumberPolicy[0] == '1'
     val showLessonNumberOnWidget get() = showingLessonsNumberPolicy[1] == '1'
     private val showingLessonsNumberPolicy get() = getString("sn") ?: "11"
 
+
+    val savedVirtualMarksState get() = prefs.getInt("svms", AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED)
+
+    val savedMarkScaleGroupId get() = prefs.getInt("smsg", -1)
+
+    inline fun markHavingSavedMarkScaleGroupMarks(markScaleGroupsId: Int) = setSavedMarksState(AboutVirtualMarksFragment.STATE_HAVING_SCALE_MARKS, markScaleGroupsId)
+    inline fun markHavingPointsMarks() = setSavedMarksState(AboutVirtualMarksFragment.STATE_HAVING_POINTS_MARKS, -1)
+    inline fun markHavingNoSavedMarks() = setSavedMarksState(AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED, 0)
+
+    @SuppressLint("ApplySharedPref")
+    fun setSavedMarksState(state: Int, markScaleGroupsId: Int) {
+        prefs.edit()
+                .putInt("svms", state)
+                .putInt("smsg", markScaleGroupsId)
+                .commit()
+    }
 }

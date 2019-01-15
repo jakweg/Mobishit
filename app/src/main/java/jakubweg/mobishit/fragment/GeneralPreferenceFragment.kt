@@ -22,7 +22,10 @@ import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.db.AppDatabase
-import jakubweg.mobishit.helper.*
+import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.SimpleCallback2
+import jakubweg.mobishit.helper.TimetableWidgetProvider
+import jakubweg.mobishit.helper.makeCallback2
 import jakubweg.mobishit.service.CountdownService
 import jakubweg.mobishit.service.FcmServerNotifierWorker
 import jakubweg.mobishit.service.UpdateWorker
@@ -63,7 +66,7 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
 
         findPreference("key_log_out")?.also { pref ->
 
-            pref.setOnPreferenceClickListener { _ ->
+            pref.setOnPreferenceClickListener {
                 val context = this.context ?: return@setOnPreferenceClickListener true
                 AlertDialog.Builder(context)
                         .setMessage("Czy na pewno chcesz się wylogować?")
