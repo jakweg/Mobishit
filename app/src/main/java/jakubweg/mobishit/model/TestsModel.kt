@@ -15,6 +15,7 @@ import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import org.jsoup.Jsoup
 import java.net.URLEncoder
+import java.util.*
 
 class TestsModel(application: Application)
     : BaseViewModel(application) {
@@ -102,12 +103,14 @@ class TestsModel(application: Application)
     private fun makeLinkToDownloadFrom(prefs: MobiregPreferences): String? {
         return (DedicatedServerManager(context).testsLink ?: return null) + (
                 "?l=" + URLEncoder.encode(Base64.encodeToString(prefs.loginAndHostIfNeeded.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                "&h=" + URLEncoder.encode(Base64.encodeToString(prefs.host?.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                "&p=" + URLEncoder.encode(Base64.encodeToString(prefs.password?.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                // we add this because of multiuser accounts need them
-                "&n=" + URLEncoder.encode(Base64.encodeToString(prefs.name.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                "&s=" + URLEncoder.encode(Base64.encodeToString(prefs.surname.toByteArray(), Base64.DEFAULT), "UTF-8") +
-                        "&v=" + URLEncoder.encode(Base64.encodeToString(BuildConfig.VERSION_CODE.toString().toByteArray(), Base64.DEFAULT), "UTF-8"))
+                        "&h=" + URLEncoder.encode(Base64.encodeToString(prefs.host?.toByteArray(), Base64.DEFAULT), "UTF-8") +
+                        "&p=" + URLEncoder.encode(Base64.encodeToString(prefs.password?.toByteArray(), Base64.DEFAULT), "UTF-8") +
+                        // we add this because of multiuser accounts need them
+                        "&n=" + URLEncoder.encode(Base64.encodeToString(prefs.name.toByteArray(), Base64.DEFAULT), "UTF-8") +
+                        "&s=" + URLEncoder.encode(Base64.encodeToString(prefs.surname.toByteArray(), Base64.DEFAULT), "UTF-8") +
+                        "&v=" + URLEncoder.encode(Base64.encodeToString(BuildConfig.VERSION_CODE.toString().toByteArray(), Base64.DEFAULT), "UTF-8") +
+                        "&c=" + URLEncoder.encode(Base64.encodeToString((Locale.getDefault()?.language
+                        ?: "_").toByteArray(), Base64.DEFAULT), "UTF-8"))
     }
 
     private var mStatus = MutableLiveData<Int>().apply { value = STATUS_UNKNOWN }

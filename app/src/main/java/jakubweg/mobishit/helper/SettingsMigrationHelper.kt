@@ -26,10 +26,10 @@ object SettingsMigrationHelper {
         }
     }
 
+    @SuppressLint("ApplySharedPref")
     fun deleteDatabaseAndRequestNew(pref: SharedPreferences,
                                     context: Context) {
 
-        AppDatabase.deleteDatabase(context)
         pref.edit()
                 .remove("lastEndDate")
                 .remove("startDate")
@@ -37,7 +37,8 @@ object SettingsMigrationHelper {
                 .remove("lastCheck")
                 .remove("lmt")
                 .remove("hsVm")
-                .apply()
+                .commit()
+        AppDatabase.deleteDatabase(context)
 
         UpdateWorker.requestUpdates(context)
         AppUpdateWorker.requestChecks()

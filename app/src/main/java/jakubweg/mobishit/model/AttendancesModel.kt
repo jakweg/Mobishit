@@ -4,6 +4,7 @@ import android.app.Application
 import android.arch.lifecycle.MutableLiveData
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.AttendanceDao
+import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.helper.DateHelper
 import java.util.*
 
@@ -26,17 +27,13 @@ class AttendancesModel(application: Application)
         val stats = mutableListOf<AttendanceDao.AttendanceCountInfoHolder>()
 
         terms.forEach {
-            val events = dao.getAttdnadancesByTerm(it.id)
+            val events = dao.getAttendancesByTerm(it.id)
             if (events.isEmpty())
                 return@forEach
 
-            val name = when (it.type) {
-                "Y" -> if (it.name.contains("rok", true)) it.name else "Rok szkolny ${it.name}"
-                "T" -> if (it.name.contains("semestr", true)) it.name else "Semestr ${it.name}"
-                else -> "Nieznany czas (${it.name})"
-            }
             stats.add(AttendanceDao.AttendanceCountInfoHolder(
-                    name, it.startDate, it.endDate, events))
+                    TermDao.getNiceTermName(it.type, it.name),
+                    it.startDate, it.endDate, events))
         }
 
         val firstDay = dao.getFirstAttendanceDay() ?: -1

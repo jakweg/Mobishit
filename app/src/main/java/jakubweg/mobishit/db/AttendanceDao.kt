@@ -52,7 +52,7 @@ interface AttendanceDao {
                 INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
                 WHERE (Terms.id = :termId OR Terms.parentId = :termId) AND isExcludedFromStats = 0
                 AND status != 2 AND substitution != 1 GROUP BY countAs""")
-    fun getAttdnadancesByTerm(termId: Int): List<AttendanceCountInfo>
+    fun getAttendancesByTerm(termId: Int): List<AttendanceCountInfo>
 
 
     class AttendanceTypeAndCountInfo(val id: Int, val name: String, val count: Int, val color: Int)
@@ -71,7 +71,7 @@ interface AttendanceDao {
                 INNER JOIN Events ON Events.id = Attendances.eventId
                 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
                 INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
-                WHERE subjectId = :subjectId AND date BETWEEN :start AND :end AND isExcludedFromStats = 0
+                WHERE IFNULL(subjectId, 0) = :subjectId AND date BETWEEN :start AND :end AND isExcludedFromStats = 0
                 AND status != 2 AND substitution != 1 GROUP BY typeId""")
     fun getDetailedAttendancesBetweenDates(start: Long, end: Long, subjectId: Int): List<AttendanceTypeAndCountInfo>
 
@@ -96,13 +96,13 @@ GROUP BY subjectId ORDER BY Subjects.abbreviation""")
 
     class AttendanceLesson(val title: String?, val date: Long, val number: Int)
 
-    @Query("""SELECT IFNULL(Subjects.name, Events.name) as title,
+    @Query("""SELECT CASE WHEN Subjects.id = 0 THEN Events.name ELSE Subjects.name END as title,
          date, IFNULL(number, -1) as number FROM Attendances
 INNER JOIN AttendanceTypes ON AttendanceTypes.id = typeId
 INNER JOIN Events ON Events.id = Attendances.eventId
 INNER JOIN EventTypes ON EventTypes.id = eventTypeId
 INNER JOIN Subjects ON Subjects.id = IFNULL(subjectId, 0)
-WHERE subjectId = :subjectId AND typeId = :typeId AND status != 2 AND substitution != 1
+WHERE IFNULL(subjectId, 0) = :subjectId AND typeId = :typeId AND status != 2 AND substitution != 1
 AND date BETWEEN :start AND :end
 ORDER BY date, number""")
     fun getAttendanceDatesBySubject(start: Long, end: Long, subjectId: Int, typeId: Int): List<AttendanceLesson>

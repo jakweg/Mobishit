@@ -67,9 +67,6 @@ class SubjectListModel(application: Application)
         if (lastTerm == MobiregPreferences.get(context).lastSelectedTerm)
             return
         cancelLastTask()
-        MobiregPreferences.get(context).apply {
-            hasReadyAverageCache = false
-        }
         handleBackground()
     }
 

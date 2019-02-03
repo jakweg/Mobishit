@@ -35,7 +35,7 @@ class SettingsActivity : Activity() {
                         finish()
                     }
                     .setNeutralButton("Nie pokazuj tego więcej") { _, _ ->
-                        MobiregPreferences.get(this).ignoreCrashes
+                        MobiregPreferences.get(this).ignoreCrashes = true
                         finish()
                     }
                     .show()

@@ -8,8 +8,11 @@ import com.google.firebase.FirebaseApp;
 import com.squareup.leakcanary.LeakCanary;
 
 import jakubweg.mobishit.helper.CrashHandler;
+import jakubweg.mobishit.helper.MobiregPreferences;
 
 public class MobishitApplication extends Application {
+    private static final boolean IS_TESTING_EXCEPTION_HANDLING = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -20,18 +23,29 @@ public class MobishitApplication extends Application {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         FirebaseApp.initializeApp(this);
 
-        if (!BuildConfig.DEBUG)
-            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-                @SuppressWarnings("ResultOfMethodCallIgnored")
-                @Override
-                public void uncaughtException(Thread thread, Throwable exception) {
-                    try {
-                        Log.e("FATAL EXCEPTION", "Uncaught exception crashed Mobishit", exception);
-                        CrashHandler.INSTANCE.onNewCrash(getApplicationContext(), thread, exception);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+
+        if (!BuildConfig.DEBUG || IS_TESTING_EXCEPTION_HANDLING) {
+            MobiregPreferences prefs = MobiregPreferences.Companion.get(getApplicationContext());
+
+            long lastCrash = prefs.getLastCrashTime();
+            if (lastCrash + 20 * 1000L < System.currentTimeMillis())
+                Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+                    @SuppressWarnings("ResultOfMethodCallIgnored")
+                    @Override
+                    public void uncaughtException(Thread thread, Throwable exception) {
+                        try {
+                            Log.e("FATAL EXCEPTION", "Uncaught exception crashed Mobishit", exception);
+                            MobiregPreferences prefs = MobiregPreferences.Companion.get(getApplicationContext());
+
+                            prefs.setLastCrashTime(System.currentTimeMillis());
+                            CrashHandler.INSTANCE.onNewCrash(getApplicationContext(), thread, exception);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                            throw new RuntimeException(e);
+                        }
                     }
-                }
-            });
+                });
+        }
     }
 }

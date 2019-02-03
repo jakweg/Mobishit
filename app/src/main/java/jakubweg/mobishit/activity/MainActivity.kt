@@ -156,10 +156,13 @@ class MainActivity : DoublePanelActivity() {
                 AboutAttendancesFragment
                         .newInstance()
                         .showSelf(this)
-            R.id.nav_sort_by ->
+            R.id.nav_sort_by -> {
                 MarksViewOptionsFragment
-                        .newInstance(getLastFragment<SubjectsMarkFragment>() != null)
+                        .newInstance(supportFragmentManager
+                                .fragments
+                                .findLast { it is SubjectsMarkFragment } != null)
                         .showSelf(this)
+            }
         }
     }
 

@@ -14,15 +14,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
+import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.ComparisonCacheData
 import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.ComparisonsModel
 import java.lang.ref.WeakReference
 
 
-class ComparisonsFragment : Fragment() {
+class ComparisonsFragment : Fragment(),
+        MarksViewOptionsFragment.OptionsChangedListener {
     companion object {
         fun newInstance() = ComparisonsFragment()
     }
@@ -37,6 +40,20 @@ class ComparisonsFragment : Fragment() {
     }
 
 
+    private lateinit var listener: MarkOptionsListener
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        listener = MarkOptionsListener(this)
+    }
+
+    override fun onOptionsChanged(changedTerm: Boolean,
+                                  changedOrder: Boolean,
+                                  changedGrouping: Boolean) {
+        if (changedTerm)
+            viewModel.refreshDataFromInternet()
+    }
+
     private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProviders.of(this)[ComparisonsModel::class.java]
     }
@@ -44,6 +61,9 @@ class ComparisonsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val context = this.context!!
 
+        view.textView(R.id.textTerm)?.setOnClickListener {
+            (activity as? MainActivity?)?.onToolbarItemClicked(R.id.nav_sort_by)
+        }
         view.textView(R.id.avg_person)?.setLeftDrawable(R.drawable.ic_person)
         view.textView(R.id.avg_class)?.setLeftDrawable(R.drawable.ic_group)
         view.textView(R.id.avg_school)?.setLeftDrawable(R.drawable.ic_school)
@@ -71,8 +91,18 @@ class ComparisonsFragment : Fragment() {
         loadingLayout?.setOnRefreshListener { retryRunnable.run() }
         mainList?.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
 
-        viewModel.averages.observe(this, AveragesObserver(this))
-        viewModel.status.observe(this, StatusObserver(this))
+        val weakRef = WeakReference<ComparisonsFragment>(this)
+
+        viewModel.selectedTermInfo.observe(this, Observer {
+            weakRef.get()?.view?.findViewById<TextView?>(R.id.textTerm)
+                    ?.precomputedText = "Wyświetlam porównania na ${it?.name ?: "nie wiem kiedy"}"
+        })
+        viewModel.averages.observe(this, Observer {
+            weakRef.get()?.onNewAverages(it ?: return@Observer)
+        })
+        viewModel.status.observe(this, Observer {
+            weakRef.get()?.onStatusChanged(it ?: return@Observer)
+        })
 
         if (viewModel.averages.value?.isNotEmpty() != true) {
             mainList?.adapter = EmptyAdapter("Brak dostępnych porównań\nPołącz się z internetem lub spróbuj ponownie później")
@@ -204,21 +234,5 @@ class ComparisonsFragment : Fragment() {
     private val retryRunnable = Runnable {
         loadingLayout?.isRefreshing = true
         viewModel.refreshDataFromInternet()
-    }
-
-    private class StatusObserver(f: ComparisonsFragment)
-        : Observer<Int> {
-        val weakRef = WeakReference<ComparisonsFragment>(f)
-        override fun onChanged(t: Int?) {
-            weakRef.get()?.onStatusChanged(t ?: return)
-        }
-    }
-
-    private class AveragesObserver(f: ComparisonsFragment)
-        : Observer<List<ComparisonCacheData>> {
-        val weakRef = WeakReference<ComparisonsFragment>(f)
-        override fun onChanged(t: List<ComparisonCacheData>?) {
-            weakRef.get()?.onNewAverages(t ?: return)
-        }
     }
 }

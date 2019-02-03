@@ -5,7 +5,7 @@
     <string name="navigation_drawer_close">Zamknij nawigację</string>
     <string name="title_activity_settings">Ustawienia</string>
     <string name="timetable">Plan lekcji</string>
-    <string name="calculateAverage">Oblicz średnią</string>
+    <string name="calculateAverage">Kalkulator średnich</string>
     <string name="countdownServiceLabel">Odliczanie czasu do końca lekcji</string>
     <string name="welcomeText">
         Witaj w Mobishit

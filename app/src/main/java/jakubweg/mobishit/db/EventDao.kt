@@ -73,7 +73,7 @@ LEFT JOIN EventTypes ON Events.eventTypeId = EventTypes.id
 LEFT JOIN Subjects ON Subjects.id = EventTypes.subjectId
 WHERE (countAs != 'P') + :allowPresentAttendance > 0 AND Attendances.id IN (:ids)
 ORDER BY startTime, number""")
-    fun getAttendanceInfoByIds(ids: List<Int>, allowPresentAttendance: Boolean): List<AttendanceShortInfo>
+    fun getAttendanceInfoByIds(ids: IntArray, allowPresentAttendance: Boolean): List<AttendanceShortInfo>
 
 
     @Query("SELECT Count(id) > 0 FROM Events WHERE Events.date = :date LIMIT 1")

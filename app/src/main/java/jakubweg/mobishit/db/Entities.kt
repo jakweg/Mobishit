@@ -5,7 +5,6 @@ import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
-import java.util.*
 
 
 @Entity(tableName = "Teachers")
@@ -93,7 +92,9 @@ class TestData(@PrimaryKey(autoGenerate = true) val id: Int, val date: String, v
 }
 
 @Entity(tableName = "AverageCaches")
-class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subjectId: Int, val subjectName: String?, var marks: String?, var weightedAverage: Float, var gotPointsSum: Float, var baseSum: Float) {
+class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int,
+                       val subjectId: Int, val subjectName: String?, var marks: String?,
+                       var weightedAverage: Float, var gotPointsSum: Float, var baseSum: Float) {
 
     fun getMarksList(): List<String> {
         return marks?.split('@') ?: emptyList()
@@ -101,9 +102,11 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
 
 
     fun setMarksList(list: List<MarkDao.MarkShortInfo>?) {
-        marks = list?.joinToString(separator = "@") {
+        marks = list?.joinToString(separator = "@") { it ->
             when {
-                it.markScaleValue >= 0 -> it.abbreviation ?: ""
+                it.markScaleValue >= 0 -> it.abbreviation.takeUnless { it.isNullOrBlank() }
+                        ?: if (it.markScaleValue == it.markScaleValue.toInt().toFloat())
+                            it.markScaleValue.toInt().toString() else "%.1f".format(it.markScaleValue)
                 it.markPointsValue >= 0 -> it.markPointsValue.toString()
                 else -> ""
             }
@@ -115,15 +118,15 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
         val hasWeightedAverage = weightedAverage > 0f
         return when {
             hasPoints && hasWeightedAverage ->
-                "Średnia: %.2f\nZdobyte punkty: %.1f na %.1f czyli %.1f%%".format(Locale.getDefault(),
+                String.format("Średnia: %.2f\nZdobyte punkty: %.1f na %.1f czyli %.1f%%",
                         weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasPoints ->
-                "Zdobyte punkty: %.1f na %.1f czyli %.1f%%".format(Locale.getDefault(),
+                String.format("Zdobyte punkty: %.1f na %.1f czyli %.1f%%",
                         gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasWeightedAverage ->
-                "Twoja średnia ważona wynosi %.2f".format(Locale.getDefault(), weightedAverage)
+                String.format("Twoja średnia ważona wynosi %.2f", weightedAverage)
 
             else -> "Brak danych"
         }.also { _averageText = it }
@@ -139,14 +142,14 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int, val subject
         val hasWeightedAverage = weightedAverage > 0f
         return when {
             hasPoints && hasWeightedAverage ->
-                "%.2f\n%.1f/%.1f %.1f%%".format(Locale.getDefault(),
+                String.format("%.2f\n%.1f/%.1f %.1f%%",
                         weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
             hasPoints ->
-                "%.1f/%.1f\n%.1f%%".format(Locale.getDefault(),
+                String.format("%.1f/%.1f\n%.1f%%",
                         gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
 
-            hasWeightedAverage -> "%.2f".format(Locale.getDefault(), weightedAverage)
+            hasWeightedAverage -> String.format("%.2f", weightedAverage)
 
             else -> ""
         }.also { _shortAverageText = it }

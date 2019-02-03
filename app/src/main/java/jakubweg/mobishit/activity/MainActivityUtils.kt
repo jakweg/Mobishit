@@ -167,18 +167,18 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
         } else {
             intent.action?.also {
                 when (it) {
-                    MainActivity.ACTION_SHOW_MARK -> {
-                        if (idFromIntent != 0)
-                            MarkDetailsFragment.newInstance(idFromIntent)
-                                    .showSelf(activity)
-                        checkItemId = R.id.nav_marks
-                    }
                     MainActivity.ACTION_SHOW_TIMETABLE -> {
                         if (idFromIntent > 0) {
                             TimetableFragment.requestedDate = idFromIntent
                             forceRecheck = true
                         } else TimetableFragment.requestedDate = -1
                         checkItemId = R.id.nav_timetable
+                    }
+                    MainActivity.ACTION_SHOW_MARK -> {
+                        if (idFromIntent != 0)
+                            MarkDetailsFragment.newInstance(idFromIntent)
+                                    .showSelf(activity)
+                        checkItemId = R.id.nav_marks
                     }
                     MainActivity.ACTION_SHOW_MESSAGE -> {
                         if (idFromIntent != 0)
@@ -256,21 +256,34 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
             R.id.nav_tests -> "Sprawdziany"
             R.id.nav_about -> "O aplikacji"
             R.id.nav_settings -> "Ustawienia"
-            R.id.nav_calculate_average -> "Oblicz średnią"
+            R.id.nav_calculate_average -> "Kalkulator średnich"
             else -> return
         }
     }
 
     private fun setToolbarItemsVisibleById(activity: MainActivity, itemId: Int) {
-        val visibleItems = when (itemId) {
+        /*val visibleItems = when (itemId) {
             R.id.nav_marks -> intArrayOf(R.id.nav_sort_by)
             R.id.nav_timetable -> intArrayOf(R.id.nav_choose_date)
             R.id.nav_attendances -> intArrayOf(R.id.nav_about_attendances)
+            R.id.nav_comparisons -> intArrayOf(R.id.nav_sort_by)
             else -> intArrayOf()
         }
 
         activity.toolbar.menu!!.forEach {
             it.isVisible = (it.itemId in visibleItems)
+            it.setShowAsAction(SupportMenuItem.SHOW_AS_ACTION_ALWAYS)
+        }*/
+        val visibleItem = when (itemId) {
+            R.id.nav_marks -> (R.id.nav_sort_by)
+            R.id.nav_timetable -> (R.id.nav_choose_date)
+            R.id.nav_attendances -> (R.id.nav_about_attendances)
+            R.id.nav_comparisons -> (R.id.nav_sort_by)
+            else -> R.id.none
+        }
+
+        activity.toolbar.menu!!.forEach {
+            it.isVisible = (it.itemId == visibleItem)
             it.setShowAsAction(SupportMenuItem.SHOW_AS_ACTION_ALWAYS)
         }
     }
@@ -293,6 +306,9 @@ class MarkOptionsListener(private val fragment: Fragment,
                                  changedGrouping: Boolean) {
             if (!changedTerm && !changedOrder && !changedGrouping)
                 return
+            if (changedTerm)
+                MobiregPreferences.get(context).hasReadyAverageCache = false
+
             LocalBroadcastManager
                     .getInstance(context ?: return)
                     .sendBroadcast(Intent()
@@ -342,9 +358,9 @@ class MarkOptionsListener(private val fragment: Fragment,
         intentToHandle?.apply {
             when (action ?: return) {
                 ACTION_MARK_OPTIONS_CHANGED -> listener.onOptionsChanged(
-                    getBooleanExtra(EXTRA_CHANGED_TERM, false),
-                    getBooleanExtra(EXTRA_CHANGED_ORDER, false),
-                    getBooleanExtra(EXTRA_CHANGED_GROUPING, false)
+                        getBooleanExtra(EXTRA_CHANGED_TERM, false),
+                        getBooleanExtra(EXTRA_CHANGED_ORDER, false),
+                        getBooleanExtra(EXTRA_CHANGED_GROUPING, false)
                 )
             }
         }
@@ -456,5 +472,3 @@ inline fun Menu.forEach(func: (MenuItem) -> Unit) {
     for (i in 0 until size())
         func.invoke(getItem(i))
 }
-
-inline fun <E> List<E>.averageBy(crossinline getter: (E) -> Double) = sumByDouble(getter).div(size.toDouble())

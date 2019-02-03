@@ -11,17 +11,43 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import jakubweg.mobishit.BuildConfig
+import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.activity.SettingsActivity
 import jakubweg.mobishit.service.CrashUploadWorker
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 object CrashHandler {
+    private val Throwable.isRoomDatabaseError: Boolean
+        get() = (this is IllegalStateException
+                && toString().run {
+            contains("Room cannot verify the data integrity", true)
+                    || contains("SQLiteDatabase", true)
+        }) || (this.cause?.let { this != it && it.isRoomDatabaseError } == true)
+
     fun onNewCrash(context: Context,
                    thread: Thread,
                    exception: Throwable) {
         try {
+            if (exception.isRoomDatabaseError) {
+                // we drop database and request new one
+                SettingsMigrationHelper.deleteDatabaseAndRequestNew(MobiregPreferences.get(context).prefs, context)
+
+                Thread.sleep(2000L) //give some time to WorkManager to enqueue work
+
+                AlarmManagerCompat.setExactAndAllowWhileIdle(
+                        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager,
+                        AlarmManager.RTC_WAKEUP,
+                        System.currentTimeMillis() + 3000L,
+                        PendingIntent.getActivity(context, Random.nextInt(-1000, 0),
+                                Intent(context, MainActivity::class.java), PendingIntent.FLAG_ONE_SHOT))
+
+                System.exit(1)
+                return
+            }
+
             val input = Data.Builder()
                     .putString("token", MobiregPreferences.get(context).firebaseToken)
                     .putString("thread_name", thread.name)
@@ -50,13 +76,13 @@ object CrashHandler {
             WorkManager.getInstance()
                     .enqueue(request)
 
-            Thread.sleep(1000) // give some time to WorkManager for enqueuing request
+            Thread.sleep(1500) // give some time to WorkManager for enqueuing request
 
             if (!MobiregPreferences.get(context).ignoreCrashes)
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
                         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager,
                         AlarmManager.RTC_WAKEUP,
-                        System.currentTimeMillis() + 1000,
+                        System.currentTimeMillis() + 1500,
                         PendingIntent.getActivity(context, 0,
                                 Intent(context, SettingsActivity::class.java).also {
                                     it.action = SettingsActivity.ACTION_SHOW_CRASH_DIALOG
@@ -67,7 +93,7 @@ object CrashHandler {
             e.printStackTrace()
         }
 
-        System.exit(0)
+        System.exit(1)
     }
 
     private fun Throwable.stackTraceToString(): String {

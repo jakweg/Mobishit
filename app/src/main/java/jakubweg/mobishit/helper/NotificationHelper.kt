@@ -44,7 +44,7 @@ class NotificationHelper(val context: Context) {
         //return getNotificationIds(1).first()
     }
 
-    fun getNotificationIds(count: Int): Array<Int> {
+    fun getNotificationIds(count: Int): IntArray {
         assert(count > 0)
         synchronized(mutex) {
 
@@ -54,7 +54,7 @@ class NotificationHelper(val context: Context) {
             var next = preferences.getInt("nextId", 1)
             preferences.edit().putInt("nextId", next + count).apply()
 
-            return Array(count) { next++ }
+            return IntArray(count) { next++ }
         }
     }
 
@@ -83,7 +83,7 @@ class NotificationHelper(val context: Context) {
                 makeChannel(CHANNEL_COUNTDOWN, "Odliczanie do końca lekcji", NotificationManager.IMPORTANCE_LOW, showBadges = false),
                 makeChannel(CHANNEL_MARKS, "Nowe oceny", NotificationManager.IMPORTANCE_DEFAULT, CHANNEL_GROUP_MOBIREG),
                 makeChannel(CHANNEL_MESSAGES, "Nowe wiadomości", NotificationManager.IMPORTANCE_DEFAULT, CHANNEL_GROUP_MOBIREG),
-                makeChannel(CHANNEL_ATTENDANCES, "Obecności, nieobeconości i spóźnienia", NotificationManager.IMPORTANCE_DEFAULT, CHANNEL_GROUP_MOBIREG),
+                makeChannel(CHANNEL_ATTENDANCES, "Obecności, nieobeconości i spóźnienia", NotificationManager.IMPORTANCE_LOW, CHANNEL_GROUP_MOBIREG),
                 makeChannel(CHANNEL_SUBSTITUTIONS, "Zastępstwa i odwołane lekcje", NotificationManager.IMPORTANCE_DEFAULT, CHANNEL_GROUP_MOBIREG)
         )
 
@@ -101,7 +101,7 @@ class NotificationHelper(val context: Context) {
     }
 
     fun postNotification(id: Int, notification: NotificationCompat.Builder, isCancelable: Boolean = true) {
-        val n = notification.build()
+        val n = notification.build()!!
         if (!isCancelable)
             n.flags = n.flags or Notification.FLAG_NO_CLEAR
         else

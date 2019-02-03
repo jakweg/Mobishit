@@ -89,7 +89,7 @@ class AttendanceSubjectsListFragment : AttendanceBaseSheetFragment() {
         override fun onBindViewHolder(holder: ViewHolder, pos: Int) {
             list[pos].also {
                 holder.subjectName.precomputedText = it.subjectName
-                holder.percent.text = String.format("%.1f%%", it.percentage)
+                holder.percent.text = String.format("%.1f%% (%d)", it.percentage, it.total)
             }
         }
 

@@ -52,7 +52,8 @@ interface MarkDao {
     }
 
     @Query("""SELECT
-                        Marks.id, MarkGroups.description, MarkScales.abbreviation, IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
+                        Marks.id, MarkGroups.description, MarkScales.abbreviation,
+                        IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
                         IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage,
                         IFNULL(Marks.markValue, -1) AS 'markPointsValue',
                         MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax', Terms.id AS 'termId',
@@ -67,7 +68,7 @@ interface MarkDao {
                     INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
                     WHERE Subjects.id = :subjectId AND MarkGroups.visibility = 0
                      AND (:termId IS NULL OR Terms.id = :termId OR Terms.parentId = :termId)
-                    ORDER BY getDate DESC""")
+                    ORDER BY addTime DESC""")
     fun getMarksBySubject(subjectId: Int, termId: Int?): List<MarkShortInfo>
 
 
@@ -83,7 +84,7 @@ INNER JOIN EventTypeTerms ON EventTypeTerms.id = MarkGroups.eventTypeTermId
 INNER JOIN EventTypes ON EventTypes.id = EventTypeTerms.eventTypeId
 INNER JOIN Subjects ON Subjects.id = EventTypes.subjectId
 WHERE Marks.id IN (:markIds) AND visibility = 0""")
-    fun getMarkShortInfo(markIds: List<Int>): List<MarkShortInfoWithSubject>
+    fun getMarkShortInfo(markIds: IntArray): List<MarkShortInfoWithSubject>
 
 
     /// used in MarkDetailsFragment
@@ -98,10 +99,11 @@ WHERE Marks.id IN (:markIds) AND visibility = 0""")
         val formattedAddTime = DateHelper.millisToStringTime(addTime)
     }
 
-    @Query("""SELECT MarkGroups.description, MarkScales.name AS markName, MarkScales.abbreviation, IFNULL(Marks.markValue, -1) AS markPointsValue,
-         MarkKinds.name AS columnName, MarkKinds.defaultWeight, noCountToAverage, countPointsWithoutBase,
-         IFNULL(markValueMax, -1) as 'markValueMax', getDate, addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname,
-         Subjects.name AS subjectName, parentType
+    @Query("""SELECT MarkGroups.description, MarkScales.name AS markName, MarkScales.abbreviation,
+IFNULL(Marks.markValue, IFNULL(MarkScales.markValue, -1)) AS markPointsValue,
+MarkKinds.name AS columnName, MarkKinds.defaultWeight, noCountToAverage, countPointsWithoutBase,
+IFNULL(markValueMax, -1) as 'markValueMax', getDate, addTime, Teachers.name AS teacherName, Teachers.surname AS teacherSurname,
+Subjects.name AS subjectName, parentType
 FROM Marks
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
 INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
@@ -146,12 +148,14 @@ ORDER BY markValue""")
 
 
     @Query("""SELECT Marks.id, MarkGroups.description || ' • ' || Subjects.name as description,
-        IFNULL(MarkScales.abbreviation, Marks.markValue) as value, addTime FROM Marks
+        IFNULL(CASE WHEN MarkScales.abbreviation = '' THEN NULL
+        ELSE MarkScales.abbreviation END, IFNULL(MarkScales.markValue, Marks.markValue)) as value, addTime FROM Marks
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
 INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
 INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
 INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+WHERE MarkGroups.visibility = 0
 ORDER BY addTime DESC LIMIT :count""")
     fun getLastMarks(count: Int): List<LastMarkCacheData>
 
@@ -187,7 +191,7 @@ INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
 INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 WHERE (MarkGroups.countPointsWithoutBase = 0 OR MarkGroups.countPointsWithoutBase IS NULL)
     AND (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
-	AND subjectId = :subjectId
+	AND subjectId = :subjectId AND MarkGroups.visibility = 0
 GROUP BY MarkScaleGroups.id
 ORDER BY MarkScaleGroups.id DESC""")
     fun getUsedMarkScaleGroupsBySubject(subjectId: Int): List<MarkScaleGroupShortInfo>
@@ -201,6 +205,7 @@ ORDER BY MarkScaleGroups.id DESC""")
                     INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
                     WHERE (MarkGroups.countPointsWithoutBase = 0 OR MarkGroups.countPointsWithoutBase IS NULL)
                         AND (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
+                        AND MarkGroups.visibility = 0
                     GROUP BY Subjects.id ORDER BY Subjects.name""")
     fun getSubjectsWithCountedUsersMarks(): List<SubjectShortInfo>
 
@@ -221,7 +226,7 @@ INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
 INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
 WHERE (MarkScales.noCountToAverage = 0 OR MarkScales.noCountToAverage IS NULL)
 	AND subjectId = :subjectId AND MarkScaleGroups.id = :markScaleGroupId
-    AND addTime BETWEEN :startTime AND :endTime
+    AND addTime BETWEEN :startTime AND :endTime AND MarkGroups.visibility = 0
 ORDER BY addTime DESC""")
     fun getMarksToImport(subjectId: Int, markScaleGroupId: Int, startTime: Long, endTime: Long): List<MarkToImport>
 

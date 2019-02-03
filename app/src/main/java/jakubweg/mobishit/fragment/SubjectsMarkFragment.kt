@@ -15,7 +15,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import jakubweg.mobishit.R
-import jakubweg.mobishit.activity.MainActivity
 import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
@@ -157,14 +156,18 @@ class SubjectsMarkFragment : Fragment(),
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             list[position].also { info ->
+                ViewCompat.setTransitionName(holder.markTitle, "ma$position")
                 holder.markTitle.text = (info.description.takeUnless { it.isBlank() }
                         ?: "Bez tytułu")
-                ViewCompat.setTransitionName(holder.markTitle, "ma$position")
                 holder.markValue.precomputedText = when {
-                    info.abbreviation != null -> info.abbreviation
+                    info.abbreviation != null -> when {
+                        info.abbreviation.isNotBlank() -> info.abbreviation
+                        info.markScaleValue > 0f -> "%.1f".format(info.markScaleValue)
+                        else -> "?"
+                    }
                     //info.markPointsValue >= 0 && info.markValueMax > 0 ->
                     //    "${info.markPointsValue}\n${info.markValueMax}"
-                    info.markPointsValue >= 0 -> info.markPointsValue.toString() trimEndToLength 4
+                    info.markPointsValue >= 0 -> String.format("%.1f", info.markPointsValue)
                     else -> "Wut?"
                 }
                 holder.markDescription?.also {

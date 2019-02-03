@@ -3,13 +3,11 @@ package jakubweg.mobishit.service
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
-import android.text.Html
-import android.text.Spanned
+import android.support.v4.text.HtmlCompat
 import android.util.Log
 import androidx.work.*
 import jakubweg.mobishit.R
@@ -22,7 +20,6 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.math.min
 
 
 class UpdateWorker(context: Context, workerParameters: WorkerParameters)
@@ -57,6 +54,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 val request = PeriodicWorkRequest.Builder(UpdateWorker::class.java,
                         frequency, TimeUnit.MINUTES)
                         .setConstraints(constraints)
+                        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 8L, TimeUnit.SECONDS)
                         .build()
 
                 WorkManager.getInstance()
@@ -167,7 +165,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 .setSmallIcon(R.drawable.star)
                 .setAutoCancel(true)
                 .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)!!
+                .setCategory(NotificationCompat.CATEGORY_EMAIL)!!
                 .setDefaultsIf(prefs.notifyWithSound)
 
 
@@ -180,7 +178,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
         contentIntent.action = MainActivity.ACTION_SHOW_MARK
 
-        dao.getMarkShortInfo(List(list.size) { list[it].id }).forEachIndexed { index, info ->
+        dao.getMarkShortInfo(IntArray(list.size) { list[it].id }).forEachIndexed { index, info ->
             val text = when {
                 info.abbreviation != null -> "$textPrefix ${info.abbreviation} za ${info.description}"
                 info.markPointsValue >= 0f -> "$textPrefix ${info.markPointsValue} za ${info.description}"
@@ -262,9 +260,13 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_ATTENDANCES))
             return
 
+        if (list.size > 30)
+            return
+
         val notification = NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_ATTENDANCES)
                 .setAutoCancel(true)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)!!
+                .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
                 .setDefaultsIf(prefs.notifyWithSound)
 
         val canNotifyAboutAttendance = prefs.notifyAboutAttendances
@@ -272,36 +274,36 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
         contentIntent.action = MainActivity.ACTION_SHOW_TIMETABLE
 
-        list.map { it.id }.split(100).forEach { eventIds ->
-            dao.getAttendanceInfoByIds(eventIds, canNotifyAboutAttendance).apply {
-                val notificationIds = notificationHelper.getNotificationIds(size)
-                forEachIndexed { index, info ->
-                    notification.setSmallIconCompat(
-                            if (info.isAbsent) R.drawable.event_busy else R.drawable.event_available,
-                            R.drawable.ic_event_png)
-                    //notification.color = info.color
 
-                    notification.setContentTitle(
-                            "Wpisano ${info.attendanceName} na ${info.subjectName?.takeUnless { it.isBlank() }
-                                    ?: "wydarzeniu"}")
+        dao.getAttendanceInfoByIds(IntArray(list.size) { list[it].id }, canNotifyAboutAttendance).apply {
+            val notificationIds = notificationHelper.getNotificationIds(size)
+            forEachIndexed { index, info ->
+                notification.setSmallIconCompat(
+                        if (info.isAbsent) R.drawable.event_busy else R.drawable.event_available,
+                        R.drawable.ic_event_png)
+                //notification.color = info.color
 
-                    val formattedDate = DateHelper.millisToStringDate(info.date)
+                notification.setContentTitle(
+                        "Wpisano ${info.attendanceName} na ${info.subjectName?.takeUnless { it.isBlank() }
+                                ?: "wydarzeniu"}")
 
-                    notification.setContentText(if (info.number != null)
-                        "Lekcja ${info.number} • $formattedDate • ${info.startTime}"
-                    else
-                        "Dzień $formattedDate • godzina ${info.startTime}")
+                val formattedDate = DateHelper.millisToStringDate(info.date)
 
-                    val notificationId = notificationIds[index]
+                notification.setContentText(if (info.number != null)
+                    "Lekcja ${info.number} • $formattedDate • ${info.startTime}"
+                else
+                    "Dzień $formattedDate • godzina ${info.startTime}")
 
-                    contentIntent.putExtra("id", (info.date / 1000).toInt())
-                    notification.setContentIntent(PendingIntent
-                            .getActivity(applicationContext, notificationId,
-                                    contentIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+                val notificationId = notificationIds[index]
 
-                    notificationHelper.postNotification(notificationId, notification)
-                }
+                contentIntent.putExtra("id", (info.date / 1000).toInt())
+                notification.setContentIntent(PendingIntent
+                        .getActivity(applicationContext, notificationId,
+                                contentIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+
+                notificationHelper.postNotification(notificationId, notification)
             }
+
         }
     }
 
@@ -317,6 +319,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 applicationContext, NotificationHelper.CHANNEL_SUBSTITUTIONS)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
                 .setSmallIcon(R.drawable.ic_event_png)
+                .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
                 .setAutoCancel(true)!!
                 .setDefaultsIf(prefs.notifyWithSound)
 
@@ -344,7 +347,6 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 val subjectName = dao.getSubjectNameByEventType(eventTypeId)
                 val dayName = getWeekDayName(date)
                 if (status == EventDao.STATUS_CANCELED) {
-
                     val formattedDate = DateHelper.millisToStringDate(date)
 
                     notification.setContentTitle("Odwołano <b>$subjectName</b> w $dayName!".fromHtml())
@@ -381,9 +383,6 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
                         notification.setContentTitle(title)
                         notification.setContentText(shortContent)
-                        notification.setContentIntent(PendingIntent.getActivity(applicationContext,
-                                ids[index], contentIntent.apply { putExtra("id", date.div(1000L).toInt()) },
-                                PendingIntent.FLAG_UPDATE_CURRENT))
                         notification.setStyle(NotificationCompat.BigTextStyle()
                                 .setBigContentTitle(title)
                                 .bigText(bigContent))
@@ -392,25 +391,11 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     // To nie powinno się wydarzyć :\
                     return@forEachIndexed
                 }
+                notification.setContentIntent(PendingIntent.getActivity(applicationContext,
+                        ids[index], contentIntent.apply { putExtra("id", date.div(1000L).toInt()) },
+                        PendingIntent.FLAG_UPDATE_CURRENT))
 
                 notificationHelper.postNotification(ids[index], notification)
-            }
-        }
-    }
-
-
-    private fun <T> List<T>.split(count: Int): List<List<T>> {
-        require(count > 0)
-        if (size <= count)
-            return listOf(this)
-
-        var remain = size
-        val iterator = iterator()
-
-        return List(size / count + 1) {
-            List(min(remain, count)) {
-                remain--
-                iterator.next()
             }
         }
     }
@@ -497,12 +482,6 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     private fun NotificationCompat.Builder.setDefaultsIf(condition: Boolean)
             : NotificationCompat.Builder = apply { if (condition) setDefaults(NotificationCompat.DEFAULT_ALL) }
 
-    private fun String.fromHtml(): Spanned {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(this, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            @Suppress("DEPRECATION")
-            Html.fromHtml(this)
-        }
-    }
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun String.fromHtml() = HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_COMPACT)
 }

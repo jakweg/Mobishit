@@ -59,9 +59,10 @@ class TimetableFragment : Fragment() {
             it ?: return@Observer
             viewPager?.apply {
                 (adapter as? DayViewPagerAdapter?)?.apply {
+                    tabs?.removeOnTabSelectedListener(tabSelectedListener)
                     setDays(it)
                     postOnMainLooper {
-                        tabs?.removeOnTabSelectedListener(tabSelectedListener)
+                        visibility = View.VISIBLE
                         shouldReturnEmptyFragments = false
                         setCurrentItem(viewModel.currentSelectedDayIndex, scrollSmoothly)
                         scrollSmoothly = false
@@ -72,26 +73,26 @@ class TimetableFragment : Fragment() {
         })
 
         if (viewModel.days.value == null) {
-            if (savedInstanceState == null) {
+            if (savedInstanceState == null || !savedInstanceState.containsKey("currentDay")) {
                 if (requestedDate > 0) {
                     viewModel.requestDate(requestedDate.toLong() * 1000L)
                     requestedDate = -1
                 } else {
                     val calendar = Calendar.getInstance()!!
-                    calendar.timeInMillis = System.currentTimeMillis()
                     val millisInDay = 24 * 60 * 60 * 1000L
                     viewModel.requestDate(if (calendar[Calendar.HOUR_OF_DAY] >= 17) {
                         calendar.timeInMillis / millisInDay * millisInDay + millisInDay
                     } else calendar.timeInMillis / millisInDay * millisInDay)
                 }
-            } else if (savedInstanceState.containsKey("currentDay")) {
+            } else {
                 viewModel.requestDate(savedInstanceState.getLong("currentDay"))
             }
+        } else {
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+        //super.onSaveInstanceState(outState)
         viewModel.days.value?.takeIf { it.isNotEmpty() }?.also {
             if (viewModel.currentSelectedDayIndex in 0 until it.size)
                 outState.putLong("currentDay", it[viewModel.currentSelectedDayIndex].time)
@@ -99,7 +100,7 @@ class TimetableFragment : Fragment() {
     }
 
     private inline fun postOnMainLooper(crossinline function: () -> Unit) {
-        Handler(Looper.getMainLooper()).post { function() }
+        Handler(Looper.getMainLooper()).postDelayed({ function() }, 50L)
     }
 
     override fun onDestroyView() {

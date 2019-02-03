@@ -79,7 +79,10 @@ class TimetableModel(application: Application)
                     finalDays.add(TimetableModel.Date(daysAfter.last(), "Pokaż\nnastępne dni", true))
             }
 
-            currentSelectedDayIndex = daysBefore.size
+            currentSelectedDayIndex = finalDays.indexOfLast { it.time <= requestedDate }
+
+            //currentSelectedDayIndex = daysBefore.size
+            //currentSelectedDayIndex = Math.max(daysBefore.size - 1, 0)
         } else {
             val currentFirst = finalDays.first()
             val currentLast = finalDays.last()

@@ -4,7 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="HardcodedText,UnusedAttribute">
+
+    <TextView
+        android:id="@+id/textTerm"
+        style="@style/Base.TextAppearance.AppCompat.Tooltip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?backgroundSecondaryColor"
+        android:elevation="4dp"
+        android:gravity="center_horizontal"
+        android:maxLines="2"
+        android:padding="4dp"
+        android:text="Możesz wybrać też okres wyświetlania średnich"
+        tools:text="Wyświetlam porównania na Rok szkolny 2018/2019" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,8 +27,7 @@
         android:elevation="4dp"
         android:gravity="center_horizontal"
         android:paddingTop="4dp"
-        android:paddingBottom="2dp"
-        tools:ignore="HardcodedText,UnusedAttribute">
+        android:paddingBottom="2dp">
 
         <TextView
             android:id="@+id/avg_person"

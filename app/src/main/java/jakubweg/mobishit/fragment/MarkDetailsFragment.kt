@@ -72,9 +72,11 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
                     setText(R.id.markCountToAverageText, "Wliczana do bazy")
                     setText(R.id.markCountToAverageValue, if (mark.countPointsWithoutBase) "Nie" else "Tak")
 
-                } else if (mark.abbreviation != null && mark.defaultWeight != null && mark.noCountToAverage != null) {
-
-                    setText(R.id.markValue, mark.abbreviation)
+                } else if (mark.defaultWeight != null && mark.noCountToAverage != null) {
+                    if (mark.abbreviation.isNullOrBlank())
+                        setText(R.id.markValue, if (mark.markPointsValue >= 0) "%.1f".format(mark.markPointsValue) else "?")
+                    else
+                        setText(R.id.markValue, mark.abbreviation)
 
                     setText(R.id.markMarkText, "Słowna ocena")
                     setText(R.id.markMarkValue, mark.markName.takeUnless { s -> s.isNullOrBlank() }

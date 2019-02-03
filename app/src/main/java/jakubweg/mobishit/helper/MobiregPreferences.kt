@@ -234,6 +234,10 @@ class MobiregPreferences private constructor(
         get() = prefs.getInt("lastTerm", 0)
         set(value) = prefs.edit().putInt("lastTerm", value).apply()
 
+    var downloadedComparisonsTermId: Int
+        get() = prefs.getInt("dcti", 0)
+        set(value) = prefs.edit().putInt("dcti", value).apply()
+
     val isDeveloper get() = BuildConfig.DEBUG || prefs.getBoolean("is_dev", false)
 
     var seenWelcomeActivity
@@ -299,6 +303,13 @@ class MobiregPreferences private constructor(
     var ignoreCrashes
         get() = prefs.getBoolean("iC", false)
         set(value) = prefs.edit().putBoolean("iC", value).apply()
+
+    var lastCrashTime
+        get() = prefs.getLong("lct", 0L)
+        @SuppressLint("ApplySharedPref")
+        set(value) {
+            prefs.edit().putLong("lct", value).commit()
+        }
 
     var hasReadyWidgetCache
         get() = prefs.getBoolean("hrWidc", false)

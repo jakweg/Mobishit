@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
         private fun loadDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(context.applicationContext,
                     AppDatabase::class.java, "mobireg.db")
-                    .allowMainThreadQueries() // widget on homescreen uses main thread, so we can't remove it
+                    .allowMainThreadQueries() // widget on home screen uses main thread, so we can't remove it
                     .build()
                     .also { INSTANCE = it }
         }
@@ -51,10 +51,14 @@ abstract class AppDatabase : RoomDatabase() {
 
 
         fun deleteDatabase(context: Context) {
-            INSTANCE?.also {
-                it.clearAllTables()
-                it.close()
-                INSTANCE = null
+            try {
+                INSTANCE?.also {
+                    it.clearAllTables()
+                    it.close()
+                    INSTANCE = null
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
             context.deleteDatabase("mobireg.db")
         }

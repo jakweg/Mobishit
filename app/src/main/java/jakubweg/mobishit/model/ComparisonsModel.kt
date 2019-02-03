@@ -8,11 +8,13 @@ import com.google.gson.JsonParser
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.ComparisonCacheData
+import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.helper.DedicatedServerManager
 import jakubweg.mobishit.helper.MobiregPreferences
 import org.jsoup.Jsoup
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.util.*
 
 
 class ComparisonsModel(application: Application)
@@ -34,12 +36,19 @@ class ComparisonsModel(application: Application)
 
     private val mAverages = MutableLiveData<List<ComparisonCacheData>>()
 
+    private val mSelectedTerm = MutableLiveData<TermDao.TermShortInfo>()
+
     val averages get() = (mAverages).asImmutable
 
     val status get() = handleBackground(mStatus).asImmutable
 
+    val selectedTermInfo get() = mSelectedTerm.asImmutable
+
+    private var requestedTermId = 0
+
     private fun downloadNewComparisons() {
         try {
+            val requestedTermId = this.requestedTermId
             if (!MobiregPreferences.get(context).allowedInstantNotifications) {
                 mStatus.postValue(STATUS_NOT_ALLOWED)
                 return
@@ -53,7 +62,7 @@ class ComparisonsModel(application: Application)
             } else {
                 mStatus.postValue(STATUS_DOWNLOADING)
                 val body = Jsoup
-                        .connect(linkToServerWithParams.takeUnless { it.isBlank() }!!)
+                        .connect(getLinkToServerWithParams(requestedTermId))
                         .ignoreContentType(true)
                         .execute()
                         .body()
@@ -70,15 +79,19 @@ class ComparisonsModel(application: Application)
                         comparisons.add(ComparisonCacheData(it!!.asJsonObject))
                     }
 
-                    MobiregPreferences.get(context).lastComparisonsRefreshTime = System.currentTimeMillis()
                     AppDatabase.getAppDatabase(context)
                             .comparisonDao.apply {
                         deleteAll()
                         insertComparisons(comparisons)
                     }
+                    MobiregPreferences.get(context).apply {
+                        lastComparisonsRefreshTime = System.currentTimeMillis()
+                        downloadedComparisonsTermId = requestedTermId
+                    }
 
                     mAverages.postValue(comparisons)
                     mStatus.postValue(STATUS_DONE)
+                    postTermInfo()
                 }
 
             }
@@ -107,9 +120,17 @@ class ComparisonsModel(application: Application)
 
     private var shouldNowDownloadData = false
     fun refreshDataFromInternet() {
+        requestedTermId = MobiregPreferences.get(context).lastSelectedTerm
         shouldNowDownloadData = true
         cancelLastTask()
         handleBackground()
+    }
+
+    private fun postTermInfo() {
+        val term = AppDatabase.getAppDatabase(context)
+                .termDao.getTermShortInfo(requestedTermId)
+        mSelectedTerm.postValue(if (term == null) TermDao.TermShortInfo(0, "Cały rok", "U")
+        else TermDao.TermShortInfo(term.id, TermDao.getNiceTermName(term.type, term.name), term.type))
     }
 
     override fun doInBackground() {
@@ -120,32 +141,39 @@ class ComparisonsModel(application: Application)
             val all = AppDatabase.getAppDatabase(context)
                     .comparisonDao.getAll()
 
+            requestedTermId = MobiregPreferences.get(context).downloadedComparisonsTermId
+            postTermInfo()
             mAverages.postValue(all)
         }
     }
 
-    private val linkToServerWithParams
-        get() = buildString {
-            MobiregPreferences.get(context).apply {
-                append(DedicatedServerManager(context).averagesLink ?: return@buildString)
+    private fun getLinkToServerWithParams(termId: Int) = buildString {
+        MobiregPreferences.get(context).apply {
+            append(DedicatedServerManager(context).averagesLink ?: return@buildString)
 
-                append("?l=")
-                append(loginAndHostIfNeeded)
+            append("?l=")
+            append(loginAndHostIfNeeded)
 
-                append("&p=")
-                append(password)
+            append("&p=")
+            append(password)
 
-                append("&h=")
-                append(host)
+            append("&h=")
+            append(host)
 
-                append("&n=")
-                append(name)
+            append("&n=")
+            append(name)
 
-                append("&s=")
-                append(surname)
+            append("&s=")
+            append(surname)
 
-                append("&v=")
-                append(BuildConfig.VERSION_CODE)
-            }
+            append("&t=")
+            append(termId)
+
+            append("&c=")
+            append(Locale.getDefault()?.language ?: "_")
+
+            append("&v=")
+            append(BuildConfig.VERSION_CODE)
         }
+    }
 }
