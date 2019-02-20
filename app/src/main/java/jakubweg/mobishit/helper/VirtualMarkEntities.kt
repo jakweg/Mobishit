@@ -131,7 +131,7 @@ class VirtualMarkPoints(
 
     override fun onSecondRowClicked(valueChange: Byte) {
         if (valueChange == 0.toByte()) {
-            askForNumber(this, baseValue, "Ilość maksymalnych punktów") {
+            askForNumber(this, baseValue, "Bazowa ilość punktów") {
                 baseValue = it
                 notifyDataChanged()
             }

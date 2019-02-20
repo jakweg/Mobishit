@@ -252,6 +252,10 @@ class MobiregPreferences private constructor(
         get() = getString("fcmToken")
         set(value) = prefs.edit().putString("fcmToken", value).apply()
 
+    var lastTokenUploadMillis: Long
+        get() = prefs.getLong("ltum", 0)
+        set(value) = prefs.edit().putLong("ltum", value).apply()
+
     var allowedInstantNotifications
         get() = prefs.getBoolean("allowIN", false)
         set(value) {

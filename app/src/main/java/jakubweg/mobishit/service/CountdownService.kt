@@ -67,6 +67,20 @@ class CountdownService : Service() {
                     .sendBroadcast(Intent(ACTION_STOP_SERVICE))
         }
 
+        @WorkerThread
+        fun restartIfRunning(context: Context) {
+            if (!isRunning) return
+            LocalBroadcastManager.getInstance(context)
+                    .sendBroadcast(Intent(context, CountdownService::class.java).apply {
+                        action = ACTION_STOP_SERVICE
+                    })
+            Thread.sleep(250L)
+            if (isRunning)
+                Thread.sleep(250L)
+
+            start(context)
+        }
+
         private fun getServicePendingIntent(context: Context, requestCode: Int): PendingIntent {
             return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
                 PendingIntent.getService(

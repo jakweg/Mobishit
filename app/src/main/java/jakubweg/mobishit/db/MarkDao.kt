@@ -34,9 +34,10 @@ interface MarkDao {
                     INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
                     INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
                     INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
-                    WHERE addTime BETWEEN :dateStart AND :dateEnd
+                    LEFT OUTER JOIN Terms ON Terms.id = EventTypeTerms.termId
+                    WHERE (:termId = 0 OR Terms.id = :termId OR Terms.parentId = :termId)
                     GROUP BY Subjects.id ORDER BY Subjects.name""")
-    fun getSubjectsWithUsersMarks(dateStart: Long, dateEnd: Long): List<SubjectShortInfo>
+    fun getSubjectsWithUsersMarks(termId: Int): List<SubjectShortInfo>
 
 
     // this is used by average calculations
@@ -52,23 +53,23 @@ interface MarkDao {
     }
 
     @Query("""SELECT
-                        Marks.id, MarkGroups.description, MarkScales.abbreviation,
-                        IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
-                        IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage,
-                        IFNULL(Marks.markValue, -1) AS 'markPointsValue',
-                        MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax', Terms.id AS 'termId',
-                        parentType, IFNULL(MarkGroups.parentId, -1) as 'parentId', MarkGroups.id AS markGroupId, addTime
-                    FROM Marks
-                    LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
-                    INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
-                    INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
-                    INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
-                    INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
-                    INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
-                    INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
-                    WHERE Subjects.id = :subjectId AND MarkGroups.visibility = 0
-                     AND (:termId IS NULL OR Terms.id = :termId OR Terms.parentId = :termId)
-                    ORDER BY addTime DESC""")
+  Marks.id, MarkGroups.description, MarkScales.abbreviation,
+  IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
+  IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight', MarkScales.noCountToAverage,
+  IFNULL(Marks.markValue, -1) AS 'markPointsValue',
+  MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax', Terms.id AS 'termId',
+  parentType, IFNULL(MarkGroups.parentId, -1) as 'parentId', MarkGroups.id AS markGroupId, addTime
+FROM Marks
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+INNER JOIN EventTypeTerms ON MarkGroups.eventTypeTermId = EventTypeTerms.id
+INNER JOIN EventTypes ON EventTypeTerms.eventTypeId = EventTypes.id
+INNER JOIN Subjects ON EventTypes.subjectId = Subjects.id
+INNER JOIN Terms ON Terms.id = EventTypeTerms.termId
+INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
+WHERE Subjects.id = :subjectId AND MarkGroups.visibility = 0
+ AND (:termId IS NULL OR Terms.id = :termId OR Terms.parentId = :termId)
+ORDER BY addTime DESC""")
     fun getMarksBySubject(subjectId: Int, termId: Int?): List<MarkShortInfo>
 
 

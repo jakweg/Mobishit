@@ -53,7 +53,8 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
 
 
     private fun sendNewTokenToServer(): Result {
-        val token = MobiregPreferences.get(applicationContext).firebaseToken
+        val prefs = MobiregPreferences.get(applicationContext)
+        val token = prefs.firebaseToken
 
         if (token.isNullOrBlank()) {
             // probably user has no Google Play services :\
@@ -78,12 +79,12 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
             val result = jsonObject["result"]?.asString ?: "no result provided"
 
             if (isSuccess) {
+                prefs.lastTokenUploadMillis = System.currentTimeMillis()
                 Result.success()
             } else {
                 postErrorNotification("Can't register FCM: $result\nGot: $body")
                 Result.failure()
             }
-
         } catch (te: SocketTimeoutException) {
             Result.retry()
         } catch (uhe: UnknownHostException) {

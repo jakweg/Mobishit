@@ -43,9 +43,8 @@ class AverageCalculator private constructor() {
             checkIfSelectedTermIsValid(context, db.termDao.getTermsShortInfo())
 
             val termId = MobiregPreferences.get(context).lastSelectedTerm
-            val term = db.termDao.getStartEnd(termId) ?: return emptyList()
 
-            val subjects = markDao.getSubjectsWithUsersMarks(term.startDate, term.endDate)
+            val subjects = markDao.getSubjectsWithUsersMarks(termId)
             val output = ArrayList<AverageCacheData>(subjects.size)
             for (subject in subjects) {
                 val marks = markDao.getMarksBySubject(subject.id, termId)
@@ -124,7 +123,7 @@ class AverageCalculator private constructor() {
 
                     return@Comparator (o2.weight + o2.markValueMax)
                             .compareTo(o1.weight + o1.markValueMax)
-                }.then(getComparator(ORDER_NEW_FIRST))
+                }.then(getComparator(ORDER_BETTER_FIRST))
                 else -> throw IllegalArgumentException()
             }
         }

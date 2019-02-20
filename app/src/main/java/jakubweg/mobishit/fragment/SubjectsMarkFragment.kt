@@ -174,14 +174,14 @@ class SubjectsMarkFragment : Fragment(),
                     val title = when {
                         info.markValueMax > 0 && info.markPointsValue >= 0f ->
                             if (info.countPointsWithoutBase == true)
-                                String.format("%.1f%% • maks. %.1f • poza bazą",
+                                String.format("%.1f%% • baza %.1f • poza bazą",
                                         info.markPointsValue / info.markValueMax * 100f,
                                         info.markValueMax)
-                            else String.format("%.1f%% • maks. %.1f",
+                            else String.format("%.1f%% • baza %.1f",
                                     info.markPointsValue / info.markValueMax * 100f,
                                     info.markValueMax)
 
-                        info.markValueMax > 0 -> String.format("maks. %.1f", info.markValueMax)
+                        info.markValueMax > 0 -> String.format("baza %.1f", info.markValueMax)
                         info.weight > 0
                                 && info.noCountToAverage != true
                                 && info.countPointsWithoutBase != true ->

@@ -48,7 +48,11 @@ class ComparisonsModel(application: Application)
 
     private fun downloadNewComparisons() {
         try {
+            if (this.requestedTermId == 0) {
+                this.requestedTermId = MobiregPreferences.get(context).lastSelectedTerm
+            }
             val requestedTermId = this.requestedTermId
+
             if (!MobiregPreferences.get(context).allowedInstantNotifications) {
                 mStatus.postValue(STATUS_NOT_ALLOWED)
                 return
@@ -110,10 +114,13 @@ class ComparisonsModel(application: Application)
             MobiregPreferences.get(context).lastComparisonsRefreshTime + REFRESH_COMPARISONS_FREQUENCY_IN_MILLIS < System.currentTimeMillis()
 
 
+    private val isConnected
+        get() = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager?)
+                ?.activeNetworkInfo?.isConnected == true
+
     fun considerRefreshingData() {
         if (shouldRefreshNow) {
-            if ((context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager?)
-                            ?.activeNetworkInfo?.isConnected == true)
+            if (isConnected)
                 refreshDataFromInternet()
         }
     }
@@ -129,12 +136,12 @@ class ComparisonsModel(application: Application)
     private fun postTermInfo() {
         val term = AppDatabase.getAppDatabase(context)
                 .termDao.getTermShortInfo(requestedTermId)
-        mSelectedTerm.postValue(if (term == null) TermDao.TermShortInfo(0, "Cały rok", "U")
+        mSelectedTerm.postValue(if (term == null) TermDao.TermShortInfo(0, "Domyślnego okresu czasu", "U")
         else TermDao.TermShortInfo(term.id, TermDao.getNiceTermName(term.type, term.name), term.type))
     }
 
     override fun doInBackground() {
-        if (shouldNowDownloadData || shouldRefreshNow) {
+        if ((shouldNowDownloadData || shouldRefreshNow) && isConnected) {
             shouldNowDownloadData = false
             downloadNewComparisons()
         } else {

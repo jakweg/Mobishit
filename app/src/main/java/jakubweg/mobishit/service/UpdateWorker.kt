@@ -26,6 +26,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     : Worker(context, workerParameters) {
 
     companion object {
+        private val TOKEN_UPLOAD_TIMEOUT = 3 * 24 * 60 * 60 * 1000L
+
         private val mutex = Any()
         const val UNIQUE_WORK_NAME = "updateMobireg"
         const val ACTION_REFRESH_STATE_CHANGED = "mobiregrefreshchanged"
@@ -75,9 +77,10 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     }
 
     override fun doWork(): Result {
+        val context = applicationContext
         synchronized(mutex) {
-            val notificationHelper = NotificationHelper(applicationContext)
-            val prefs = MobiregPreferences.get(applicationContext)
+            val notificationHelper = NotificationHelper(context)
+            val prefs = MobiregPreferences.get(context)
             return try {
                 if (!prefs.isSignedIn) {
                     WorkManager.getInstance()
@@ -92,7 +95,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     return Result.success()
                 }
 
-                val updateHelper = UpdateHelper(applicationContext)
+                val updateHelper = UpdateHelper(context)
 
                 updateHelper.doUpdate()
 
@@ -105,13 +108,13 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 }
 
 
-                val db = AppDatabase.getAppDatabase(applicationContext)
+                val db = AppDatabase.getAppDatabase(context)
 
                 if (!MainActivity.isMainActivityInForeground
                         || prefs.notifyWhenMainActivityIsInForeground) {
 
                     notificationHelper.createNotificationChannels()
-                    if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
                         makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
                         makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
                         makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
@@ -120,12 +123,22 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                     }
                 }
 
-                if (updateHelper.isAnythingNew)
+                if (updateHelper.isAnythingNew) {
+                    CountdownService.restartIfRunning(context)
                     publishStatus(STATUS_FINISHED_SOMETHING_NEW)
-                else
+                } else
                     publishStatus(STATUS_FINISHED_NOTHING_NEW)
 
-                TimetableWidgetProvider.requestInstantUpdate(applicationContext)
+                TimetableWidgetProvider.requestInstantUpdate(context)
+
+                try {
+                    if (prefs.lastTokenUploadMillis + TOKEN_UPLOAD_TIMEOUT < System.currentTimeMillis()) {
+                        Thread.sleep(1000L) //wait, maybe running, we don't want fcm uploader to be cancelled
+                        FcmServerNotifierWorker.requestPeriodicServerNotifications()
+                    }
+                } catch (e: Exception) {
+                    // ignore
+                }
 
                 Result.success()
             } catch (uhe: UnknownHostException) {
@@ -346,6 +359,8 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
                 val subjectName = dao.getSubjectNameByEventType(eventTypeId)
                 val dayName = getWeekDayName(date)
+                        ?: // event is in past, ignore it
+                        return@apply
                 if (status == EventDao.STATUS_CANCELED) {
                     val formattedDate = DateHelper.millisToStringDate(date)
 
@@ -400,10 +415,12 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
-    private fun getWeekDayName(time: Long): String {
+    private fun getWeekDayName(time: Long): String? {
         val millisInDay = 24 * 60 * 60 * 1000
 
         val now = Calendar.getInstance().timeInMillis / millisInDay * millisInDay
+        if (now > time)
+            return null
 
         val weeksDifference = ((time - now) / (7 * millisInDay)).toInt()
 

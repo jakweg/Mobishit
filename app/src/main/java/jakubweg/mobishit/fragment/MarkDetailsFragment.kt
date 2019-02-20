@@ -65,7 +65,7 @@ class MarkDetailsFragment : BottomSheetDialogFragment() {
                     setText(R.id.markMarkValue, "%.1f pkt.".format(mark.markPointsValue))
 
 
-                    setText(R.id.markWeightText, "Maksymalna suma punktów")
+                    setText(R.id.markWeightText, "Bazowa suma punktów")
                     setText(R.id.markWeightValue, "%.1f pkt.".format(mark.markValueMax))
 
 
