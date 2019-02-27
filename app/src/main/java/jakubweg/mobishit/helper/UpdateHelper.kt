@@ -245,6 +245,11 @@ class UpdateHelper(private val context: Context) {
             }
             dao.deleteAny(deleted.item)
             return
+        } catch (e: Exception) {
+            e.printStackTrace()
+            while (jsonReader.peek() != JsonToken.END_OBJECT)
+                jsonReader.skipValue()
+            return
         } finally {
             if (jsonReader.peek() == JsonToken.END_OBJECT)
                 jsonReader.endObject()

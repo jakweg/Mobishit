@@ -13,7 +13,7 @@ class DataCreator {
             val objectId: Int) : Exception()
 
     companion object {
-        fun escapeString(string: String): String {
+        private fun escapeString(string: String): String {
             if (!string.contains("\\\""))
                 return string
 
