@@ -77,11 +77,10 @@
     </android.support.v7.preference.PreferenceCategory>
 
     <android.support.v7.preference.PreferenceCategory android:title="Powiadomienia">
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="notifyAboutAttendances"
-            android:summary="Powiadomienia o spóźnieniach i nieobecnościach są zawsze włączone"
-            android:title="Powiadamiaj o obecnościach" />
+        <android.support.v7.preference.Preference
+            android:key="key_attendance_policy"
+            android:summary="Wybierz które powiadomienia o obecnościach chcesz otrzymywać"
+            android:title="Powiadomienia o obecnościach" />
 
         <SwitchPreferenceCompat
             android:defaultValue="true"

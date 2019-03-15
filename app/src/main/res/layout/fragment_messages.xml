@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:drawablePadding="4dp"
             android:padding="8dp"
-            android:text="Pokazywane są tylko wiadomości wysłane z tej aplikacji"
+            android:text="Pokazywane są tylko wiadomości wysłane z tej aplikacji."
             android:visibility="gone"
             tools:drawableLeft="@drawable/nav_info"
             tools:visibility="visible" />

@@ -45,11 +45,10 @@
             android:drawablePadding="8dp"
             android:padding="8dp"
             android:text="Możesz dotknąć poszczególnego typu obecności, aby dowiedzieć się kiedy miał on miejsce."
-            android:visibility="gone"
+            android:visibility="visible"
             tools:drawableLeft="@drawable/nav_info"
             tools:drawableTint="?android:textColorPrimary"
-            tools:ignore="RtlHardcoded"
-            tools:visibility="visible" />
+            tools:ignore="RtlHardcoded" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/attendanceTypeList"

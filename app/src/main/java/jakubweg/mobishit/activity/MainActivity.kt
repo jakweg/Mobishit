@@ -75,6 +75,7 @@ class MainActivity : DoublePanelActivity() {
                 preferences.runCountdownService && savedInstanceState == null)
 
         handleIntent(intent, savedInstanceState)
+
     }
 
     @SuppressLint("SetTextI18n")

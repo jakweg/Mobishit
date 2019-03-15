@@ -62,6 +62,18 @@ abstract class VirtualMarkBase(val type: Int)
                     .show()
         }
 
+        fun askForMark(context: Context, title: CharSequence,
+                       fragment: VirtualMarksFragment.VirtualMarksAdapter, selectedIndex: Int,
+                       callback: SimpleCallback<Int>) {
+            AlertDialog.Builder(context)
+                    .setTitle(title)
+                    .setSingleChoiceItems(fragment.markScalesFiltered, selectedIndex) { d, which ->
+                        d.dismiss()
+                        callback.call(fragment.markScales.indexOfFirst { fragment.markScalesFiltered[which] === it.abbreviation })
+                    }
+                    .show()
+        }
+
         fun askByList(context: Context, title: CharSequence,
                       list: Array<String>, selectedIndex: Int,
                       callback: SimpleCallback<Int>) {
@@ -88,15 +100,19 @@ abstract class VirtualMarkBase(val type: Int)
     }
 
     protected fun notifyLastScaleIndex(index: Int) {
-        adapter.get()!!.lastScaleIndex = index
-        applyToViews()
-        adapter.get()!!.requestAverageRecalculation()
+        adapter.get()!!.apply {
+            lastScaleIndex = index
+            applyToViews()
+            requestAverageRecalculation()
+        }
     }
 
     protected fun notifyWeight(value: Float) {
-        adapter.get()!!.lastWeight = value
-        applyToViews()
-        adapter.get()!!.requestAverageRecalculation()
+        adapter.get()!!.apply {
+            lastWeight = value
+            applyToViews()
+            requestAverageRecalculation()
+        }
     }
 
     abstract fun applyToViews()
@@ -117,7 +133,7 @@ class VirtualMarkPoints(
         }
     }
 
-    override fun onFirstRowClicked(valueChange: Byte) {
+    override fun onFirstRowClicked(valueChange: Byte): Boolean {
         if (valueChange == 0.toByte()) {
             askForNumber(this, pointsValue, "Ilość zdobytych punktów") {
                 pointsValue = it
@@ -127,6 +143,7 @@ class VirtualMarkPoints(
             pointsValue = Math.max(pointsValue + valueChange.toFloat(), 0f)
             notifyDataChanged()
         }
+        return true
     }
 
     override fun onSecondRowClicked(valueChange: Byte) {
@@ -158,23 +175,30 @@ class VirtualMarkScaleSingle(
         }
     }
 
-    override fun onFirstRowClicked(valueChange: Byte) {
+    override fun onFirstRowClicked(valueChange: Byte): Boolean {
         if (valueChange == 0.toByte()) {
             adapter.get()!!.apply {
-                val array = Array(markScales.size) { markScales[it].abbreviation }
-                askByList(context, "Wybierz ocenę", array, scaleIndex, makeCallback {
+                askForMark(context, "Wybierz ocenę", this, scaleIndex, makeCallback {
                     scaleIndex = it
                     notifyLastScaleIndex(scaleIndex)
                 })
             }
+            return true
         } else {
             adapter.get()?.markScales?.apply {
                 if (scaleIndex + valueChange in 0 until size) {
                     scaleIndex += valueChange
-                    notifyLastScaleIndex(scaleIndex)
+                    if (get(scaleIndex).selectable) {
+                        notifyLastScaleIndex(scaleIndex)
+                        return true
+                    } else {
+                        if (!onFirstRowClicked(valueChange))
+                            scaleIndex -= valueChange
+                    }
                 }
             }
         }
+        return false
     }
 
     override fun onSecondRowClicked(valueChange: Byte) {
@@ -221,7 +245,7 @@ class VirtualMarkParent(var parentType: Int,
 
     }
 
-    override fun onFirstRowClicked(valueChange: Byte) {
+    override fun onFirstRowClicked(valueChange: Byte): Boolean {
         if (valueChange == 0.toByte()) {
             askForNumber(this, weight, "Waga") {
                 weight = it
@@ -231,6 +255,7 @@ class VirtualMarkParent(var parentType: Int,
             weight = Math.max(weight + valueChange.toFloat(), 1f)
             notifyWeight(weight)
         }
+        return true
     }
 
     override fun onAddMarkClicked() {
@@ -242,7 +267,8 @@ class VirtualMarkParent(var parentType: Int,
 private inline fun <reified E> SparseArray<E>.valuesToArray() = Array<E>(size()) { valueAt(it) }
 
 class VirtualMarkChild(var scaleIndex: Int) : VirtualMarkBase(TYPE_SCALE_CHILD) {
-    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_SCALE_CHILD, markScales[scaleIndex].id.toFloat(), 0f)
+    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_SCALE_CHILD,
+            markScales[scaleIndex].id.toFloat(), 0f)
 
     override fun applyToViews() {
         currentViewHolder.get()?.also {
@@ -252,23 +278,40 @@ class VirtualMarkChild(var scaleIndex: Int) : VirtualMarkBase(TYPE_SCALE_CHILD) 
         }
     }
 
-    override fun onFirstRowClicked(valueChange: Byte) {
+    override fun onFirstRowClicked(valueChange: Byte): Boolean {
         if (valueChange == 0.toByte()) {
             adapter.get()!!.apply {
-                val array = Array(markScales.size) { markScales[it].abbreviation }
-                askByList(context, "Wybierz ocenę", array, scaleIndex, makeCallback {
+                askForMark(context, "Wybierz ocenę", this, scaleIndex, makeCallback {
                     scaleIndex = it
                     notifyLastScaleIndex(scaleIndex)
                 })
             }
+            return true
         } else {
             adapter.get()?.markScales?.apply {
                 if (scaleIndex + valueChange in 0 until size) {
                     scaleIndex += valueChange
-                    notifyLastScaleIndex(scaleIndex)
+                    if (get(scaleIndex).selectable) {
+                        notifyLastScaleIndex(scaleIndex)
+                        return true
+                    } else {
+                        if (!onFirstRowClicked(valueChange))
+                            scaleIndex -= valueChange
+                    }
                 }
             }
         }
+        return false
     }
 
+
+    /*if (scaleIndex + valueChange in 0 until size) {
+        if (!get(scaleIndex).selectable)
+            onFirstRowClicked(valueChange)
+        else {
+            scaleIndex += valueChange
+            notifyLastScaleIndex(scaleIndex)
+        }
+    }*/
 }
+

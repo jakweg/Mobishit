@@ -88,9 +88,7 @@ class LoginDataModel(application: Application)
         val prefs = MobiregPreferences.get(context)
         val deviceId = prefs.deviceId
 
-        val isLoggingEnabled = prefs.logEverySync
-
-        UpdateHelper.makeLoggedConnection(
+        UpdateHelper.makeConnection(
                 inputToWrite = buildString {
                     append("login=eparent")
                     append("&pass=eparent")
@@ -102,9 +100,7 @@ class LoginDataModel(application: Application)
                     append("&view=ParentStudents")
                 },
                 host = host,
-                deviceId = deviceId,
-                logEverythingEnabled = isLoggingEnabled,
-                dataDir = context.applicationInfo.dataDir
+                deviceId = deviceId
         ).use { reader ->
             return processLoginRequestOutput(reader, true)
         }
@@ -114,9 +110,7 @@ class LoginDataModel(application: Application)
         val prefs = MobiregPreferences.get(context)
         val deviceId = prefs.deviceId
 
-        val isLoggingEnabled = prefs.logEverySync
-
-        UpdateHelper.makeLoggedConnection(
+        UpdateHelper.makeConnection(
                 inputToWrite = buildString {
                     append("login=eparent")
                     append("&pass=eparent")
@@ -127,9 +121,7 @@ class LoginDataModel(application: Application)
                     append("&view=ParentStudents")
                 },
                 host = host,
-                deviceId = deviceId,
-                logEverythingEnabled = isLoggingEnabled,
-                dataDir = context.applicationInfo.dataDir
+                deviceId = deviceId
         ).use { reader ->
             return processLoginRequestOutput(reader, false)
         }

@@ -5,12 +5,10 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import jakubweg.mobishit.helper.ChangedObjectsLog
 import jakubweg.mobishit.helper.DateHelper
 
 class DataCreator {
-    class ObjectDeletedNotifier(
-            val item: Any,
-            val objectId: Int) : Exception()
 
     companion object {
         private fun escapeString(string: String): String {
@@ -20,14 +18,14 @@ class DataCreator {
             return string.replace("\\\"", "\"")
         }
 
-        fun teacher(jr: JsonReader): Teacher {
+        fun teacher(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var surname = ""
             var login = ""
             var sex = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -35,41 +33,36 @@ class DataCreator {
                     "surname" -> surname = jr.nextString()!!
                     "login" -> login = jr.nextString()!!
                     "sex" -> sex = jr.nextStringOrNull() ?: ""
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return Teacher(id, name, surname, login, sex).also {
-                if (isDeleted)
-                    throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, Teacher(id, name, surname, login, sex))
         }
 
 
-        fun roomData(jr: JsonReader): RoomData {
+        fun roomData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var description = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "description" -> description = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return RoomData(id, name, description).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, RoomData(id, name, description))
         }
 
 
-        fun termData(jr: JsonReader): TermData {
+        fun termData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var type = ""
@@ -77,7 +70,7 @@ class DataCreator {
             var endDate = ""
             var parentId: Int? = null
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -86,48 +79,44 @@ class DataCreator {
                     "start_date" -> startDate = jr.nextString()!!
                     "end_date" -> endDate = jr.nextString()!!
                     "parent_id" -> parentId = jr.nextIntOrNull()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return TermData(id, name, type, parentId,
-                    DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate)).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, TermData(id, name, type, parentId,
+                    DateHelper.stringDateToMillis(startDate), DateHelper.stringDateToMillis(endDate)))
         }
 
 
-        fun subjectData(jr: JsonReader): SubjectData {
+        fun subjectData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var abbr = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "abbr" -> abbr = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return SubjectData(id, name, abbr, false).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, SubjectData(id, name, abbr, false))
         }
 
 
-        fun groupData(jr: JsonReader): GroupData {
+        fun groupData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var parentId = 0
             var type = ""
             var abbr = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -135,47 +124,43 @@ class DataCreator {
                     "parent_id" -> parentId = jr.nextInt()
                     "abbr" -> abbr = jr.nextString()!!
                     "type" -> type = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return GroupData(id, name, parentId, type, abbr).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, GroupData(id, name, parentId, type, abbr))
         }
 
 
-        fun groupTerm(jr: JsonReader): GroupTerm {
+        fun groupTerm(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var groupsId = 0
             var termId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupsId = jr.nextInt()
                     "terms_id" -> termId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return GroupTerm(id, groupsId, termId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, GroupTerm(id, groupsId, termId))
         }
 
 
-        fun markScaleGroup(jr: JsonReader): MarkScaleGroup {
+        fun markScaleGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var isPublic = false
             var markType = ""
             var isDefault = false
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -183,18 +168,16 @@ class DataCreator {
                     "public" -> isPublic = jr.nextInt() != 0
                     "mark_types" -> markType = jr.nextString()!!
                     "is_default" -> isDefault = jr.nextInt() != 0
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkScaleGroup(id, name, markType, isPublic, isDefault).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkScaleGroup(id, name, markType, isPublic, isDefault))
         }
 
 
-        fun markScale(jr: JsonReader): MarkScale {
+        fun markScale(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var markScaleGroupId = 0
             var abbr = ""
@@ -202,7 +185,7 @@ class DataCreator {
             var markValue = 0f
             var noCountToAverage = false
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -211,18 +194,16 @@ class DataCreator {
                     "abbreviation" -> abbr = jr.nextString()!!
                     "mark_value" -> markValue = jr.nextDouble().toFloat()
                     "no_count_to_average" -> noCountToAverage = jr.nextInt() != 0
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkScale(id, markScaleGroupId, abbr, name, markValue, noCountToAverage).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkScale(id, markScaleGroupId, abbr, name, markValue, noCountToAverage))
         }
 
 
-        fun markDivisionGroup(jr: JsonReader): MarkDivisionGroup {
+        fun markDivisionGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var type = 0
@@ -231,7 +212,7 @@ class DataCreator {
             var isPublic = false
             var markScaleGroupId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -241,18 +222,16 @@ class DataCreator {
                     "type" -> type = jr.nextInt()
                     "range_min" -> rangeMin = jr.nextDouble().toFloat()
                     "range_max" -> rangeMax = jr.nextDouble().toFloat()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkDivisionGroup(id, name, type, isPublic, rangeMin, rangeMax, markScaleGroupId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkDivisionGroup(id, name, type, isPublic, rangeMin, rangeMax, markScaleGroupId))
         }
 
 
-        fun markKind(jr: JsonReader): MarkKind {
+        fun markKind(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var abbreviation = ""
@@ -262,7 +241,7 @@ class DataCreator {
             var position = 0
             var cssStyle = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -273,40 +252,36 @@ class DataCreator {
                     "default_weigth" -> defaultWeight = jr.nextIntOrNull()
                     "position" -> position = jr.nextInt()
                     "css_style" -> cssStyle = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkKind(id, name, abbreviation, defaultMarkType, defaultMarkScaleGroupId, defaultWeight, position, cssStyle).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkKind(id, name, abbreviation, defaultMarkType, defaultMarkScaleGroupId, defaultWeight, position, cssStyle))
         }
 
 
-        fun markGroupGroup(jr: JsonReader): MarkGroupGroup {
+        fun markGroupGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var position = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "name" -> name = jr.nextString()!!
                     "position" -> position = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkGroupGroup(id, name, position).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkGroupGroup(id, name, position))
         }
 
 
-        fun markGroup(jr: JsonReader): MarkGroup {
+        fun markGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var markKindId = 0
             var markScaleGroupId: Int? = null
@@ -323,7 +298,7 @@ class DataCreator {
             var parentType: Int? = null
             var visibility: Int? = null
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -341,106 +316,96 @@ class DataCreator {
                     "parent_type" -> parentType = jr.nextIntOrNull()
                     "mark_value_range_min" -> markValueMin = jr.nextIntOrNull()
                     "mark_value_range_max" -> markValueMax = jr.nextIntOrNull()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkGroup(id, markKindId, weight, markScaleGroupId, eventTypeTermId, abbreviation,
+            log.new(action, MarkGroup(id, markKindId, weight, markScaleGroupId, eventTypeTermId, abbreviation,
                     description, markType, position, countPointsWithoutBase, markValueMin, markValueMax,
-                    parentId, parentType, visibility).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+                    parentId, parentType, visibility))
         }
 
 
-        fun eventType(jr: JsonReader): EventType {
+        fun eventType(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var subjectId: Int? = null
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "subjects_id" -> subjectId = jr.nextIntOrNull()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventType(id, subjectId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventType(id, subjectId))
         }
 
 
-        fun eventTypeTeacher(jr: JsonReader): EventTypeTeacher {
+        fun eventTypeTeacher(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var teacherId = 0
             var eventTypeId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "teachers_id" -> teacherId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventTypeTeacher(id, teacherId, eventTypeId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventTypeTeacher(id, teacherId, eventTypeId))
         }
 
 
-        fun eventTypeTerm(jr: JsonReader): EventTypeTerm {
+        fun eventTypeTerm(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var termId = 0
             var eventTypeId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "terms_id" -> termId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventTypeTerm(id, termId, eventTypeId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventTypeTerm(id, termId, eventTypeId))
         }
 
 
-        fun eventTypeGroup(jr: JsonReader): EventTypeGroup {
+        fun eventTypeGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var groupId = 0
             var eventTypeId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventTypeGroup(id, groupId, eventTypeId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventTypeGroup(id, groupId, eventTypeId))
         }
 
 
-        fun eventData(jr: JsonReader): EventData {
+        fun eventData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name: String? = null
             var date = ""
@@ -454,7 +419,7 @@ class DataCreator {
             var termId = 0
             var lessonGroupId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -469,15 +434,13 @@ class DataCreator {
                     "terms_id" -> termId = jr.nextInt()
                     "lesson_groups_id" -> lessonGroupId = jr.nextInt()
                     "substitution" -> substitution = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventData(id, name, DateHelper.stringDateToMillis(date), number, normalizeTime(startTime),
-                    normalizeTime(endTime), roomId, eventTypeId, status, substitution, termId, lessonGroupId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventData(id, name, DateHelper.stringDateToMillis(date), number, normalizeTime(startTime),
+                    normalizeTime(endTime), roomId, eventTypeId, status, substitution, termId, lessonGroupId))
         }
 
         private fun normalizeTime(time: String): String {
@@ -486,53 +449,49 @@ class DataCreator {
         }
 
 
-        fun eventIssue(jr: JsonReader): EventIssue {
+        fun eventIssue(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var eventId = 0
             var issueId = 0
             var eventTypeId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events_id" -> eventId = jr.nextInt()
                     "issues_id" -> issueId = jr.nextInt()
                     "event_types_id" -> eventTypeId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventIssue(id, eventId, issueId, eventTypeId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventIssue(id, eventId, issueId, eventTypeId))
         }
 
 
-        fun eventEvent(jr: JsonReader): EventEvent {
+        fun eventEvent(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var event1Id = 0
             var event2Id = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events1_id" -> event1Id = jr.nextInt()
                     "events2_id" -> event2Id = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventEvent(id, event1Id, event2Id).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventEvent(id, event1Id, event2Id))
         }
 
 
-        fun attendanceType(jr: JsonReader): AttendanceType {
+        fun attendanceType(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var name = ""
             var abbreviation = ""
@@ -540,7 +499,7 @@ class DataCreator {
             var countAs = ""
             var type = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -549,14 +508,12 @@ class DataCreator {
                     "style" -> style = jr.nextString()!!
                     "count_as" -> countAs = jr.nextString()!!
                     "type" -> type = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return AttendanceType(id, name, abbreviation, getStyleColor(style), countAs, type).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, AttendanceType(id, name, abbreviation, getStyleColor(style), countAs, type))
         }
 
         private val regex = Regex(".*background-color:[ ]?#([a-fA-F0-9]{6}).*")
@@ -570,29 +527,27 @@ class DataCreator {
         }
 
 
-        fun attendanceData(jr: JsonReader): AttendanceData {
+        fun attendanceData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var eventId = 0
             var typeId = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "events_id" -> eventId = jr.nextInt()
                     "types_id" -> typeId = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return AttendanceData(id, eventId, typeId).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, AttendanceData(id, eventId, typeId))
         }
 
 
-        fun markData(jr: JsonReader): MarkData {
+        fun markData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var markGroupId = 0
             var markScaleId: Int? = null
@@ -601,7 +556,7 @@ class DataCreator {
             var getDate = ""
             var addTime = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -611,25 +566,24 @@ class DataCreator {
                     "teacher_users_id" -> teacherId = jr.nextInt()
                     "get_date" -> getDate = jr.nextString()!!
                     "add_time" -> addTime = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MarkData(id, markGroupId, markScaleId, teacherId, markValue, DateHelper.stringDateToMillis(getDate), DateHelper.stringTimeToMillis(addTime)).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MarkData(id, markGroupId, markScaleId, teacherId, markValue,
+                    DateHelper.stringDateToMillis(getDate), DateHelper.stringTimeToMillis(addTime)))
         }
 
 
-        fun userReprimand(jr: JsonReader): MessageData {
+        fun userReprimand(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var teacherId = 0
             var kindId = 0
             var addTime = ""
             var content = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -637,48 +591,44 @@ class DataCreator {
                     "kinds_id" -> kindId = jr.nextInt()
                     "addtime" -> addTime = jr.nextString()!!
                     "content" -> content = escapeString(jr.nextString()!!)
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return MessageData(1000_000 + id, kindId, DateHelper.stringTimeToMillis(addTime),
-                    teacherId, null, content, 0L).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, MessageData(1000_000 + id, kindId, DateHelper.stringTimeToMillis(addTime),
+                    teacherId, null, content, 0L))
         }
 
 
-        fun studentGroup(jr: JsonReader): StudentGroup {
+        fun studentGroup(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var groupId = 0
             var number = 0
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "groups_id" -> groupId = jr.nextInt()
                     "number" -> number = jr.nextInt()
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return StudentGroup(id, groupId, number).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, StudentGroup(id, groupId, number))
         }
 
 
-        fun eventTypeSchedule(jr: JsonReader): EventTypeSchedule {
+        fun eventTypeSchedule(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var eventTypeId = 0
             var scheduleId = 0
             var name = ""
             var number = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -686,42 +636,38 @@ class DataCreator {
                     "schedules_id" -> scheduleId = jr.nextInt()
                     "number" -> number = jr.nextString()!!
                     "name" -> name = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return EventTypeSchedule(id, eventTypeId, scheduleId, name, number).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, EventTypeSchedule(id, eventTypeId, scheduleId, name, number))
         }
 
 
-        fun lessonData(jr: JsonReader): LessonData {
+        fun lessonData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var lessonNumber = 0
             var startTime = ""
             var endTime = ""
             jr.beginObject()
-            var isDeleted = false
+            var action = ""
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
                     "lesson_number" -> lessonNumber = jr.nextInt()
                     "start_time" -> startTime = jr.nextString()!!
                     "end_time" -> endTime = jr.nextString()!!
-                    "action" -> isDeleted = jr.nextString() == "D"
+                    "action" -> action = jr.nextString()
                     else -> jr.skipValue()
                 }
             }
 
-            return LessonData(id, lessonNumber, startTime, endTime).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+            log.new(action, LessonData(id, lessonNumber, startTime, endTime))
         }
 
 
-        fun messageData(jr: JsonReader): MessageData {
+        fun messageData(jr: JsonReader, log: ChangedObjectsLog) {
             var id = 0
             var sendTime = ""
             var senderId = 0
@@ -729,7 +675,6 @@ class DataCreator {
             var content = ""
             var readTime: String? = null
             jr.beginObject()
-            var isDeleted = false
             while (jr.hasNext()) {
                 when (jr.nextName()) {
                     "id" -> id = jr.nextInt()
@@ -738,16 +683,14 @@ class DataCreator {
                     "title" -> title = escapeString(jr.nextString()!!)
                     "content" -> content = escapeString(jr.nextString()!!)
                     "read_time" -> readTime = jr.nextStringOrNull()
-                    "action" -> isDeleted = jr.nextString() == "D"
                     else -> jr.skipValue()
                 }
             }
 
-            return MessageData(id, MessageDao.KIND_JUST_MESSAGE,
+            // NOTE: messages may not have action parameter, so we use always 'I' instead!!
+            log.new("I", MessageData(id, MessageDao.KIND_JUST_MESSAGE,
                     DateHelper.stringTimeToMillis(sendTime), senderId,
-                    title, content, DateHelper.stringTimeToMillis(readTime)).also {
-                if (isDeleted) throw ObjectDeletedNotifier(it, it.id)
-            }
+                    title, content, DateHelper.stringTimeToMillis(readTime)))
         }
 
 

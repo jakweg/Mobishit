@@ -10,19 +10,27 @@ import jakubweg.mobishit.service.UpdateWorker
 
 @Suppress("NOTHING_TO_INLINE")
 object SettingsMigrationHelper {
-    private const val CURRENT_APP_SETTINGS_VERSION = 11
+    private const val CURRENT_APP_SETTINGS_VERSION = 12
 
     @SuppressLint("ApplySharedPref")
-    fun onSettingsLoaded(prefs: SharedPreferences?,
+    fun onSettingsLoaded(prefs: MobiregPreferences?,
                          context: Context) {
         prefs ?: return
-        val version = prefs.getInt("version", 0)
+        val version = prefs.prefs.getInt("version", 0)
         if (version != CURRENT_APP_SETTINGS_VERSION) {
-            prefs.edit()
+            if (prefs.prefs.contains("notifyAboutAttendances")) {
+                if (prefs.prefs.getBoolean("notifyAboutAttendances", false))
+                    prefs.attendanceNotificationPolicy = prefs.attendanceNotificationPolicy or MobiregPreferences.ATTENDANCE_NOTIFICATION_PRESENT
+
+                prefs.prefs.edit().remove("notifyAboutAttendances").commit()
+            }
+
+            prefs.prefs.edit()
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 
-            deleteDatabaseAndRequestNew(prefs, context)
+            if (version < 11)
+                deleteDatabaseAndRequestNew(prefs.prefs, context)
         }
     }
 

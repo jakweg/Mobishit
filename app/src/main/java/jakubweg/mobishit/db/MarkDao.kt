@@ -130,10 +130,11 @@ WHERE Marks.id = :id AND visibility = 0 LIMIT 1""")
     fun getDeletedMarkInfo(id: Int): DeletedMarkData
 
 
-    class MarkScaleShortInfo(val id: Int, val abbreviation: String, val markValue: Float)
+    class MarkScaleShortInfo(val id: Int, val abbreviation: String, val markValue: Float, val selectable: Boolean)
 
-    @Query("""SELECT id, abbreviation, markValue FROM MarkScales
-WHERE MarkScales.markScaleGroupId = :groupId AND not noCountToAverage AND length(abbreviation) > 0
+    @Query("""SELECT id, CASE WHEN length(abbreviation) > 0 THEN abbreviation ELSE markValue END AS abbreviation,
+markValue,length(abbreviation) > 0 AS selectable FROM MarkScales
+WHERE MarkScales.markScaleGroupId = :groupId AND NOT noCountToAverage
 ORDER BY markValue""")
     fun getMarkScalesByGroupId(groupId: Int): List<MarkScaleShortInfo>
 
@@ -211,13 +212,14 @@ ORDER BY MarkScaleGroups.id DESC""")
     fun getSubjectsWithCountedUsersMarks(): List<SubjectShortInfo>
 
 
-    class MarkToImport(val markValue: Float?, val scaleId: Int?,
+    class MarkToImport(val markValue: Float, val scaleId: Int?,
                        val weight: Float, val parentType: Int?, val parentId: Int)
 
-    @Query("""SELECT Marks.markValue, MarkScales.id as scaleId,
+    @Query("""SELECT IFNULL(Marks.markValue, MarkScales.markValue) as markValue,
+        MarkScales.id as scaleId,
     IFNULL(MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase,
         IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight,
-parentType, IFNULL(parentId, MarkGroups.id) as parentId
+    parentType, IFNULL(parentId, MarkGroups.id) as parentId
 FROM Marks
 INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
 LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
@@ -235,7 +237,7 @@ ORDER BY addTime DESC""")
     @Query("DELETE FROM SavedVirtualMarks")
     fun clearVirtualMarks()
 
-    @Insert()
+    @Insert
     fun insertVirtualMarks(values: List<VirtualMarkEntity>)
 
     @Query("SELECT * FROM SavedVirtualMarks")

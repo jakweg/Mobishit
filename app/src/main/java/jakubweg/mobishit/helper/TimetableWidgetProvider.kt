@@ -108,7 +108,7 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                 intent.data = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME))
 
-                rv.setTextViewText(R.id.timetableSubtitle, DateHelper.millisToStringDate(getDayMillis(context)))
+                rv.setTextViewText(R.id.timetableSubtitle, DateHelper.formatPrettyDate(getDayMillis(context)))
 
                 rv.setRemoteAdapter(R.id.lessonsList, intent)
 

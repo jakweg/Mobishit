@@ -103,10 +103,10 @@ class AboutVirtualMarksModel(app: Application) : BaseViewModel(app) {
         if (marksToImport.isEmpty())
             return Pair(emptyList(), AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED)
 
-        if (marksToImport.any { it.markValue != null }) {
+        if (marksToImport.none { it.scaleId != null }) {
             // mamy oceny punktowe!
             return marksToImport.map {
-                VirtualMarkEntity(0, TYPE_POINTS_SINGLE, it.markValue ?: 0f, it.weight)
+                VirtualMarkEntity(0, TYPE_POINTS_SINGLE, it.markValue, it.weight)
             } to AboutVirtualMarksFragment.STATE_HAVING_POINTS_MARKS
         } else {
             // mamy oceny ze skali

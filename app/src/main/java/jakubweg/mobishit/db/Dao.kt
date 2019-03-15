@@ -7,17 +7,19 @@ import android.arch.persistence.room.*
 interface MainDao {
     //inserts
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // ignore, not replace, because user might set custom name
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(value: Teacher)
+
+    // ignore, not replace, because user might set custom name
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insert(value: SubjectData)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(value: RoomData)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(value: TermData)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(value: SubjectData)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(value: GroupData)
@@ -125,11 +127,6 @@ interface MainDao {
 
     // deletions
 
-    /*@Transaction
-    private fun deleteEntity(db: AppDatabase,tableName: String, id: Int) {
-        db.query("DELETE FROM ? WHERE id = ?", arrayOf(tableName, id))
-    }*/
-
     @Delete
     fun delete(value: Teacher)
 
@@ -207,6 +204,7 @@ interface MainDao {
 
     @Delete
     fun delete(value: MessageData)
+
 
     @Transaction
     fun deleteAny(value: Any) {

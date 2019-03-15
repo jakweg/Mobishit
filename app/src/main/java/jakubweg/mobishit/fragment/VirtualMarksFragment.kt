@@ -84,6 +84,8 @@ class VirtualMarksFragment : Fragment() {
             const val TYPE_POINTS_SINGLE = 3
         }
 
+        val markScalesFiltered = markScales.filter { it.selectable }.map { it.abbreviation }.toTypedArray()
+
         var lastScaleIndex = markScales.size / 2
         var lastWeight = 1f
 
@@ -309,8 +311,9 @@ class VirtualMarksFragment : Fragment() {
         /**
          * @param valueChange it is positive when clicked plus, negative when minus,
          * and zero when value clicked
+         * @return true if click was consumed (changed or caused anything), false if click was ignored
          */
-        open fun onFirstRowClicked(valueChange: Byte) = Unit
+        open fun onFirstRowClicked(valueChange: Byte): Boolean = false
 
         /**
          * @param valueChange it is positive when clicked plus, negative when minus,

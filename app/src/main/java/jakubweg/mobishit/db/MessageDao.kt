@@ -49,7 +49,7 @@ interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertSentRequest(obj: SentMessageData): Long
 
-    class SentMessageShortData(val fullName: String?, val subject: String, val sentTime: Long, val receiverId: Int, val status: Int) {
+    class SentMessageShortData(val id: Int, val fullName: String?, val subject: String, val sentTime: Long, val receiverId: Int, val status: Int) {
         fun statusAsString() = when (status) {
             SentMessageData.STATUS_ENQUEUED -> "Oczekuje na wysłanie"
             SentMessageData.STATUS_FAILED -> "Niepowodzenie wysłania"
@@ -60,10 +60,9 @@ interface MessageDao {
         }
     }
 
-    @Query("""SELECT name || ' ' || surname as fullName, subject, sentTime, status, receiverId FROM SentMessages
-        LEFT OUTER JOIN Teachers ON Teachers.id = receiverId
-        ORDER BY sentTime DESC
-    """)
+    @Query("""SELECT SentMessages.id, name || ' ' || surname as fullName, subject, sentTime, status, receiverId FROM SentMessages
+LEFT OUTER JOIN Teachers ON Teachers.id = receiverId
+ORDER BY sentTime DESC""")
     fun getAllSentMessages(): LiveData<List<SentMessageShortData>>
 
     class ShortInfoToSendMessage(val subject: String, val content: String, val receiverId: Int)
@@ -74,4 +73,7 @@ interface MessageDao {
 
     @Query("UPDATE SentMessages SET status = :status WHERE id = :id")
     fun markMessageStatus(id: Long, status: Int)
+
+    @Query("SELECT content FROM SentMessages WHERE id = :id")
+    fun getSentMessageContent(id: Int): String?
 }

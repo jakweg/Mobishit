@@ -234,6 +234,39 @@ class GeneralPreferenceFragment : PreferenceFragmentCompat() {
 
             false
         }
+
+        findPreference("key_attendance_policy")?.setOnPreferenceClickListener {
+
+            val options = arrayOf(
+                    "Nowe obecności",
+                    "Nowe nieobecności i spóźnienia",
+                    "Zmiany we frekwencji")
+
+            val policy = prefs.attendanceNotificationPolicy
+            val checked = booleanArrayOf(
+                    policy and MobiregPreferences.ATTENDANCE_NOTIFICATION_PRESENT > 0,
+                    policy and MobiregPreferences.ATTENDANCE_NOTIFICATION_ABSENT > 0,
+                    policy and MobiregPreferences.ATTENDANCE_NOTIFICATION_CHANGE > 0
+            )
+
+            AlertDialog.Builder(context!!)
+                    .setTitle("O czym powiadamiać?")
+                    .setMultiChoiceItems(options, checked) { _, which, isChecked ->
+                        checked[which] = isChecked
+                    }
+                    .setOnDismissListener {
+                        var newPolicy = 0
+                        for (b in checked) {
+                            newPolicy = newPolicy shl 1
+                            if (b) newPolicy++
+                        }
+                        prefs.attendanceNotificationPolicy = newPolicy
+                    }
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            false
+        }
+
     }
 
     private fun showRenameDialog(context: Context,

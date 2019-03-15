@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import jakubweg.mobishit.R
 import jakubweg.mobishit.db.AttendanceDao
-import jakubweg.mobishit.helper.MobiregPreferences
 import jakubweg.mobishit.helper.precomputedText
 import jakubweg.mobishit.helper.setLeftDrawable
 import jakubweg.mobishit.helper.textView
@@ -57,12 +56,10 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
                     ?: "Statystyki obecności"
             subjectId = args.getInt("subject", -1)
 
-            if (!MobiregPreferences.get(context!!).seenAttendanceDates) {
-                view.textView(R.id.hintClickAttendanceType)?.also {
-                    it.visibility = View.VISIBLE
-                    it.setLeftDrawable(R.drawable.nav_info, it.currentTextColor)
-                }
+            view.textView(R.id.hintClickAttendanceType)?.also {
+                it.setLeftDrawable(R.drawable.nav_info, it.currentTextColor)
             }
+
 
 
             viewModel.init(start, end, subjectId)
@@ -85,7 +82,7 @@ class AttendanceMonthFragment : AttendanceBaseSheetFragment() {
         viewModel.attendanceTypes.observe(this, Observer { data ->
             data ?: return@Observer
             weakView.get()?.apply {
-                findViewById<AttendanceBarView>(R.id.attendanceBar)?.setAttendanceData(data.map { it.color to it.count })
+                findViewById<AttendanceBarView>(R.id.attendanceBar)?.setAttendanceData(data)
                 findViewById<RecyclerView>(R.id.attendanceTypeList)?.adapter =
                         AttendanceTypesAdapter(this@AttendanceMonthFragment, context!!, data)
             }

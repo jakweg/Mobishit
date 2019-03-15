@@ -10,6 +10,22 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
+
+
+class ChangedObjectsLog {
+    fun new(action: String?, obj: Any) {
+        when (action?.first() ?: return) {
+            'I' -> addedEntities.add(obj)
+            'U' -> modifiedEntities.add(obj)
+            'D' -> deletedEntities.add(obj)
+        }
+    }
+
+    var addedEntities = ArrayList<Any>()
+    var modifiedEntities = ArrayList<Any>()
+    var deletedEntities = ArrayList<Any>()
+}
 
 class UpdateHelper(private val context: Context) {
 
@@ -17,14 +33,18 @@ class UpdateHelper(private val context: Context) {
     var newMarks = mutableListOf<MarkData>()
     var newMessages = mutableListOf<MessageData>()
     var newAttendances = mutableListOf<AttendanceData>()
+    var modifiedAttendances = mutableListOf<Pair<String, AttendanceData>>() // before <name> and now <*>
     var newEvents = mutableListOf<EventData>()
     var deletedMarks = mutableListOf<MarkDao.DeletedMarkData>()
 
     private var onNewMark: SimpleCallback<MarkData> = doNothingCallback()
     private var onNewMessage: SimpleCallback<MessageData> = doNothingCallback()
     private var onNewAttendance: SimpleCallback<AttendanceData> = doNothingCallback()
+    private var onAttendanceModified: SimpleCallback<AttendanceData> = doNothingCallback()
     private var onNewEvents: SimpleCallback<EventData> = doNothingCallback()
     private var onDeleteMark: SimpleCallback<MarkData> = doNothingCallback()
+
+    private val log = ChangedObjectsLog()
 
     val isFirstTime get() = mIsFirstTime
 
@@ -33,17 +53,16 @@ class UpdateHelper(private val context: Context) {
                 newMarks.isNotEmpty() ||
                 newMessages.isNotEmpty() ||
                 newAttendances.isNotEmpty() ||
+                modifiedAttendances.isNotEmpty() ||
                 newEvents.isNotEmpty() ||
                 deletedMarks.isNotEmpty()
 
-    private var saveEverySyncEnabled = false
 
     fun doUpdate() {
         val preferences = MobiregPreferences.get(context)
 
         if (!preferences.isSignedIn)
             throw IllegalStateException("User is not signed in!")
-        saveEverySyncEnabled = preferences.logEverySync
 
         if (preferences.lmt == -1L)
             makeFirstTimeUpdate()
@@ -63,13 +82,14 @@ class UpdateHelper(private val context: Context) {
         onNewMark = doNothingCallback()
         onNewMessage = doNothingCallback()
         onNewAttendance = doNothingCallback()
+        onAttendanceModified = doNothingCallback()
         onNewEvents = doNothingCallback()
         onDeleteMark = doNothingCallback()
 
 
         mIsFirstTime = true
 
-        makeLoggedConnection(buildString {
+        makeConnection(buildString {
             append("login=eparent")
             append("&pass=eparent")
             append("&device_id="); append(preferences.deviceId)
@@ -80,7 +100,7 @@ class UpdateHelper(private val context: Context) {
             append("&end_date="); append(endDate)
             append("&get_all_mark_groups="); append(preferences.getAllMarkGroups.to0or1())
             append("&student_id="); append(preferences.studentId)
-        }, preferences.host!!, preferences.deviceId, saveEverySyncEnabled, context.applicationInfo.dataDir).use {
+        }, preferences.host!!, preferences.deviceId).use {
             parseUpdate(JsonReader(it), false)
         }
 
@@ -98,7 +118,7 @@ class UpdateHelper(private val context: Context) {
 
         val preferences = MobiregPreferences.get(context)
 
-        val endDate = "2019-06-30"
+        val endDate = "2020-06-30"
 
 
         newMarks.clear()
@@ -110,6 +130,11 @@ class UpdateHelper(private val context: Context) {
         onNewMessage = makeCallback { newMessages.add(it) }
         onNewMark = makeCallback { newMarks.add(it) }
         onNewAttendance = makeCallback { newAttendances.add(it) }
+        onAttendanceModified = makeCallback {
+            newAttendances.removeIfCompat { e -> e.id == it.id }
+            modifiedAttendances.add(Pair(database.attendanceDao.getAttendanceType(it.id)
+                    ?: return@makeCallback, it))
+        }
         onNewEvents = makeCallback { data ->
             if (data.status == EventDao.STATUS_CANCELED ||
                     (data.status == EventDao.STATUS_SCHEDULED &&
@@ -117,10 +142,11 @@ class UpdateHelper(private val context: Context) {
                 newEvents.add(data)
         }
         onDeleteMark = makeCallback {
+            newMarks.removeIfCompat { e -> e.id == it.id }
             deletedMarks.add(database.markDao.getDeletedMarkInfo(it.id))
         }
 
-        makeLoggedConnection(
+        makeConnection(
                 inputToWrite = buildString {
                     append("login=eparent")
                     append("&pass=eparent")
@@ -137,8 +163,7 @@ class UpdateHelper(private val context: Context) {
                         }.format(Date(preferences.lmt)))
                     append("&get_all_mark_groups="); append(preferences.getAllMarkGroups.to0or1())
                     append("&student_id="); append(preferences.studentId)
-                }, host = preferences.host!!, deviceId = preferences.deviceId,
-                logEverythingEnabled = saveEverySyncEnabled, dataDir = context.applicationInfo.dataDir)
+                }, host = preferences.host!!, deviceId = preferences.deviceId)
                 .use {
                     parseUpdate(JsonReader(it), false)
                 }
@@ -146,15 +171,11 @@ class UpdateHelper(private val context: Context) {
 
     @SuppressLint("ApplySharedPref")
     private fun parseUpdate(reader: JsonReader, ignoreLmt: Boolean) {
+        var millisOfRequest = 0L
         reader.apply {
-            var millisOfRequest = 0L
-            val db = AppDatabase.getAppDatabase(context)
-            db.runInTransaction { }
-            //db.runInTransaction {
             kotlin.run {
                 beginObject()
 
-                val dao = db.mainDao
                 while (hasNext()) {
                     val name = nextName()!!
 
@@ -164,33 +185,33 @@ class UpdateHelper(private val context: Context) {
                     }
                     beginArray()
                     when (name) {
-                        "Teachers" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.teacher(it) } }
-                        "Rooms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.roomData(it) } }
-                        "Terms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.termData(it) } }
-                        "Subjects" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.subjectData(it) } }
-                        "Groups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.groupData(it) } }
-                        "GroupTerms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.groupTerm(it) } }
-                        "MarkScaleGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markScaleGroup(it) } }
-                        "MarkScales" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markScale(it) } }
-                        "MarkDivisionGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markDivisionGroup(it) } }
-                        "MarkKinds" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markKind(it) } }
-                        "MarkGroupGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markGroupGroup(it) } }
-                        "MarkGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markGroup(it) } }
-                        "EventTypes" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventType(it) } }
-                        "EventTypeTeachers" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeTeacher(it) } }
-                        "EventTypeTerms" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeTerm(it) } }
-                        "EventTypeGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeGroup(it) } }
-                        "Events" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventData(it) } }
-                        "EventIssues" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventIssue(it) } }
-                        "EventEvents" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventEvent(it) } }
-                        "AttendanceTypes" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.attendanceType(it) } }
-                        "Attendances" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.attendanceData(it) } }
-                        "Marks" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.markData(it) } }
-                        "UserReprimands" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.userReprimand(it) } }
-                        "StudentGroups" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.studentGroup(it) } }
-                        "EventTypeSchedules" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.eventTypeSchedule(it) } }
-                        "Lessons" -> forEachInArray { insertElementToDao(dao, it) { DataCreator.lessonData(it) } }
-                        "Messages" -> forEachInArray { insertElementToDao<Any>(dao, it) { DataCreator.messageData(it) } }
+                        "Teachers" -> forEachInArray { DataCreator.teacher(it, log) }
+                        "Rooms" -> forEachInArray { DataCreator.roomData(it, log) }
+                        "Terms" -> forEachInArray { DataCreator.termData(it, log) }
+                        "Subjects" -> forEachInArray { DataCreator.subjectData(it, log) }
+                        "Groups" -> forEachInArray { DataCreator.groupData(it, log) }
+                        "GroupTerms" -> forEachInArray { DataCreator.groupTerm(it, log) }
+                        "MarkScaleGroups" -> forEachInArray { DataCreator.markScaleGroup(it, log) }
+                        "MarkScales" -> forEachInArray { DataCreator.markScale(it, log) }
+                        "MarkDivisionGroups" -> forEachInArray { DataCreator.markDivisionGroup(it, log) }
+                        "MarkKinds" -> forEachInArray { DataCreator.markKind(it, log) }
+                        "MarkGroupGroups" -> forEachInArray { DataCreator.markGroupGroup(it, log) }
+                        "MarkGroups" -> forEachInArray { DataCreator.markGroup(it, log) }
+                        "EventTypes" -> forEachInArray { DataCreator.eventType(it, log) }
+                        "EventTypeTeachers" -> forEachInArray { DataCreator.eventTypeTeacher(it, log) }
+                        "EventTypeTerms" -> forEachInArray { DataCreator.eventTypeTerm(it, log) }
+                        "EventTypeGroups" -> forEachInArray { DataCreator.eventTypeGroup(it, log) }
+                        "Events" -> forEachInArray { DataCreator.eventData(it, log) }
+                        "EventIssues" -> forEachInArray { DataCreator.eventIssue(it, log) }
+                        "EventEvents" -> forEachInArray { DataCreator.eventEvent(it, log) }
+                        "AttendanceTypes" -> forEachInArray { DataCreator.attendanceType(it, log) }
+                        "Attendances" -> forEachInArray { DataCreator.attendanceData(it, log) }
+                        "Marks" -> forEachInArray { DataCreator.markData(it, log) }
+                        "UserReprimands" -> forEachInArray { DataCreator.userReprimand(it, log) }
+                        "StudentGroups" -> forEachInArray { DataCreator.studentGroup(it, log) }
+                        "EventTypeSchedules" -> forEachInArray { DataCreator.eventTypeSchedule(it, log) }
+                        "Lessons" -> forEachInArray { DataCreator.lessonData(it, log) }
+                        "Messages" -> forEachInArray { DataCreator.messageData(it, log) }
                         "Settings" -> {
                             beginObject()
                             while (nextName() != "time")
@@ -216,10 +237,47 @@ class UpdateHelper(private val context: Context) {
                 }
                 endObject()
 
-                if (millisOfRequest > 0)
-                    MobiregPreferences.get(context)
-                            .setLmt(millisOfRequest)
             }
+
+        }
+
+
+        if (millisOfRequest > 0)
+            MobiregPreferences.get(context)
+                    .setLmt(millisOfRequest)
+        commitChanges()
+    }
+
+    private fun commitChanges() {
+        val dao = database.mainDao
+
+        for (element in log.addedEntities) {
+            when (element) {
+                is MarkData -> onNewMark.call(element)
+                is MessageData -> onNewMessage.call(element)
+                is AttendanceData -> onNewAttendance.call(element)
+                is EventData -> onNewEvents.call(element)
+            }
+            dao.insertAny(element)
+        }
+
+        for (element in log.modifiedEntities) {
+            when (element) {
+                is MarkData -> onNewMark.call(element)
+                is AttendanceData -> onAttendanceModified.call(element)
+            }
+            dao.insertAny(element)
+        }
+
+        for (element in log.deletedEntities) {
+            when (element) {
+                is MarkData -> onDeleteMark.call(element)
+                is AttendanceData -> {
+                    newAttendances.removeIfCompat { it.id == element.id }
+                    modifiedAttendances.removeIfCompat { it.second.id == element.id }
+                }
+            }
+            dao.deleteAny(element)
         }
     }
 
@@ -236,128 +294,14 @@ class UpdateHelper(private val context: Context) {
         }
     }
 
-    private inline fun <reified T> insertElementToDao(dao: MainDao, jsonReader: JsonReader, creator: () -> T) {
-        val element = try {
-            creator.invoke()
-        } catch (deleted: DataCreator.ObjectDeletedNotifier) {
-            when (deleted.item) {
-                is MarkData -> onDeleteMark.call(deleted.item)
-            }
-            dao.deleteAny(deleted.item)
-            return
-        } catch (e: Exception) {
-            e.printStackTrace()
-            while (jsonReader.peek() != JsonToken.END_OBJECT)
-                jsonReader.skipValue()
-            return
-        } finally {
-            if (jsonReader.peek() == JsonToken.END_OBJECT)
-                jsonReader.endObject()
-        }
-
-        when (element) {
-            is MarkData -> {
-                dao.insert(element); onNewMark.call(element)
-            }
-            is MessageData -> {
-                dao.insert(element); onNewMessage.call(element)
-            }
-            is AttendanceData -> {
-                dao.insert(element); onNewAttendance.call(element)
-            }
-            is EventData -> {
-                dao.insert(element); onNewEvents.call(element)
-            }
-            else -> dao.insertAny(element as Any)
-        }
-    }
-
     companion object {
-        fun makeLoggedConnection(inputToWrite: String,
-                                 host: String,
-                                 deviceId: Int,
-                                 logEverythingEnabled: Boolean,
-                                 dataDir: String
+        fun makeConnection(inputToWrite: String,
+                           host: String,
+                           deviceId: Int
         ): Reader {
             val url = URL("https://www.mobireg.pl/$host/modules/api/njson.php")
 
-            return if (logEverythingEnabled) {
-                File(dataDir, "syncs").run {
-                    mkdirs()
-                    val date = DateHelper.millisToStringTime(Calendar.getInstance()!!.timeInMillis)
-                    File(this, date).writer(Charsets.UTF_8).use { logger ->
-                        logger.write("Beginning of connection to ")
-                        logger.write(url.toString())
-                        logger.write("\ndate: ")
-                        logger.write(date)
-                        logger.write("\n\n")
-
-
-                        val connection = (url.openConnection() as HttpURLConnection).apply {
-                            connectTimeout = 5000
-                            readTimeout = 20 * 1000
-                            requestMethod = "POST"
-                            doInput = true
-                            doOutput = true
-                            setRequestProperty("User-Agent", "Andreg $deviceId")
-                        }
-
-                        logger.write("Connecting... ")
-
-                        val os = connection.outputStream
-
-                        val writer = BufferedWriter(OutputStreamWriter(os, "UTF-8"))
-                        writer.write(inputToWrite)
-                        writer.flush()
-                        writer.close()
-
-                        logger.write("result: ${connection.responseMessage}, code: ${connection.responseCode}\n\n")
-
-                        logger.write("INPUT:\n")
-                        logger.write(inputToWrite)
-                        logger.write("\nEND OF INPUT\n\n")
-
-                        logger.write("OUTPUT:\n")
-
-                        val inputAsString = try {
-                            val bis = BufferedInputStream(connection.inputStream)
-                            val buf = ByteArrayOutputStream()
-
-                            val buffer = ByteArray(1024 * 8)
-                            var read = 0
-                            while (read >= 0) {
-                                read = bis.read(buffer)
-                                if (read == -1)
-                                    break
-                                buf.write(buffer, 0, read)
-                                if (read == 0)
-                                    Thread.sleep(10L)
-                            }
-
-                            os.close()
-
-                            String(buf.toByteArray(), Charsets.UTF_8)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            logger.write("Error while downloading content!")
-                            e.printStackTrace(PrintWriter(logger))
-
-                            logger.close()
-                            throw e
-                        }
-
-                        connection.disconnect()
-
-                        logger.write(inputAsString)
-
-                        logger.write("\nEND OF OUTPUT\n")
-
-                        logger.flush()
-
-                        StringReader(inputAsString)
-                    }
-                }
-            } else {
+            return run {
                 val connection = (url.openConnection() as HttpURLConnection).apply {
                     connectTimeout = 5000
                     readTimeout = 5000
@@ -394,15 +338,31 @@ class UpdateHelper(private val context: Context) {
             }
         }
     }
-
-    private inline fun JsonReader.forEachInArray(function: (JsonReader) -> Any) {
-        while (hasNext()) function.invoke(this)
-    }
-
-    private fun Boolean.to0or1() = if (this) "1" else "0"
-
-    class InvalidPasswordException : IllegalStateException("Can't log in, probably password has changed")
 }
+
+private inline fun JsonReader.forEachInArray(function: (JsonReader) -> Any) {
+    while (hasNext()) {
+        try {
+            function.invoke(this)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        while (peek() != JsonToken.END_OBJECT)
+            skipValue()
+        endObject()
+    }
+}
+
+private fun Boolean.to0or1() = if (this) "1" else "0"
+
+class InvalidPasswordException : IllegalStateException("Can't log in, probably password has changed")
+
+
+private inline fun <E> MutableCollection<E>.removeIfCompat(test: (E) -> Boolean) {
+    val it = iterator()
+    while (it.hasNext()) if (test.invoke(it.next())) it.remove()
+}
+
 
 interface SimpleCallback<T> {
     fun call(obj: T)

@@ -126,7 +126,8 @@ class FcmServerNotifierWorker(context: Context, parameters: WorkerParameters) : 
     private fun postErrorNotification(message: String) = postErrorNotification("FcmServerNotifierWorker", message)
 
     private fun postErrorNotification(title: String, message: String) {
-        if (!MobiregPreferences.get(applicationContext).isDeveloper)
+        MobiregPreferences.get(applicationContext)
+        if (!BuildConfig.DEBUG)
             return
 
         NotificationHelper(applicationContext).apply {

@@ -14,6 +14,12 @@ interface AttendanceDao {
     fun getTypesInfo(): List<TypeInfo>
 
 
+    @Query("""
+SELECT name FROM Attendances
+LEFT OUTER JOIN AttendanceTypes ON AttendanceTypes.id = Attendances.typeId
+WHERE Attendances.id = :attendanceId LIMIT 1""")
+    fun getAttendanceType(attendanceId: Int): String?
+
 
     class AttendanceCountInfo(val countAs: String, val count: Int)
 

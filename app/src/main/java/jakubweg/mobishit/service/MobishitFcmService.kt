@@ -66,8 +66,7 @@ class MobishitFcmService : FirebaseMessagingService() {
 
         val isOfficial = body[KEY_IS_OFFICIAL] == TRUE
 
-        if (!isOfficial
-                && !prefs.isDeveloper) {
+        if (!isOfficial && !BuildConfig.DEBUG) {
             return //goodbye, we are not devs
         }
 

@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import jakubweg.mobishit.BuildConfig
 import jakubweg.mobishit.R
+import jakubweg.mobishit.db.AttendanceDao
 
 
 class AttendanceBarView : View {
@@ -30,20 +31,23 @@ class AttendanceBarView : View {
     }
 
     // color, count
-    private var attendancesList = listOf<Pair<Int, Int>>()
+    private class AttendanceItem(var color: Int, var count: Int)
+
+    private var attendancesList = listOf<AttendanceItem>()
     private val mainPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     fun setAttendanceData(presentCount: Int, absentCount: Int, lateCount: Int) {
         assert(presentCount >= 0 && absentCount >= 0 && lateCount >= 0)
-        setAttendanceData(listOf(
-                -16751104 to presentCount,
-                -65536 to absentCount,
-                -26368 to lateCount
-        ))
+        attendancesList = listOf(
+                AttendanceItem(-16751104, presentCount),
+                AttendanceItem(-65536, absentCount),
+                AttendanceItem(-26368, lateCount))
+        setWillNotDraw(false)
+        invalidate()
     }
 
-    fun setAttendanceData(list: List<Pair<Int, Int>>) {
-        attendancesList = list
+    fun setAttendanceData(list: List<AttendanceDao.AttendanceTypeAndCountInfo>?) {
+        attendancesList = list?.map { AttendanceItem(it.color, it.count) } ?: emptyList()
         setWillNotDraw(false)
         invalidate()
     }
@@ -64,7 +68,7 @@ class AttendanceBarView : View {
     override fun onDraw(canvas: Canvas?) {
         canvas ?: return
 
-        val sum = attendancesList.sumBy { it.second }
+        val sum = attendancesList.sumBy { it.count }
         if (sum == 0) {
             return
         }
@@ -76,12 +80,12 @@ class AttendanceBarView : View {
         var left = paddingLeft.toFloat()
         val unitWidth = (width - paddingRight - paddingLeft).toFloat() / sum.toFloat()
 
-        for ((color, count) in attendancesList) {
-            if (count == 0)
+        for (e in attendancesList) {
+            if (e.count == 0)
                 continue
 
-            val width = unitWidth * count
-            mainPaint.color = color
+            val width = unitWidth * e.count
+            mainPaint.color = e.color
             canvas.drawRect(left, top, left + width, bottom, mainPaint)
             left += width
         }

@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.text.HtmlCompat
@@ -76,11 +75,12 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 })
     }
 
+    private val notificationHelper = NotificationHelper(context)
+    private val db = AppDatabase.getAppDatabase(context)
+    private val prefs = MobiregPreferences.get(context)
     override fun doWork(): Result {
         val context = applicationContext
         synchronized(mutex) {
-            val notificationHelper = NotificationHelper(context)
-            val prefs = MobiregPreferences.get(context)
             return try {
                 if (!prefs.isSignedIn) {
                     WorkManager.getInstance()
@@ -108,19 +108,18 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 }
 
 
-                val db = AppDatabase.getAppDatabase(context)
 
                 if (!MainActivity.isMainActivityInForeground
                         || prefs.notifyWhenMainActivityIsInForeground) {
 
                     notificationHelper.createNotificationChannels()
-                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        makeNotificationForNewMarks(notificationHelper, db.markDao, prefs, updateHelper.newMarks)
-                        makeNotificationsForDeletedMarks(notificationHelper, prefs, updateHelper.deletedMarks)
-                        makeNotificationsForNewMessages(notificationHelper, db.messageDao, prefs, updateHelper.newMessages)
-                        makeNotificationsForAttendances(notificationHelper, db.eventDao, prefs, updateHelper.newAttendances)
-                        makeNotificationsForEvents(notificationHelper, db.eventDao, prefs, updateHelper.newEvents)
-                    }
+
+                    makeNotificationForNewMarks(updateHelper.newMarks)
+                    makeNotificationsForDeletedMarks(updateHelper.deletedMarks)
+                    makeNotificationsForNewMessages(updateHelper.newMessages)
+                    makeNotificationsForAttendances(updateHelper.newAttendances)
+                    makeNotificationsForModifiedAttendances(updateHelper.modifiedAttendances)
+                    makeNotificationsForEvents(updateHelper.newEvents)
                 }
 
                 if (updateHelper.isAnythingNew) {
@@ -149,7 +148,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 Log.e("UpdateWorker", "Got SocketTimeoutException, should retry in 1/2 minute")
                 publishStatus(STATUS_ERROR)
                 Result.retry()
-            } catch (ipe: UpdateHelper.InvalidPasswordException) {
+            } catch (ipe: InvalidPasswordException) {
                 postWrongPasswordNotification(notificationHelper, prefs)
 
                 publishStatus(STATUS_ERROR)
@@ -169,7 +168,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     }
 
 
-    private fun makeNotificationForNewMarks(notificationHelper: NotificationHelper, dao: MarkDao, prefs: MobiregPreferences, list: MutableList<MarkData>) {
+    private fun makeNotificationForNewMarks(list: MutableList<MarkData>) {
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_MARKS))
             return
 
@@ -191,7 +190,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
         contentIntent.action = MainActivity.ACTION_SHOW_MARK
 
-        dao.getMarkShortInfo(IntArray(list.size) { list[it].id }).forEachIndexed { index, info ->
+        db.markDao.getMarkShortInfo(IntArray(list.size) { list[it].id }).forEachIndexed { index, info ->
             val text = when {
                 info.abbreviation != null -> "$textPrefix ${info.abbreviation} za ${info.description}"
                 info.markPointsValue >= 0f -> "$textPrefix ${info.markPointsValue} za ${info.description}"
@@ -207,7 +206,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
-    private fun makeNotificationsForDeletedMarks(notificationHelper: NotificationHelper, prefs: MobiregPreferences, list: MutableList<MarkDao.DeletedMarkData>) {
+    private fun makeNotificationsForDeletedMarks(list: MutableList<MarkDao.DeletedMarkData>) {
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_MARKS))
             return
 
@@ -234,7 +233,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
-    private fun makeNotificationsForNewMessages(notificationHelper: NotificationHelper, dao: MessageDao, prefs: MobiregPreferences, messages: MutableList<MessageData>) {
+    private fun makeNotificationsForNewMessages(messages: MutableList<MessageData>) {
         val list = messages.filterNot { it.readTime > 0L }
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_MESSAGES))
             return
@@ -247,6 +246,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)!!
                 .setDefaultsIf(prefs.notifyWithSound)
 
+        val dao = db.messageDao
         list.forEachIndexed { index, messageData ->
             val contentIntent = Intent(applicationContext, MainActivity::class.java)
             contentIntent.action = MainActivity.ACTION_SHOW_MESSAGE
@@ -269,11 +269,12 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
-    private fun makeNotificationsForAttendances(notificationHelper: NotificationHelper, dao: EventDao, prefs: MobiregPreferences, list: MutableList<AttendanceData>) {
+    private fun makeNotificationsForModifiedAttendances(list: MutableList<Pair<String, AttendanceData>>) {
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_ATTENDANCES))
             return
-
         if (list.size > 30)
+            return
+        if (prefs.attendanceNotificationPolicy and MobiregPreferences.ATTENDANCE_NOTIFICATION_CHANGE == 0)
             return
 
         val notification = NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_ATTENDANCES)
@@ -282,13 +283,72 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
                 .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
                 .setDefaultsIf(prefs.notifyWithSound)
 
-        val canNotifyAboutAttendance = prefs.notifyAboutAttendances
+        val contentIntent = Intent(applicationContext, MainActivity::class.java)
+        contentIntent.action = MainActivity.ACTION_SHOW_TIMETABLE
+
+        db.eventDao.getAttendanceInfoByIds(IntArray(list.size) { list[it].second.id }, true).apply {
+            val notificationIds = notificationHelper.getNotificationIds(size)
+            forEachIndexed { index, info ->
+                if (list[index].first == info.attendanceName)
+                    return@forEachIndexed //zmieniono jedno na to samo, np obecność na obecność
+
+                notification.setSmallIconCompat(
+                        if (info.isAbsent) R.drawable.event_busy else R.drawable.event_available,
+                        R.drawable.ic_event_png)
+
+                val formattedDate = DateHelper.millisToStringDate(info.date)
+
+                /* it's same index because allowPresent is always true */
+                val content = "Zmieniono ${list[index].first} na ${info.attendanceName} " +
+                        "na ${info.subjectName?.takeUnless { it.isBlank() } ?: "wydarzeniu"}"
+
+                val summary = if (info.number != null)
+                    "Lekcja ${info.number} • $formattedDate • ${info.startTime}"
+                else
+                    "Dzień $formattedDate • godzina ${info.startTime}"
+
+
+                notification.setContentTitle("Zaktualizowano obecność w dzienniku")
+                notification.setStyle(NotificationCompat.BigTextStyle()
+                        .bigText(content))
+                notification.setContentText(content)
+                notification.setSubText(summary)
+
+                val notificationId = notificationIds[index]
+
+                contentIntent.putExtra("id", (info.date / 1000).toInt())
+                notification.setContentIntent(PendingIntent
+                        .getActivity(applicationContext, notificationId,
+                                contentIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+
+                notificationHelper.postNotification(notificationId, notification)
+            }
+
+        }
+    }
+
+    private fun makeNotificationsForAttendances(list: MutableList<AttendanceData>) {
+        if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_ATTENDANCES))
+            return
+
+        if (list.size > 30)
+            return
+
+        val policy = prefs.attendanceNotificationPolicy
+        if (policy and (MobiregPreferences.ATTENDANCE_NOTIFICATION_PRESENT or MobiregPreferences.ATTENDANCE_NOTIFICATION_ABSENT) == 0)
+            return
+
+        val notification = NotificationCompat.Builder(applicationContext, NotificationHelper.CHANNEL_ATTENDANCES)
+                .setAutoCancel(true)
+                .setCategory(NotificationCompat.CATEGORY_EVENT)!!
+                .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+                .setDefaultsIf(prefs.notifyWithSound)
 
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
         contentIntent.action = MainActivity.ACTION_SHOW_TIMETABLE
 
-
-        dao.getAttendanceInfoByIds(IntArray(list.size) { list[it].id }, canNotifyAboutAttendance).apply {
+        db.eventDao.getAttendanceInfoByIds(IntArray(list.size) { list[it].id },
+                policy and MobiregPreferences.ATTENDANCE_NOTIFICATION_PRESENT > 0).apply {
             val notificationIds = notificationHelper.getNotificationIds(size)
             forEachIndexed { index, info ->
                 notification.setSmallIconCompat(
@@ -320,7 +380,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         }
     }
 
-    private fun makeNotificationsForEvents(notificationHelper: NotificationHelper, dao: EventDao, prefs: MobiregPreferences, list: MutableList<EventData>) {
+    private fun makeNotificationsForEvents(list: MutableList<EventData>) {
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_SUBSTITUTIONS))
             return
 
@@ -353,6 +413,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
 
         val ids = notificationHelper.getNotificationIds(otherLessons.size)
 
+        val dao = db.eventDao
         otherLessons.forEachIndexed { index, event ->
             event.apply {
                 notification.setStyle(null)

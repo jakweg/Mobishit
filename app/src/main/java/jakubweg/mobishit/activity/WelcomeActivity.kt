@@ -25,7 +25,6 @@ class WelcomeActivity : FragmentActivity() {
         if (savedInstanceState == null)
             applyFragment(if (!prefs.seenWelcomeActivity)
                 WelcomeFirstFragment.newInstance() else LoginFragment.newInstance())
-
     }
 
     fun applyFragment(fragment: Fragment) {

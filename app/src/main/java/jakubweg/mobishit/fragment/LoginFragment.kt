@@ -111,7 +111,7 @@ class LoginFragment : Fragment() {
 
             when {
                 login.isEmpty() -> editLogin?.error = emptyErrorMsg
-                !regex.matches(login) -> editLogin?.error = "Login musi kończyć się adresem hosta (np jakub.zsl-krakow)"
+                !regex.matches(login) -> editLogin?.error = "Login musi kończyć się adresem hosta (np jakub.zsl-krakow), jeżeli nie masz takiego domyślnie to go dopisz"
                 pass.isEmpty() -> editPass?.error = emptyErrorMsg
                 else -> {
                     val values = regex.matchEntire(login)!!.groupValues

@@ -1,6 +1,7 @@
 package jakubweg.mobishit.fragment
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
@@ -22,6 +23,7 @@ import android.widget.TextView
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MainActivity
+import jakubweg.mobishit.db.AppDatabase
 import jakubweg.mobishit.db.MessageDao
 import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.MessagesListModel
@@ -178,9 +180,20 @@ class MessagesListFragment : Fragment() {
         }
 
 
-        class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+        private inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val title = v.findViewById<TextView>(R.id.title)!!
             val subtitle = v.findViewById<TextView>(R.id.subtitle)!!
+
+            init {
+                v.setOnClickListener {
+                    AlertDialog.Builder(inflater.context)
+                            .setTitle("Wysłana wiadomość")
+                            .setMessage(AppDatabase.getAppDatabase(inflater.context)
+                                    .messageDao.getSentMessageContent(messages[adapterPosition].id)) // yeah, database reading on main thread
+                            .setPositiveButton("Zamknij", null)
+                            .show()
+                }
+            }
         }
     }
 

@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package jakubweg.mobishit.helper
 
 import android.content.Context
@@ -11,10 +13,17 @@ import jakubweg.mobishit.fragment.SubjectsMarkFragment
 import java.util.ArrayList
 import kotlin.Comparator
 
-@Suppress("NOTHING_TO_INLINE")
+
+class TripleFloat(var first: Float, var second: Float, var third: Float) {
+    inline fun toCacheData(): AverageCacheData {
+        return AverageCacheData(0, 0, null, null, first, second, third)
+    }
+}
+
 class AverageCalculator private constructor() {
 
     companion object {
+
         private inline fun Float.zeroIfNan() = if (isNaN()) 0f else this
 
         fun getOrCreateAverageCacheData(context: Context): List<AverageCacheData> {
@@ -137,7 +146,7 @@ class AverageCalculator private constructor() {
                     .groupBy { it.parentIdOrSelf }
             val outputList = ArrayList<MarkDao.MarkShortInfo>(marks.size)
 
-            grouped.values.forEach { it ->
+            grouped.values.forEach {
                 when {
                     it.size == 1 -> outputList.add(it.first().apply { viewType = SubjectsMarkFragment.MarkAdapter.TYPE_SINGLE })
                     it.size == 2 -> {
@@ -209,14 +218,10 @@ class AverageCalculator private constructor() {
         }
 
         private inline fun calculateAverage(marks: List<MarkDao.MarkShortInfo>)
-                : Triple<Float, Float, Float> {
+                : TripleFloat {
             return AverageCalculator().calculateAverage(marks)
         }
 
-
-        private inline fun Triple<Float, Float, Float>.toCacheData(): AverageCacheData {
-            return AverageCacheData(0, 0, null, null, first, second, third)
-        }
 
     }
 
@@ -224,7 +229,7 @@ class AverageCalculator private constructor() {
     private var averageWeight = 0f
     private var baseSum = 0f
     private var gotPointsSum = 0f
-    private fun calculateAverage(marks: List<MarkDao.MarkShortInfo>): Triple<Float, Float, Float> {
+    private fun calculateAverage(marks: List<MarkDao.MarkShortInfo>): TripleFloat {
         averageSum = 0f
         averageWeight = 0f
         baseSum = 0f
@@ -261,7 +266,7 @@ class AverageCalculator private constructor() {
         }
 
 
-        return Triple(averageSum / averageWeight, gotPointsSum, baseSum)
+        return TripleFloat(averageSum / averageWeight, gotPointsSum, baseSum)
     }
 
     private fun handleMarkWithoutParent(mark: MarkDao.MarkShortInfo, ignorePreviousCalculation: Boolean = false) {

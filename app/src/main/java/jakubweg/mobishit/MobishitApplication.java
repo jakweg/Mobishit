@@ -11,7 +11,6 @@ import jakubweg.mobishit.helper.CrashHandler;
 import jakubweg.mobishit.helper.MobiregPreferences;
 
 public class MobishitApplication extends Application {
-    private static final boolean IS_TESTING_EXCEPTION_HANDLING = false;
 
     @Override
     public void onCreate() {
@@ -24,7 +23,7 @@ public class MobishitApplication extends Application {
         FirebaseApp.initializeApp(this);
 
 
-        if (!BuildConfig.DEBUG || IS_TESTING_EXCEPTION_HANDLING) {
+        if (!BuildConfig.DEBUG) {
             MobiregPreferences prefs = MobiregPreferences.Companion.get(getApplicationContext());
 
             long lastCrash = prefs.getLastCrashTime();

@@ -51,7 +51,10 @@ class MarksListView : View {
 
     private var mTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private var mRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private var mPositionsToDraw = arrayListOf<Triple<Float, Float, String>>()
+
+    private class DrawPosition(var x: Float, var y: Float, var text: String)
+
+    private var mPositionsToDraw = arrayListOf<DrawPosition>()
     private var mRoundCornersSize = 0f
     private var mEllipsisWidth = 0f
     private var mEllipsisLeft = 0f //if not 0 then draw
@@ -75,7 +78,7 @@ class MarksListView : View {
 
         mEllipsisWidth = mTextPaint.measureText(" … ")
         mEllipsisLeft = 0f
-        val positionsToDraw = ArrayList<Triple<Float, Float, String>>(marks.size)
+        val positionsToDraw = ArrayList<DrawPosition>(marks.size)
 
         var left = 0f
         for (it in marks) {
@@ -84,14 +87,14 @@ class MarksListView : View {
 
             if (left + textWidth > width) {
                 while (left + mEllipsisWidth > width && positionsToDraw.isNotEmpty()) {
-                    left = positionsToDraw.last().first
+                    left = positionsToDraw.last().x
                     positionsToDraw.removeAt(positionsToDraw.size - 1)
                 }
                 mEllipsisLeft = left
                 break
             }
 
-            positionsToDraw.add(Triple(left, textWidth, it))
+            positionsToDraw.add(DrawPosition(left, textWidth, it))
             left += textWidth + separatorWidth
         }
 
@@ -116,17 +119,22 @@ class MarksListView : View {
         val height = this.height.toFloat()
         val textSize = mTextPaint.textSize
 
-        mPositionsToDraw.forEach { it ->
-            canvas.drawRoundRectCompat(it.first, 0f,
-                    it.first + it.second,
-                    height, mRoundCornersSize, mRoundCornersSize, mRectPaint)
-            canvas.drawText(it.third, it.first + it.second / 2f, textSize, mTextPaint)
+        // for dark theme, because it's not visible anyway
+        val isDrawingRectEnabled = mRectPaint.color != Color.BLACK
+
+        mPositionsToDraw.forEach {
+            if (isDrawingRectEnabled)
+                canvas.drawRoundRectCompat(it.x, 0f,
+                        it.x + it.y,
+                        height, mRoundCornersSize, mRoundCornersSize, mRectPaint)
+            canvas.drawText(it.text, it.x + it.y / 2f, textSize, mTextPaint)
         }
 
         if (mEllipsisLeft != 0f) {
-            canvas.drawRoundRectCompat(mEllipsisLeft, 0f,
-                    mEllipsisLeft + mEllipsisWidth,
-                    height, mRoundCornersSize, mRoundCornersSize, mRectPaint)
+            if (isDrawingRectEnabled)
+                canvas.drawRoundRectCompat(mEllipsisLeft, 0f,
+                        mEllipsisLeft + mEllipsisWidth,
+                        height, mRoundCornersSize, mRoundCornersSize, mRectPaint)
             canvas.drawText(" … ", mEllipsisLeft + mEllipsisWidth / 2f, textSize, mTextPaint)
         }
     }

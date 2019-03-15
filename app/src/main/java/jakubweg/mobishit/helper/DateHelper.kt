@@ -23,6 +23,23 @@ object DateHelper {
         }
     }
 
+    private val monthsAbbreviations by lazy(LazyThreadSafetyMode.NONE) {
+        SparseArray<String>(12).apply {
+            put(Calendar.JANUARY, "sty")
+            put(Calendar.FEBRUARY, "lut")
+            put(Calendar.MARCH, "mar")
+            put(Calendar.APRIL, "kwi")
+            put(Calendar.MAY, "maj")
+            put(Calendar.JUNE, "cze")
+            put(Calendar.JULY, "lip")
+            put(Calendar.AUGUST, "sie")
+            put(Calendar.SEPTEMBER, "wrz")
+            put(Calendar.OCTOBER, "paź")
+            put(Calendar.NOVEMBER, "lis")
+            put(Calendar.DECEMBER, "gru")
+        }
+    }
+
     val weekDaysMap by lazy(LazyThreadSafetyMode.NONE) {
         SparseArray<String>(7).apply {
             put(Calendar.MONDAY, "Poniedziałek")
@@ -32,6 +49,18 @@ object DateHelper {
             put(Calendar.FRIDAY, "Piątek")
             put(Calendar.SATURDAY, "Sobota")
             put(Calendar.SUNDAY, "Niedziala")
+        }
+    }
+
+    private val weekDaysAbbreviations by lazy(LazyThreadSafetyMode.NONE) {
+        SparseArray<String>(7).apply {
+            put(Calendar.MONDAY, "Pon")
+            put(Calendar.THURSDAY, "Wt")
+            put(Calendar.WEDNESDAY, "Śr")
+            put(Calendar.TUESDAY, "Czw")
+            put(Calendar.FRIDAY, "Pt")
+            put(Calendar.SATURDAY, "Sob")
+            put(Calendar.SUNDAY, "Niedz")
         }
     }
 
@@ -104,4 +133,15 @@ object DateHelper {
         return timeWithSecondsFormatter.format(Date(millis))
     }
 
+
+    fun formatPrettyDate(millis: Long) = buildString {
+        val cal = Calendar.getInstance()!!
+        cal.timeInMillis = millis
+
+        append(weekDaysAbbreviations[cal.get(Calendar.DAY_OF_WEEK)])
+        append("., ")
+        append(cal.get(Calendar.DAY_OF_MONTH))
+        append(' ')
+        append(monthsAbbreviations[cal.get(Calendar.MONTH)])
+    }
 }

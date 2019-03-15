@@ -21,6 +21,9 @@ class MobiregPreferences private constructor(
         val prefs: SharedPreferences
 ) {
     companion object {
+        const val ATTENDANCE_NOTIFICATION_CHANGE = 1 shl 0
+        const val ATTENDANCE_NOTIFICATION_ABSENT = 1 shl 1
+        const val ATTENDANCE_NOTIFICATION_PRESENT = 1 shl 2
         private var INSTANCE: MobiregPreferences? = null
 
         fun get(context: Context?): MobiregPreferences {
@@ -50,7 +53,7 @@ class MobiregPreferences private constructor(
     }
 
     init {
-        SettingsMigrationHelper.onSettingsLoaded(prefs, context)
+        SettingsMigrationHelper.onSettingsLoaded(this, context)
     }
 
     @Suppress("NOTHING_TO_INLINE")
@@ -205,8 +208,6 @@ class MobiregPreferences private constructor(
 
     val lmt get() = prefs.getLong("lmt", -1L)
 
-    val logEverySync get() = BuildConfig.DEBUG || prefs.getBoolean("logEverySync", false)
-
     val deviceId get() = getDeviceIdOrRandomize()
 
     val startDate get() = getString("startDate") ?: "2018-01-01"
@@ -223,8 +224,6 @@ class MobiregPreferences private constructor(
 
     val notifyWithSound get() = prefs.getBoolean("notifyWithSound", true)
 
-    val notifyAboutAttendances get() = prefs.getBoolean("notifyAboutAttendances", false)
-
     val beforeLessonsMinutes: Int
         get() = prefs.getString("beforeLessonsMinutes", null)?.toIntOrNull() ?: 45
 
@@ -237,8 +236,6 @@ class MobiregPreferences private constructor(
     var downloadedComparisonsTermId: Int
         get() = prefs.getInt("dcti", 0)
         set(value) = prefs.edit().putInt("dcti", value).apply()
-
-    val isDeveloper get() = BuildConfig.DEBUG || prefs.getBoolean("is_dev", false)
 
     var seenWelcomeActivity
         get() = prefs.getBoolean("seenWA", false)
@@ -291,10 +288,6 @@ class MobiregPreferences private constructor(
     var hasReadyAverageCache
         get() = prefs.getBoolean("readyAverage", false)
         set(value) = prefs.edit().putBoolean("readyAverage", value).apply()
-
-    var seenAttendanceDates
-        get() = prefs.getBoolean("seenAD", false)
-        set(value) = prefs.edit().putBoolean("seenAD", value).apply()
 
     var lastUsedVersion
         get() = prefs.getInt("lUV", 0)
@@ -351,4 +344,9 @@ class MobiregPreferences private constructor(
                 .putInt("smsg", markScaleGroupsId)
                 .commit()
     }
+
+    var attendanceNotificationPolicy
+        get() = prefs.getInt("apo", ATTENDANCE_NOTIFICATION_ABSENT or ATTENDANCE_NOTIFICATION_CHANGE)
+        set(value) = prefs.edit().putInt("apo", value).apply()
+
 }
