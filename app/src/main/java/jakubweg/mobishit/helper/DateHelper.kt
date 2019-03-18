@@ -43,9 +43,9 @@ object DateHelper {
     val weekDaysMap by lazy(LazyThreadSafetyMode.NONE) {
         SparseArray<String>(7).apply {
             put(Calendar.MONDAY, "Poniedziałek")
-            put(Calendar.THURSDAY, "Wtorek")
+            put(Calendar.TUESDAY, "Wtorek")
             put(Calendar.WEDNESDAY, "Środa")
-            put(Calendar.TUESDAY, "Czwartek")
+            put(Calendar.THURSDAY, "Czwartek")
             put(Calendar.FRIDAY, "Piątek")
             put(Calendar.SATURDAY, "Sobota")
             put(Calendar.SUNDAY, "Niedziala")
@@ -55,9 +55,9 @@ object DateHelper {
     private val weekDaysAbbreviations by lazy(LazyThreadSafetyMode.NONE) {
         SparseArray<String>(7).apply {
             put(Calendar.MONDAY, "Pon")
-            put(Calendar.THURSDAY, "Wt")
+            put(Calendar.TUESDAY, "Wt")
             put(Calendar.WEDNESDAY, "Śr")
-            put(Calendar.TUESDAY, "Czw")
+            put(Calendar.THURSDAY, "Czw")
             put(Calendar.FRIDAY, "Pt")
             put(Calendar.SATURDAY, "Sob")
             put(Calendar.SUNDAY, "Niedz")

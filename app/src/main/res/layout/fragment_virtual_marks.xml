@@ -36,7 +36,7 @@
             android:layout_width="0px"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Wyczyść" />
+            android:text="Wyczyść i zamknij" />
 
         <Button
             android:id="@+id/addNewMark"

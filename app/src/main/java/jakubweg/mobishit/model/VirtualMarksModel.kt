@@ -25,26 +25,36 @@ class VirtualMarksModel(app: Application) : BaseViewModel(app) {
 
         val prefs = MobiregPreferences.get(context)
         val acceptOnlyPoints = prefs.savedVirtualMarksState == AboutVirtualMarksFragment.STATE_HAVING_POINTS_MARKS
+
+        val entities = when {
+            prefs.shouldClearVirtualMarks -> {
+                markDao.clearVirtualMarks()
+                emptyList()
+            }
+
+            prefs.savedVirtualMarksState != AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED -> {
+                markDao.getVirtualMarksEntities()
+            }
+            else -> emptyList()
+        }
+
         if (!acceptOnlyPoints)
             markScales = markDao.getMarkScalesByGroupId(prefs.savedMarkScaleGroupId)
-        val entities = markDao.getVirtualMarksEntities()
 
-
-
-        marks.postValue(entities.mapNotNull { it ->
-            when (it.type) {
-                TYPE_POINTS_SINGLE -> VirtualMarkPoints(it.value, it.weight)
+        marks.postValue(entities.mapNotNull { entity ->
+            when (entity.type) {
+                TYPE_POINTS_SINGLE -> VirtualMarkPoints(entity.value, entity.weight)
                 TYPE_SCALE_SINGLE -> {
-                    val scaleId = it.value.toInt()
+                    val scaleId = entity.value.toInt()
                     val index = markScales.indexOfFirst { it.id == scaleId }
                     if (index == -1)
                         return@mapNotNull null
-                    VirtualMarkScaleSingle(index, it.weight)
+                    VirtualMarkScaleSingle(index, entity.weight)
                 }
-                TYPE_SCALE_PARENT -> VirtualMarkParent(it.value.toInt(), it.weight)
+                TYPE_SCALE_PARENT -> VirtualMarkParent(entity.value.toInt(), entity.weight)
 
                 TYPE_SCALE_CHILD -> {
-                    val scaleId = it.value.toInt()
+                    val scaleId = entity.value.toInt()
                     val index = markScales.indexOfFirst { it.id == scaleId }
                     if (index == -1)
                         return@mapNotNull null

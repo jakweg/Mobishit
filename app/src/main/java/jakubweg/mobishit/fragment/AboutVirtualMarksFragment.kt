@@ -128,7 +128,8 @@ class AboutVirtualMarksFragment : Fragment() {
         askUsingDialog(viewModel.markScaleGroups,
                 "Wybierz skalę ocen",
                 true, makeCallback {
-            MobiregPreferences.get(null).markHavingSavedMarkScaleGroupMarks(it.id)
+            MobiregPreferences.get(null).setSavedMarksState(
+                    AboutVirtualMarksFragment.STATE_HAVING_SCALE_MARKS, it.id, true)
             viewModel.requestNothing()
             createDetailsFragment()
         })

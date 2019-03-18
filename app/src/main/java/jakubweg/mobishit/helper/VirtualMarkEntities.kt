@@ -63,11 +63,23 @@ abstract class VirtualMarkBase(val type: Int)
         }
 
         fun askForMark(context: Context, title: CharSequence,
-                       fragment: VirtualMarksFragment.VirtualMarksAdapter, selectedIndex: Int,
+                       fragment: VirtualMarksFragment.VirtualMarksAdapter,
+                       selectedIndex: Int,
                        callback: SimpleCallback<Int>) {
+            var skipped = 0
+            var i = 0
+            for (markScale in fragment.markScales) {
+                if (i >= selectedIndex)
+                    break
+                if (!markScale.selectable)
+                    skipped++
+                i++
+            }
+
+
             AlertDialog.Builder(context)
                     .setTitle(title)
-                    .setSingleChoiceItems(fragment.markScalesFiltered, selectedIndex) { d, which ->
+                    .setSingleChoiceItems(fragment.markScalesFiltered, selectedIndex - skipped) { d, which ->
                         d.dismiss()
                         callback.call(fragment.markScales.indexOfFirst { fragment.markScalesFiltered[which] === it.abbreviation })
                     }

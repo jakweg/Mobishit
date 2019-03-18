@@ -333,17 +333,27 @@ class MobiregPreferences private constructor(
 
     val savedMarkScaleGroupId get() = prefs.getInt("smsg", -1)
 
-    inline fun markHavingSavedMarkScaleGroupMarks(markScaleGroupsId: Int) = setSavedMarksState(AboutVirtualMarksFragment.STATE_HAVING_SCALE_MARKS, markScaleGroupsId)
     inline fun markHavingPointsMarks() = setSavedMarksState(AboutVirtualMarksFragment.STATE_HAVING_POINTS_MARKS, -1)
     inline fun markHavingNoSavedMarks() = setSavedMarksState(AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED, 0)
 
     @SuppressLint("ApplySharedPref")
-    fun setSavedMarksState(state: Int, markScaleGroupsId: Int) {
+    fun setSavedMarksState(state: Int, markScaleGroupsId: Int, clearSaved: Boolean) {
         prefs.edit()
                 .putInt("svms", state)
                 .putInt("smsg", markScaleGroupsId)
+                .putBoolean("cvm", clearSaved)
                 .commit()
     }
+
+    val shouldClearVirtualMarks
+        get(): Boolean {
+            val v = prefs.getBoolean("cvm", false)
+            if (v)
+                prefs.edit().remove("cvm").apply()
+            return v
+        }
+
+    fun setSavedMarksState(state: Int, markScaleGroupsId: Int) = setSavedMarksState(state, markScaleGroupsId, false)
 
     var attendanceNotificationPolicy
         get() = prefs.getInt("apo", ATTENDANCE_NOTIFICATION_ABSENT or ATTENDANCE_NOTIFICATION_CHANGE)
