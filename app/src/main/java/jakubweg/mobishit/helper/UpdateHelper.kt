@@ -131,18 +131,19 @@ class UpdateHelper(private val context: Context) {
         onNewMark = makeCallback { newMarks.add(it) }
         onNewAttendance = makeCallback { newAttendances.add(it) }
         onAttendanceModified = makeCallback {
-            newAttendances.removeIfCompat { e -> e.id == it.id }
+            newAttendances.removeFirstIf { e -> e.id == it.id }
             modifiedAttendances.add(Pair(database.attendanceDao.getAttendanceType(it.id)
                     ?: return@makeCallback, it))
         }
         onNewEvents = makeCallback { data ->
-            if (data.status == EventDao.STATUS_CANCELED ||
-                    (data.status == EventDao.STATUS_SCHEDULED &&
-                            data.substitution.let { it == EventDao.SUBSTITUTION_NEW_LESSON || it == EventDao.SUBSTITUTION_OLD_LESSON }))
+            if (data.status == EventDao.STATUS_CANCELED || (data.status == EventDao.STATUS_SCHEDULED &&
+                            data.substitution.let { it == EventDao.SUBSTITUTION_NEW_LESSON || it == EventDao.SUBSTITUTION_OLD_LESSON })) {
+                newEvents.removeFirstIf { it.id == data.id }
                 newEvents.add(data)
+            }
         }
         onDeleteMark = makeCallback {
-            newMarks.removeIfCompat { e -> e.id == it.id }
+            newMarks.removeFirstIf { e -> e.id == it.id }
             deletedMarks.add(database.markDao.getDeletedMarkInfo(it.id))
         }
 
@@ -265,6 +266,7 @@ class UpdateHelper(private val context: Context) {
             when (element) {
                 is MarkData -> onNewMark.call(element)
                 is AttendanceData -> onAttendanceModified.call(element)
+                is EventData -> onNewEvents.call(element)
             }
             dao.insertAny(element)
         }
@@ -273,8 +275,8 @@ class UpdateHelper(private val context: Context) {
             when (element) {
                 is MarkData -> onDeleteMark.call(element)
                 is AttendanceData -> {
-                    newAttendances.removeIfCompat { it.id == element.id }
-                    modifiedAttendances.removeIfCompat { it.second.id == element.id }
+                    newAttendances.removeFirstIf { it.id == element.id }
+                    modifiedAttendances.removeFirstIf { it.second.id == element.id }
                 }
             }
             dao.deleteAny(element)
@@ -358,9 +360,12 @@ private fun Boolean.to0or1() = if (this) "1" else "0"
 class InvalidPasswordException : IllegalStateException("Can't log in, probably password has changed")
 
 
-private inline fun <E> MutableCollection<E>.removeIfCompat(test: (E) -> Boolean) {
+private inline fun <E> MutableCollection<E>.removeFirstIf(test: (E) -> Boolean) {
     val it = iterator()
-    while (it.hasNext()) if (test.invoke(it.next())) it.remove()
+    while (it.hasNext()) if (test.invoke(it.next())) {
+        it.remove()
+        return
+    }
 }
 
 

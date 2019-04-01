@@ -104,6 +104,14 @@ class TimetableWidgetProvider : AppWidgetProvider() {
             val isLogged = MobiregPreferences.get(context).isSignedIn
 
             if (isLogged) {
+                val activityIntent = Intent(context, MainActivity::class.java).also {
+                    it.action = MainActivity.ACTION_SHOW_TIMETABLE
+                }
+
+                val activityPendingIntent = PendingIntent.getActivity(context, 0, activityIntent, 0)
+
+                rv.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
+
                 val intent = Intent(context, ListWidgetRemoteService::class.java)
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                 intent.data = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME))
@@ -115,12 +123,6 @@ class TimetableWidgetProvider : AppWidgetProvider() {
                 rv.setViewVisibility(R.id.errorBtn, View.GONE)
 
                 rv.setEmptyView(R.id.lessonsList, R.id.empty_view)
-
-                rv.setOnClickPendingIntent(R.id.timetableTitle,
-                        PendingIntent.getActivity(context, 0,
-                                Intent(context, MainActivity::class.java).also {
-                                    it.action = MainActivity.ACTION_SHOW_TIMETABLE
-                                }, 0))
             } else {
 
                 val intent = PendingIntent.getActivity(context, 0,

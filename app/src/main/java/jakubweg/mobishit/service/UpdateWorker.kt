@@ -272,7 +272,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     private fun makeNotificationsForModifiedAttendances(list: MutableList<Pair<String, AttendanceData>>) {
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_ATTENDANCES))
             return
-        if (list.size > 30)
+        if (list.size > 20)
             return
         if (prefs.attendanceNotificationPolicy and MobiregPreferences.ATTENDANCE_NOTIFICATION_CHANGE == 0)
             return
@@ -331,7 +331,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
         if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_ATTENDANCES))
             return
 
-        if (list.size > 30)
+        if (list.size > 20)
             return
 
         val policy = prefs.attendanceNotificationPolicy
@@ -381,7 +381,7 @@ class UpdateWorker(context: Context, workerParameters: WorkerParameters)
     }
 
     private fun makeNotificationsForEvents(list: MutableList<EventData>) {
-        if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_SUBSTITUTIONS))
+        if (list.isEmpty() || notificationHelper.isChannelMuted(NotificationHelper.CHANNEL_SUBSTITUTIONS) || list.size > 20)
             return
 
         val contentIntent = Intent(applicationContext, MainActivity::class.java).apply {
