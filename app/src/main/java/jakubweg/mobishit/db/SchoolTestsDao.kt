@@ -15,4 +15,7 @@ interface SchoolTestsDao {
 
     @Query("SELECT * FROM Tests ORDER BY date DESC")
     fun getAllTests(): List<TestData>
+
+    @Query("SELECT * FROM Tests WHERE id = :testId LIMIT 1")
+    fun getTest(testId: Int): TestData?
 }

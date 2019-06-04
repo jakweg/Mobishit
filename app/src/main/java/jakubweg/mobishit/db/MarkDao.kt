@@ -88,6 +88,25 @@ WHERE Marks.id IN (:markIds) AND visibility = 0""")
     fun getMarkShortInfo(markIds: IntArray): List<MarkShortInfoWithSubject>
 
 
+    class MarkOverviewInfo(val description: String, val abbreviation: String?, val weight: Float, val noCountToAverage: Boolean?,
+                           val markPointsValue: Float, val countPointsWithoutBase: Boolean?, val markValueMax: Float, val markScaleValue: Float)
+
+    @Query("""SELECT MarkGroups.description,
+MarkScales.abbreviation,
+IFNULL(MarkScales.markValue, -1) AS 'markScaleValue',
+IFNULL(weight, IFNULL(MarkKinds.defaultWeight, -1)) as 'weight',
+MarkScales.noCountToAverage,
+IFNULL(Marks.markValue, -1) AS 'markPointsValue',
+MarkGroups.countPointsWithoutBase,
+IFNULL(MarkGroups.markValueMax, -1) as 'markValueMax'
+FROM Marks
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkGroups ON MarkGroups.id = Marks.markGroupId
+INNER JOIN MarkKinds ON MarkGroups.markKindId = MarkKinds.id
+WHERE Marks.id = :markId LIMIT 1""")
+    fun getMarkOverviewInfo(markId: Int): MarkOverviewInfo?
+
+
     /// used in MarkDetailsFragment
     class MarkDetails(val description: String, val markName: String?, val abbreviation: String?, val markPointsValue: Float,
                       val columnName: String, val defaultWeight: Float?, val noCountToAverage: Boolean?, val countPointsWithoutBase: Boolean?,
@@ -117,6 +136,17 @@ INNER JOIN Teachers ON Teachers.id = Marks.teacherId
 WHERE Marks.id = :markId LIMIT 1""")
     fun getMarkDetails(markId: Int): MarkDetails?
 
+    class MarkValueInfo(val markValue: Float, val scaleId: Int?, val weight: Float)
+
+    @Query("""SELECT IFNULL(Marks.markValue, MarkScales.markValue) as markValue,
+MarkScales.id as scaleId,
+IFNULL(MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase, IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight
+FROM Marks
+INNER JOIN MarkGroups ON Marks.markGroupId = MarkGroups.id
+LEFT OUTER JOIN MarkScales ON MarkScales.id = Marks.markScaleId
+INNER JOIN MarkKinds ON MarkKinds.id = MarkGroups.markKindId
+WHERE Marks.id = :markId LIMIT 1""")
+    fun getMarkValueInfo(markId: Int): MarkValueInfo?
 
     class DeletedMarkData(val description: String?, val abbreviation: String?, val subjectName: String)
 
@@ -212,10 +242,11 @@ ORDER BY MarkScaleGroups.id DESC""")
     fun getSubjectsWithCountedUsersMarks(): List<SubjectShortInfo>
 
 
-    class MarkToImport(val markValue: Float, val scaleId: Int?,
+    class MarkToImport(val id: Int, val markValue: Float, val scaleId: Int?,
                        val weight: Float, val parentType: Int?, val parentId: Int)
 
-    @Query("""SELECT IFNULL(Marks.markValue, MarkScales.markValue) as markValue,
+    @Query("""SELECT Marks.id,
+        IFNULL(Marks.markValue, MarkScales.markValue) as markValue,
         MarkScales.id as scaleId,
     IFNULL(MarkGroups.markValueMax * NOT MarkGroups.countPointsWithoutBase,
         IFNULL(MarkGroups.weight,MarkKinds.defaultWeight)) as weight,

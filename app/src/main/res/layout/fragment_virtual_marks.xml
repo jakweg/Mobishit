@@ -8,14 +8,15 @@
     tools:ignore="RtlHardcoded,UnusedAttribute,HardcodedText">
 
     <TextView
-        android:background="?backgroundSecondaryColor"
-        android:elevation="8dp"
         android:id="@+id/title"
         style="@style/Base.TextAppearance.AppCompat.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?backgroundSecondaryColor"
+        android:elevation="8dp"
         android:gravity="center"
-        android:padding="8dp"
+        android:padding="2dp"
+        android:textSize="16sp"
         tools:text="Tu powinna byc twoja średnia..." />
 
     <View

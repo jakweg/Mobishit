@@ -54,6 +54,12 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
+            android:key="quitOnBackButton"
+            android:summary="Jeśli nie, wracaj do poprzedniej zakładki"
+            android:title="Wychodź z aplikacji przyciskiem wstecz" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="sLM"
             android:summary="Gdy włączone, niedawno otrzymane oceny będą widoczne na ekranie głównym"
             android:title="Pokazuj ostatnie oceny" />
@@ -65,6 +71,13 @@
             android:key="sn"
             android:summary="Możesz zdecydować gdzie numery lekcji mają być widoczne"
             android:title="Numery lekcji" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="showGapsBetweenLessons"
+            android:summary="Oraz jeśli nie zaczynasz dnia pierwszą lekcją"
+            android:title="Pokazuj przerwy między lekcjami" />
+
         <android.support.v7.preference.Preference
             android:key="key_change_subjects_name"
             android:title="Zmień nazwę przedmiotu"

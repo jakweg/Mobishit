@@ -47,25 +47,25 @@ class OneDayFragment : Fragment() {
             eventsList.adapter = EmptyAdapter("Ładowanie danych...")
     }
 
-    private class SafeObserver(v: RecyclerView)
+    private class SafeObserver(eventsListStrong: RecyclerView)
         : Observer<Array<EventDao.EventLongInfo>> {
-        private val eventsList = WeakReference<RecyclerView>(v)
-        override fun onChanged(it: Array<EventDao.EventLongInfo>?) {
+        private val eventsList = WeakReference<RecyclerView>(eventsListStrong)
+        override fun onChanged(lessons: Array<EventDao.EventLongInfo>?) {
             eventsList.get()?.also { view->
                 view.postDelayed({
-                    requestAdapterCreation(it)
+                    requestAdapterCreation(lessons)
                 }, 350L)
             }
         }
 
-        private fun requestAdapterCreation(it: Array<EventDao.EventLongInfo>?) {
+        private fun requestAdapterCreation(events: Array<EventDao.EventLongInfo>?) {
             val eventsList = eventsList.get() ?: return
             if (lastListViewCreationTime + 350L > System.currentTimeMillis()) {
-                eventsList.postDelayed({ requestAdapterCreation(it) }, 350L)
+                eventsList.postDelayed({ requestAdapterCreation(events) }, 350L)
             } else {
                 lastListViewCreationTime = System.currentTimeMillis()
-                if (it?.isNotEmpty() == true)
-                    eventsList.adapter = Adapter(eventsList.context ?: return, it)
+                if (events?.isNotEmpty() == true)
+                    eventsList.adapter = Adapter(eventsList.context ?: return, events)
                 else
                     eventsList.adapter = EmptyAdapter("Brak lekcji w ten dzień")
             }
@@ -79,28 +79,60 @@ class OneDayFragment : Fragment() {
         companion object {
             private const val TYPE_NORMAL = 0
             private const val TYPE_CANCELLED = 1
+            private const val TYPE_GAP = 2
         }
 
         private val inflater = LayoutInflater.from(context)!!
         private val showLessonNumber = MobiregPreferences.get(context).showLessonNumberOnTimetable
+        private val gapListPositions: List<Int>
 
-        override fun getItemCount() = lessons.size
+        init{
+            if(MobiregPreferences.get(context).showGapsBetweenLessons) {
+                val gaps = mutableListOf<Int>()
+                var listPosition = 0
+                for ((i, lesson) in lessons.withIndex()) {
+                    var addGap = false
+                    if (lesson.number != null) {
+                        if (i == 0) {
+                            if (lesson.number > 1)
+                                addGap = true
+                        } else {
+                            val prevLesson = lessons[i - 1]
+                            if (prevLesson.number != null && lesson.number > prevLesson.number + 1)
+                                addGap = true
+                        }
+                    }
+
+                    if (addGap)
+                        gaps.add(listPosition++)
+                    listPosition++
+                }
+                gapListPositions = gaps
+            } else{
+                gapListPositions = emptyList()
+            }
+        }
+
+        override fun getItemCount() = lessons.size + gapListPositions.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
                 : BaseViewHolder = when (viewType) {
             TYPE_NORMAL -> NormalLessonViewHolder(inflater.inflate(R.layout.lesson_list_item, parent, false), showLessonNumber)
             TYPE_CANCELLED -> CancelledLessonViewHolder(inflater.inflate(R.layout.cancelled_lesson_list_item, parent, false))
+            TYPE_GAP -> GapBetweenLessonsViewHolder(inflater.inflate(R.layout.gap_between_lessons_list_item, parent, false))
             else -> throw IllegalArgumentException()
         }
 
         @SuppressLint("SetTextI18n")
         override fun onBindViewHolder(holder: BaseViewHolder, pos: Int) {
-            holder.bindSelf(lessons[pos])
+            holder.bindSelf(if(pos in gapListPositions) null else lessons[getLessonIndexFromListPosition(pos)])
         }
 
-
         override fun getItemViewType(position: Int): Int {
-            return lessons[position].run {
+            if(position in gapListPositions)
+                return TYPE_GAP
+
+            return lessons[getLessonIndexFromListPosition(position)].run {
                 when (status) {
                     EventDao.STATUS_SCHEDULED -> {
                         when (this.substitution) {
@@ -122,23 +154,25 @@ class OneDayFragment : Fragment() {
             }
         }
 
-        private abstract class BaseViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-            protected val mainText = v.textView(R.id.mainText)!!
+        private fun getLessonIndexFromListPosition(position: Int) =
+            position - gapListPositions.count {it < position}
 
-            abstract fun bindSelf(params: EventDao.EventLongInfo)
+        private abstract class BaseViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            abstract fun bindSelf(eventInfo: EventDao.EventLongInfo?)
         }
 
         private class NormalLessonViewHolder(v: View,
                                              private val showLessonNumber: Boolean) : BaseViewHolder(v) {
+            private val mainText = v.textView(R.id.mainText)!!
             private val colorView = v.findViewById<View>(R.id.eventColorView)!!
             private val secondaryText = v.textView(R.id.secondaryText)!!
             private val hoursText = v.textView(R.id.hoursText)!!
             private val lessonNumber = v.textView(R.id.lessonNumber)
 
-
             @SuppressLint("SetTextI18n")
-            override fun bindSelf(params: EventDao.EventLongInfo) {
-                params.apply {
+            override fun bindSelf(eventInfo: EventDao.EventLongInfo?) {
+                eventInfo!!
+                eventInfo.apply {
                     colorView.setBackgroundColor(color ?: Color.LTGRAY)
                     mainText.precomputedText = subjectName.takeIfNotBlankOrNull() ?: description.takeIfNotBlankOrNull() ?: "Wydarzenie bez nazwy"
 
@@ -187,15 +221,16 @@ class OneDayFragment : Fragment() {
         }
 
         private class CancelledLessonViewHolder(v: View) : BaseViewHolder(v) {
-
+            private val mainText = v.textView(R.id.mainText)!!
             private val secondaryText = v.textView(R.id.secondaryText)!!
 
             init {
                 mainText.paintFlags = mainText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             }
 
-            override fun bindSelf(params: EventDao.EventLongInfo) {
-                params.apply {
+            override fun bindSelf(eventInfo: EventDao.EventLongInfo?) {
+                eventInfo!!
+                eventInfo.apply {
                     mainText.precomputedText = subjectName ?: "Brak nazwy przedmiotu"
                     secondaryText.precomputedText = description?.takeUnless { it.isBlank() } ?: when (substitution) {
                         EventDao.SUBSTITUTION_OLD_LESSON -> "Lekcja zastąpiona"
@@ -203,6 +238,10 @@ class OneDayFragment : Fragment() {
                     }
                 }
             }
+        }
+
+        private class GapBetweenLessonsViewHolder(v: View): BaseViewHolder(v) {
+            override fun bindSelf(eventInfo: EventDao.EventLongInfo?) = Unit
         }
 
     }

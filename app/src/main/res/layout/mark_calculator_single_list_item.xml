@@ -21,7 +21,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="8dp"
         android:gravity="center_vertical"
-        android:minWidth="100dp"
+        android:minWidth="70dp"
         android:text="Ocena: " />
 
     <TextView
@@ -34,7 +34,7 @@
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="8dp"
         android:gravity="center_vertical"
-        android:minWidth="100dp"
+        android:minWidth="70dp"
         android:text="Waga: " />
 
     <LinearLayout
@@ -43,7 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_toLeftOf="@id/btnDeleteMark"
         android:layout_toRightOf="@id/textWeight"
         android:orientation="horizontal">
 
@@ -52,7 +51,11 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
-            android:padding="8dp"
+            android:minWidth="45dp"
+            android:paddingLeft="14dp"
+            android:paddingTop="8dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="8dp"
             tools:srcCompat="@drawable/ic_navigate_before"
             tools:tint="?android:attr/textColorPrimary" />
 
@@ -65,18 +68,21 @@
             android:focusable="true"
             android:foreground="?android:selectableItemBackground"
             android:gravity="center"
-            android:minWidth="40dp"
+            android:minWidth="50dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             tools:text="bdb" />
 
         <ImageButton
             android:id="@+id/btnIncrease"
-            android:layout_width="wrap_content"
+            android:layout_width="45dp"
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
             android:contentDescription=""
-            android:padding="8dp"
+            android:paddingLeft="4dp"
+            android:paddingTop="8dp"
+            android:paddingRight="14dp"
+            android:paddingBottom="8dp"
             tools:src="@drawable/ic_navigate_next"
             tools:tint="?android:attr/textColorPrimary" />
 
@@ -88,7 +94,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/layoutMark"
         android:layout_centerHorizontal="true"
-        android:layout_toLeftOf="@id/btnDeleteMark"
         android:layout_toRightOf="@id/title"
         android:orientation="horizontal">
 
@@ -97,7 +102,11 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
-            android:padding="8dp"
+            android:minWidth="45dp"
+            android:paddingLeft="14dp"
+            android:paddingTop="8dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="8dp"
             tools:src="@drawable/ic_navigate_before"
             tools:tint="?android:attr/textColorPrimary" />
 
@@ -110,22 +119,44 @@
             android:focusable="true"
             android:foreground="?android:selectableItemBackground"
             android:gravity="center"
-            android:minWidth="40dp"
+            android:minWidth="50dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             tools:text="5" />
 
         <ImageButton
             android:id="@+id/btnIncrease2"
-            android:layout_width="wrap_content"
+            android:layout_width="45dp"
             android:layout_height="match_parent"
             android:background="?android:selectableItemBackground"
             android:contentDescription=""
-            android:padding="8dp"
+            android:paddingLeft="4dp"
+            android:paddingTop="8dp"
+            android:paddingRight="14dp"
+            android:paddingBottom="8dp"
             tools:src="@drawable/ic_navigate_next"
             tools:tint="?android:attr/textColorPrimary" />
 
     </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/layoutWeight"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/btnDeleteMark"
+        android:layout_toLeftOf="@+id/btnDeleteMark"
+        android:layout_toEndOf="@+id/layoutMark"
+        android:layout_toRightOf="@+id/layoutMark">
+
+        <include
+            android:id="@+id/markState"
+            layout="@layout/virtual_mark_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical" />
+
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/btnDeleteMark"

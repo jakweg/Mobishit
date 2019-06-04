@@ -3,6 +3,7 @@ package jakubweg.mobishit.fragment
 import android.app.DatePickerDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,12 +11,18 @@ import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
+import android.support.v4.widget.TextViewCompat
+import android.support.v7.widget.AppCompatTextView
+import android.util.AttributeSet
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import jakubweg.mobishit.R
+import jakubweg.mobishit.helper.DateHelper
 import jakubweg.mobishit.model.TimetableModel
 import java.lang.ref.WeakReference
 import java.util.*
@@ -42,14 +49,14 @@ class TimetableFragment : Fragment() {
     private val viewModel get() = ViewModelProviders.of(this)[TimetableModel::class.java]
 
     private var viewPager: ViewPager? = null
-    private var tabs: TabLayout? = null
+    private var tabs: DaysTabLayout? = null
     private var scrollSmoothly = true
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewPager = view.findViewById(R.id.dayViewPager)!!
         tabs = view.findViewById(R.id.dayTabs)!!
 
         viewPager?.apply {
-            adapter = DayViewPagerAdapter(this@TimetableFragment, fragmentManager!!)
+            adapter = DayViewPagerAdapter(this@TimetableFragment, childFragmentManager)
             tabs?.apply {
                 setupWithViewPager(viewPager, true)
             }
@@ -79,10 +86,13 @@ class TimetableFragment : Fragment() {
                     requestedDate = -1
                 } else {
                     val calendar = Calendar.getInstance()!!
-                    val millisInDay = 24 * 60 * 60 * 1000L
-                    viewModel.requestDate(if (calendar[Calendar.HOUR_OF_DAY] >= 17) {
-                        calendar.timeInMillis / millisInDay * millisInDay + millisInDay
-                    } else calendar.timeInMillis / millisInDay * millisInDay)
+                    val requestDate = calendar.timeInMillis / DateHelper.MILLIS_IN_DAY * DateHelper.MILLIS_IN_DAY + when {
+                        calendar[Calendar.DAY_OF_WEEK] == Calendar.SATURDAY -> 2 * DateHelper.MILLIS_IN_DAY
+                        calendar[Calendar.DAY_OF_WEEK] == Calendar.SUNDAY -> DateHelper.MILLIS_IN_DAY
+                        calendar[Calendar.HOUR_OF_DAY] >= 17 -> DateHelper.MILLIS_IN_DAY //at friday this should skip to monday... but who bothers about school at friday??
+                        else -> 0
+                    }
+                    viewModel.requestDate(requestDate)
                 }
             } else {
                 viewModel.requestDate(savedInstanceState.getLong("currentDay"))
@@ -159,6 +169,46 @@ class TimetableFragment : Fragment() {
                 }, 300L)
             }
         }, year, month, dayOfMonth).show()
+    }
+
+    class DaysTabLayout : TabLayout {
+        private var adapter: DayViewPagerAdapter? = null
+
+        constructor(context: Context?)
+                : super(context)
+        constructor(context: Context?, attrs: AttributeSet?)
+                : super(context, attrs)
+        constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int)
+                : super(context, attrs, defStyleAttr)
+
+        override fun setupWithViewPager(viewPager: ViewPager?) {
+            onSetupWithViewPager(viewPager)
+            super.setupWithViewPager(viewPager)
+        }
+
+        override fun setupWithViewPager(viewPager: ViewPager?, autoRefresh: Boolean) {
+            onSetupWithViewPager(viewPager)
+            super.setupWithViewPager(viewPager, autoRefresh)
+        }
+
+        private fun onSetupWithViewPager(viewPager: ViewPager?){
+            adapter = viewPager?.adapter as DayViewPagerAdapter?
+        }
+
+        override fun addTab(tab: Tab, position: Int, setSelected: Boolean) {
+            super.addTab(tab, position, setSelected)
+            val tabCustomView = AppCompatTextView(context)
+            tabCustomView.gravity = Gravity.CENTER
+            tabCustomView.setTextColor(tabTextColors)
+            adapter?.also {
+                tabCustomView.text = tab.text
+                if(it.getTime(position) / DateHelper.MILLIS_IN_DAY == DateHelper.getNowDateMillis() / DateHelper.MILLIS_IN_DAY)
+                    tabCustomView.setTextColor(ContextCompat.getColorStateList(context, R.color.today_timetable_tab_color))
+            }
+            TextViewCompat.setTextAppearance(tabCustomView, R.style.TimetableDayTab)
+
+            tab.customView = tabCustomView
+        }
     }
 
     private class DayViewPagerAdapter(f: TimetableFragment?,

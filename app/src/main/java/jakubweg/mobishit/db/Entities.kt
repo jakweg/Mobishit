@@ -3,6 +3,8 @@ package jakubweg.mobishit.db
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
+import android.support.v4.content.res.ResourcesCompat
+import android.text.SpannableString
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 
@@ -112,52 +114,6 @@ class AverageCacheData(@PrimaryKey(autoGenerate = true) val id: Int,
             }
         }
     }
-
-    private fun buildAverageText(): String {
-        val hasPoints = gotPointsSum > 0f || baseSum > 0f
-        val hasWeightedAverage = weightedAverage > 0f
-        return when {
-            hasPoints && hasWeightedAverage ->
-                String.format("Średnia: %.2f\nZdobyte punkty: %.1f na %.1f czyli %.1f%%",
-                        weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
-
-            hasPoints ->
-                String.format("Zdobyte punkty: %.1f na %.1f czyli %.1f%%",
-                        gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
-
-            hasWeightedAverage ->
-                String.format("Twoja średnia ważona wynosi %.2f", weightedAverage)
-
-            else -> "Brak danych"
-        }.also { _averageText = it }
-    }
-
-    @Ignore
-    private var _averageText: String? = null
-    val averageText get() = _averageText ?: buildAverageText()
-
-
-    private fun buildShortAverageText(): String {
-        val hasPoints = gotPointsSum > 0f || baseSum > 0f
-        val hasWeightedAverage = weightedAverage > 0f
-        return when {
-            hasPoints && hasWeightedAverage ->
-                String.format("%.2f\n%.1f/%.1f %.1f%%",
-                        weightedAverage, gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
-
-            hasPoints ->
-                String.format("%.1f/%.1f\n%.1f%%",
-                        gotPointsSum, baseSum, gotPointsSum / baseSum * 100f)
-
-            hasWeightedAverage -> String.format("%.2f", weightedAverage)
-
-            else -> ""
-        }.also { _shortAverageText = it }
-    }
-
-    @Ignore
-    private var _shortAverageText: String? = null
-    val shortAverageText get() = _shortAverageText ?: buildShortAverageText()
 }
 
 
@@ -208,6 +164,7 @@ class LastMarkCacheData(@PrimaryKey(autoGenerate = false) val id: Int,
 
 @Entity(tableName = "SavedVirtualMarks")
 class VirtualMarkEntity(@PrimaryKey(autoGenerate = true) val id: Int,
+                        val originalMarkId: Int?,
                         val type: Int,
                         val value: Float,
                         val weight: Float)

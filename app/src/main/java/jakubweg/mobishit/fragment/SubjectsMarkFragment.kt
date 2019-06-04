@@ -19,10 +19,7 @@ import jakubweg.mobishit.activity.MarkOptionsListener
 import jakubweg.mobishit.db.AverageCacheData
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.fragment.SubjectsMarkFragment.MarkAdapter.Companion.TYPE_SINGLE
-import jakubweg.mobishit.helper.AverageCalculator
-import jakubweg.mobishit.helper.MobiregPreferences
-import jakubweg.mobishit.helper.precomputedText
-import jakubweg.mobishit.helper.textView
+import jakubweg.mobishit.helper.*
 import jakubweg.mobishit.model.SubjectsMarkModel
 import java.lang.ref.WeakReference
 
@@ -121,7 +118,8 @@ class SubjectsMarkFragment : Fragment(),
     }
 
     private fun setUpAveragesInfo(average: AverageCacheData) {
-        view?.textView(R.id.averageInfoText)?.text = average.averageText
+        view?.textView(R.id.averageInfoText)?.text =
+            CommonFormatter.formatMarksAverage(average.gotPointsSum, average.baseSum, average.weightedAverage, resources, null, false)
     }
 
     class MarkAdapter(context: Context,
@@ -159,36 +157,12 @@ class SubjectsMarkFragment : Fragment(),
                 ViewCompat.setTransitionName(holder.markTitle, "ma$position")
                 holder.markTitle.text = (info.description.takeUnless { it.isBlank() }
                         ?: "Bez tytułu")
-                holder.markValue.precomputedText = when {
-                    info.abbreviation != null -> when {
-                        info.abbreviation.isNotBlank() -> info.abbreviation
-                        info.markScaleValue > 0f -> "%.1f".format(info.markScaleValue)
-                        else -> "?"
-                    }
-                    //info.markPointsValue >= 0 && info.markValueMax > 0 ->
-                    //    "${info.markPointsValue}\n${info.markValueMax}"
-                    info.markPointsValue >= 0 -> String.format("%.1f", info.markPointsValue)
-                    else -> "Wut?"
-                }
+                holder.markValue.precomputedText = CommonFormatter.formatMarkValueBig(
+                        info.abbreviation, info.markScaleValue, info.markPointsValue)
                 holder.markDescription?.also {
-                    val title = when {
-                        info.markValueMax > 0 && info.markPointsValue >= 0f ->
-                            if (info.countPointsWithoutBase == true)
-                                String.format("%.1f%% • baza %.1f • poza bazą",
-                                        info.markPointsValue / info.markValueMax * 100f,
-                                        info.markValueMax)
-                            else String.format("%.1f%% • baza %.1f",
-                                    info.markPointsValue / info.markValueMax * 100f,
-                                    info.markValueMax)
-
-                        info.markValueMax > 0 -> String.format("baza %.1f", info.markValueMax)
-                        info.weight > 0
-                                && info.noCountToAverage != true
-                                && info.countPointsWithoutBase != true ->
-                            String.format("Waga %.1f", info.weight)
-                        else -> ""
-                    }
-                    if (title.isEmpty()) {
+                    val title = CommonFormatter.formatMarkShortDescription(info.markValueMax, info.markPointsValue,
+                            info.countPointsWithoutBase, info.noCountToAverage, info.weight)
+                    if (title == null) {
                         it.visibility = View.GONE
                     } else {
                         it.precomputedText = title

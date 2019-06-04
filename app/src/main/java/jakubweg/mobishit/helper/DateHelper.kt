@@ -73,7 +73,7 @@ object DateHelper {
     private val timeWithSecondsFormatter = SimpleDateFormat("kk:mm:ss", Locale.ENGLISH)
 
 
-    private const val MILLIS_IN_DAY = 24 * 60 * 60 * 1000
+    const val MILLIS_IN_DAY = 24 * 60 * 60 * 1000
 
 
     fun getNowDateMillis(): Long {

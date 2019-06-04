@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.app.Fragment
+import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.widget.Toolbar
 import android.view.View
@@ -38,6 +39,18 @@ class MainActivity : DoublePanelActivity() {
         const val FRAGMENT_TIMETABLE = "tt"
         const val FRAGMENT_MESSAGES = "mm"
 
+        val ITEM_ID_TO_MAIN_FRAGMENT = mapOf(
+            R.id.nav_marks to SubjectListFragment::class,
+            R.id.nav_timetable to TimetableFragment::class,
+            R.id.nav_tests to TestsFragment::class,
+            R.id.nav_attendances to AttendancesSummaryFragment::class,
+            R.id.nav_comparisons to ComparisonsFragment::class,
+            R.id.nav_messages to MessagesListFragment::class,
+            R.id.nav_about to AboutFragment::class,
+            R.id.nav_settings to GeneralPreferenceFragment::class,
+            R.id.nav_calculate_average to AboutVirtualMarksFragment::class)
+        val MAIN_FRAGMENT_TO_ITEM_ID = ITEM_ID_TO_MAIN_FRAGMENT.entries.associateBy({it.value}){it.key}
+
         private var isInForeground = false
         val isMainActivityInForeground get() = isInForeground
     }
@@ -46,6 +59,9 @@ class MainActivity : DoublePanelActivity() {
 
     override val mainFragmentContainerId: Int
         get() = R.id.fragment_container
+
+    override val quitOnBackButton
+        get() = preferences.quitOnBackButton
 
     val navigationView get() = findViewById<NavigationView?>(R.id.nav_view)!!
     val toolbar get() = findViewById<Toolbar>(R.id.toolbar)!!
@@ -75,7 +91,6 @@ class MainActivity : DoublePanelActivity() {
                 preferences.runCountdownService && savedInstanceState == null)
 
         handleIntent(intent, savedInstanceState)
-
     }
 
     @SuppressLint("SetTextI18n")
@@ -108,10 +123,7 @@ class MainActivity : DoublePanelActivity() {
 
     fun onNavigationItemSelected(itemId: Int, requestNewLayout: Boolean) {
         when (itemId) {
-            R.id.nav_force_refresh -> {
-                tryToRefresh()
-            }
-
+            R.id.nav_force_refresh -> tryToRefresh()
             R.id.nav_app_update ->
                 startActivity(Intent(Intent.ACTION_VIEW,
                         Uri.parse(preferences.getAppUpdateLink() ?: return)))
@@ -123,17 +135,17 @@ class MainActivity : DoublePanelActivity() {
         }
     }
 
-    override fun getCurrentMainFragment(): Fragment? {
-        return when (currentSelectedItemId) {
-            R.id.nav_marks -> SubjectListFragment.newInstance()
-            R.id.nav_timetable -> TimetableFragment.newInstance()
-            R.id.nav_tests -> TestsFragment.newInstance()
-            R.id.nav_attendances -> AttendancesSummaryFragment.newInstance()
-            R.id.nav_comparisons -> ComparisonsFragment.newInstance()
-            R.id.nav_messages -> MessagesListFragment.newInstance()
-            R.id.nav_about -> AboutFragment.newInstance()
-            R.id.nav_settings -> GeneralPreferenceFragment.newInstance()
-            R.id.nav_calculate_average -> AboutVirtualMarksFragment.newInstance()
+    override fun createCurrentMainFragment(): Fragment? {
+        return when (ITEM_ID_TO_MAIN_FRAGMENT[currentSelectedItemId] ?: return null) {
+            SubjectListFragment::class -> SubjectListFragment.newInstance()
+            TimetableFragment::class -> TimetableFragment.newInstance()
+            TestsFragment::class -> TestsFragment.newInstance()
+            AttendancesSummaryFragment::class -> AttendancesSummaryFragment.newInstance()
+            ComparisonsFragment::class -> ComparisonsFragment.newInstance()
+            MessagesListFragment::class -> MessagesListFragment.newInstance()
+            AboutFragment::class -> AboutFragment.newInstance()
+            GeneralPreferenceFragment::class -> GeneralPreferenceFragment.newInstance()
+            AboutVirtualMarksFragment::class -> AboutVirtualMarksFragment.newInstance()
             else -> null
         }
     }
@@ -167,13 +179,25 @@ class MainActivity : DoublePanelActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START) && !preferences.quitOnBackButton)
+            drawerLayout.closeDrawer(GravityCompat.START)
+        super.onBackPressed()
+    }
+
+    override fun onMainFragmentRestored(fragment: Fragment) {
+        MAIN_FRAGMENT_TO_ITEM_ID[fragment::class]?.also {
+            currentSelectedItemId = it
+            navigationUtils.setCurrentItem(currentSelectedItemId)
+        }
+    }
+
     fun tryToRefresh() {
         if ((getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)
                         ?.activeNetworkInfo?.isConnected != true)
             snackbar.show(SnackbarController.ShowRequest("Aktualnie nie masz połączenia z internetem", 5000))
         UpdateWorker.requestUpdates(this)
     }
-
 
     @Throws(ClassCastException::class)
     private inline fun <reified T : View> NavigationView.getHeaderViewById(id: Int): T {
