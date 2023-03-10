@@ -76,7 +76,8 @@ class UpdateHelper(private val context: Context) {
     private fun makeFirstTimeUpdate() {
         val preferences = MobiregPreferences.get(context)
 
-        val endDate = "2019-06-30"
+        val year = Calendar.getInstance().get(Calendar.YEAR) + 2
+        val endDate = "${year}-06-30"
 
         //ignore everything
         onNewMark = doNothingCallback()
@@ -118,7 +119,8 @@ class UpdateHelper(private val context: Context) {
 
         val preferences = MobiregPreferences.get(context)
 
-        val endDate = "2020-06-30"
+        val year = Calendar.getInstance().get(Calendar.YEAR) + 2
+        val endDate = "${year}-06-30"
 
 
         newMarks.clear()
