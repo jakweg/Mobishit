@@ -17,6 +17,7 @@
             android:layout_height="wrap_content"
             android:background="?android:colorBackground"
             android:elevation="8dp"
+            android:saveEnabled="true"
             app:tabSelectedTextColor="?android:textColorPrimary"
             app:tabTextColor="?android:textColorSecondary"
             tools:ignore="UnusedAttribute">

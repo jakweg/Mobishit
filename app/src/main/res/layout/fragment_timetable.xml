@@ -6,14 +6,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.design.widget.TabLayout
+    <view class="jakubweg.mobishit.fragment.TimetableFragment$DaysTabLayout"
         android:id="@+id/dayTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorBackgroundFloating"
         android:elevation="8dp"
         app:tabMode="scrollable"
-        tools:ignore="UnusedAttribute" />
+        tools:ignore="UnusedAttribute"/>
 
     <android.support.v4.view.ViewPager
         android:visibility="gone"

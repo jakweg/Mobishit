@@ -16,7 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import jakubweg.mobishit.R
 import jakubweg.mobishit.activity.DoublePanelActivity
 import jakubweg.mobishit.activity.MarkOptionsListener
@@ -191,7 +190,7 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
         = ViewModelProviders.of(this).get(SubjectListModel::class.java)
 
 
-    private class SubjectAdapter(context: Context,
+    private class SubjectAdapter(private val context: Context,
                                  private val list: List<AverageCacheData>)
         : RecyclerView.Adapter<SubjectAdapter.ViewHolder>() {
 
@@ -205,7 +204,7 @@ class SubjectListFragment : Fragment(), MarksViewOptionsFragment.OptionsChangedL
             list[position].also {
                 holder.subjectName.text = it.subjectName
                 ViewCompat.setTransitionName(holder.subjectName, "sn$position")
-                holder.averageText.text = it.shortAverageText
+                holder.averageText.text = CommonFormatter.formatMarksAverage(it.gotPointsSum, it.baseSum, it.weightedAverage, context.resources, null, true)
                 holder.markList.setDisplayedMarks(it.getMarksList())
             }
         }

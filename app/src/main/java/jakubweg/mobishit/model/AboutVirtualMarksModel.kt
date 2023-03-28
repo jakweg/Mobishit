@@ -1,9 +1,5 @@
 package jakubweg.mobishit.model
 
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_POINTS_SINGLE
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_CHILD
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_PARENT
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_SINGLE
 import android.app.Application
 import android.arch.lifecycle.MutableLiveData
 import jakubweg.mobishit.db.AppDatabase
@@ -12,6 +8,10 @@ import jakubweg.mobishit.db.TermDao
 import jakubweg.mobishit.db.VirtualMarkEntity
 import jakubweg.mobishit.fragment.AboutVirtualMarksFragment
 import jakubweg.mobishit.helper.MobiregPreferences
+import jakubweg.mobishit.helper.VirtualMarkBase.Companion.TYPE_POINTS_SINGLE
+import jakubweg.mobishit.helper.VirtualMarkBase.Companion.TYPE_SCALE_CHILD
+import jakubweg.mobishit.helper.VirtualMarkBase.Companion.TYPE_SCALE_PARENT
+import jakubweg.mobishit.helper.VirtualMarkBase.Companion.TYPE_SCALE_SINGLE
 
 @Suppress("NOTHING_TO_INLINE")
 class AboutVirtualMarksModel(app: Application) : BaseViewModel(app) {
@@ -106,7 +106,7 @@ class AboutVirtualMarksModel(app: Application) : BaseViewModel(app) {
         if (marksToImport.none { it.scaleId != null }) {
             // mamy oceny punktowe!
             return marksToImport.map {
-                VirtualMarkEntity(0, TYPE_POINTS_SINGLE, it.markValue, it.weight)
+                VirtualMarkEntity(0, it.id, TYPE_POINTS_SINGLE, it.markValue, it.weight)
             } to AboutVirtualMarksFragment.STATE_HAVING_POINTS_MARKS
         } else {
             // mamy oceny ze skali
@@ -117,13 +117,13 @@ class AboutVirtualMarksModel(app: Application) : BaseViewModel(app) {
                 if (entry.value.size == 1) {
                     // pojedyncza ocena
                     val it = entry.value.first()
-                    outputList.add(VirtualMarkEntity(0, TYPE_SCALE_SINGLE, it.scaleId!!.toFloat(), it.weight))
+                    outputList.add(VirtualMarkEntity(0, it.id, TYPE_SCALE_SINGLE, it.scaleId!!.toFloat(), it.weight))
                 } else {
                     val first = entry.value.first()
-                    outputList.add(VirtualMarkEntity(0, TYPE_SCALE_PARENT, first.parentType!!.toFloat(), first.weight))
+                    outputList.add(VirtualMarkEntity(0, null, TYPE_SCALE_PARENT, first.parentType!!.toFloat(), first.weight))
 
                     entry.value.asReversed().mapTo(outputList) {
-                        VirtualMarkEntity(0, TYPE_SCALE_CHILD, it.scaleId!!.toFloat(), 0f)
+                        VirtualMarkEntity(0, it.id, TYPE_SCALE_CHILD, it.scaleId!!.toFloat(), 0f)
                     }
                 }
             }

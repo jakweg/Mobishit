@@ -1,7 +1,5 @@
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_POINTS_SINGLE
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_CHILD
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_PARENT
-import VirtualMarksFragment.VirtualMarksAdapter.Companion.TYPE_SCALE_SINGLE
+package jakubweg.mobishit.helper
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.support.v7.app.AlertDialog
@@ -11,18 +9,20 @@ import android.view.WindowManager
 import android.widget.EditText
 import jakubweg.mobishit.db.MarkDao
 import jakubweg.mobishit.db.VirtualMarkEntity
-import jakubweg.mobishit.helper.SimpleCallback
-import jakubweg.mobishit.helper.makeCallback
-import jakubweg.mobishit.helper.oneDigitAfterDot
-import jakubweg.mobishit.helper.precomputedText
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.math.roundToInt
 
-abstract class VirtualMarkBase(val type: Int)
+abstract class VirtualMarkBase(val type: Int,
+                               val originalMarkId : Int?)
     : VirtualMarksFragment.VirtualMarksChangeListener() {
 
     companion object {
+        const val TYPE_SCALE_PARENT = 0
+        const val TYPE_SCALE_CHILD = 1
+        const val TYPE_SCALE_SINGLE = 2
+        const val TYPE_POINTS_SINGLE = 3
+
         private fun CharSequence.toFloatLocaleCompat() = toString().replace(',', '.').toFloatOrNull()
 
         interface CallbackFloat {
@@ -132,16 +132,18 @@ abstract class VirtualMarkBase(val type: Int)
 }
 
 class VirtualMarkPoints(
+        originalMarkId : Int?,
         var pointsValue: Float,
         var baseValue: Float
-) : VirtualMarkBase(TYPE_POINTS_SINGLE) {
+) : VirtualMarkBase(TYPE_POINTS_SINGLE, originalMarkId) {
 
-    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_POINTS_SINGLE, pointsValue, baseValue)
+    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, originalMarkId, TYPE_POINTS_SINGLE, pointsValue, baseValue)
 
     override fun applyToViews() {
         currentViewHolder.get()?.also {
             it.markValue1.precomputedText = pointsValue.oneDigitAfterDot
             it.markValue2!!.precomputedText = baseValue.oneDigitAfterDot
+            it.stateIndicator?.updateVirtualMarkValue()
         }
     }
 
@@ -172,17 +174,19 @@ class VirtualMarkPoints(
 }
 
 class VirtualMarkScaleSingle(
+        originalMarkId : Int?,
         var scaleIndex: Int,
         var weight: Float
-) : VirtualMarkBase(TYPE_SCALE_SINGLE) {
+) : VirtualMarkBase(TYPE_SCALE_SINGLE, originalMarkId) {
 
-    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_SCALE_SINGLE, markScales[scaleIndex].id.toFloat(), weight)
+    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, originalMarkId, TYPE_SCALE_SINGLE, markScales[scaleIndex].id.toFloat(), weight)
 
     override fun applyToViews() {
         currentViewHolder.get()?.also {
             adapter.get()?.apply {
                 it.markValue1.precomputedText = markScales[scaleIndex].abbreviation
                 it.markValue2!!.precomputedText = weight.oneDigitAfterDot
+                it.stateIndicator?.updateVirtualMarkValue()
             }
         }
     }
@@ -233,14 +237,24 @@ class VirtualMarkScaleSingle(
 }
 
 class VirtualMarkParent(var parentType: Int,
-                        var weight: Float) : VirtualMarkBase(TYPE_SCALE_PARENT) {
+                        var weight: Float,
+                        val originalWeight: Float
+) : VirtualMarkBase(TYPE_SCALE_PARENT, null) {
 
-    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_SCALE_PARENT, parentType.toFloat(), weight)
+    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, originalMarkId, TYPE_SCALE_PARENT, parentType.toFloat(), weight)
 
     override fun applyToViews() {
         currentViewHolder.get()?.also {
             it.markValue1.precomputedText = weight.oneDigitAfterDot
             it.parentTypeText!!.precomputedText = MarkDao.parentTypesAsText[parentType]
+        }
+        adapter.get()?.also{ adapter ->
+            adapter.marksList
+                .drop((adapter.marksList.indexOf(this).takeIf { it != -1 } ?: return) + 1)
+                .takeWhile { it.type == TYPE_SCALE_CHILD }
+                .forEach {
+                it.applyToViews()
+            }
         }
     }
 
@@ -278,8 +292,10 @@ class VirtualMarkParent(var parentType: Int,
 
 private inline fun <reified E> SparseArray<E>.valuesToArray() = Array<E>(size()) { valueAt(it) }
 
-class VirtualMarkChild(var scaleIndex: Int) : VirtualMarkBase(TYPE_SCALE_CHILD) {
-    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, TYPE_SCALE_CHILD,
+class VirtualMarkChild(originalMarkId : Int?,
+                       var scaleIndex: Int
+) : VirtualMarkBase(TYPE_SCALE_CHILD, originalMarkId) {
+    override fun toDatabaseEntity(markScales: List<MarkDao.MarkScaleShortInfo>) = VirtualMarkEntity(0, originalMarkId, TYPE_SCALE_CHILD,
             markScales[scaleIndex].id.toFloat(), 0f)
 
     override fun applyToViews() {
@@ -287,6 +303,7 @@ class VirtualMarkChild(var scaleIndex: Int) : VirtualMarkBase(TYPE_SCALE_CHILD) 
             adapter.get()?.apply {
                 it.markValue1.precomputedText = markScales[scaleIndex].abbreviation
             }
+            it.stateIndicator?.updateVirtualMarkValue()
         }
     }
 

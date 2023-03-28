@@ -94,7 +94,7 @@ class MessagesListFragment : Fragment() {
 
         view.findViewById<TabLayout>(R.id.tabLayout)?.also { tabLayout ->
             val selectedItemPos = savedInstanceState?.getInt("selectedItemPos", 0)
-                    ?.takeIf { it >= 0 } ?: 0
+                     ?.takeIf { it >= 0 } ?: 0
             tabLayout.addOnTabSelectedListener(tabSelectedListener)
             tabLayout.getTabAt(selectedItemPos)?.also { tab ->
                 tab.select()

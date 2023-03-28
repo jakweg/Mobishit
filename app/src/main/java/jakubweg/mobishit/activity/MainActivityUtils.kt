@@ -98,8 +98,7 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
             notifyActivityAboutNewSelectedItem(it)
         }
         weakActivity.get()?.also { act ->
-            act.findViewById<DrawerLayout>(R.id.drawer_layout)
-                    ?.closeDrawer(GravityCompat.START)
+            act.drawerLayout.closeDrawer(GravityCompat.START)
             if (it.isCheckable) {
                 adjustToSelectedItem(act, it.itemId)
                 if (notifyActivityInstant) {
@@ -129,6 +128,13 @@ class MainActivityNavigationLayoutUtils(activity: MainActivity)
             activity.onNavigationItemSelected(item.itemId, tellActivityToRequestNewFragment)
         }
         tellActivityToRequestNewFragment = true
+    }
+
+    fun setCurrentItem(itemId: Int){
+        weakActivity.get()?.also { activity ->
+            activity.navigationView.setCheckedItem(itemId)
+            adjustToSelectedItem(activity, itemId)
+        }
     }
 
     init {

@@ -10,7 +10,7 @@ import jakubweg.mobishit.service.UpdateWorker
 
 @Suppress("NOTHING_TO_INLINE")
 object SettingsMigrationHelper {
-    private const val CURRENT_APP_SETTINGS_VERSION = 12
+    private const val CURRENT_APP_SETTINGS_VERSION = 13
 
     @SuppressLint("ApplySharedPref")
     fun onSettingsLoaded(prefs: MobiregPreferences?,
@@ -29,7 +29,7 @@ object SettingsMigrationHelper {
                     .putInt("version", CURRENT_APP_SETTINGS_VERSION)
                     .commit()
 
-            if (version < 11)
+            if (version < 13)
                 deleteDatabaseAndRequestNew(prefs.prefs, context)
         }
     }

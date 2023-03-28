@@ -229,6 +229,8 @@ class MobiregPreferences private constructor(
 
     val defaultFragment get() = getString("defFrag") ?: MainActivity.FRAGMENT_MARKS
 
+    val quitOnBackButton get() = prefs.getBoolean("quitOnBackButton", true)
+
     var lastSelectedTerm: Int
         get() = prefs.getInt("lastTerm", 0)
         set(value) = prefs.edit().putInt("lastTerm", value).apply()
@@ -327,6 +329,8 @@ class MobiregPreferences private constructor(
     val showLessonNumberOnTimetable get() = showingLessonsNumberPolicy[0] == '1'
     val showLessonNumberOnWidget get() = showingLessonsNumberPolicy[1] == '1'
     private val showingLessonsNumberPolicy get() = getString("sn") ?: "11"
+
+    val showGapsBetweenLessons get() = prefs.getBoolean("showGapsBetweenLessons", true)
 
 
     val savedVirtualMarksState get() = prefs.getInt("svms", AboutVirtualMarksFragment.STATE_NO_MARKS_SAVED)
