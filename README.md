@@ -1,24 +1,23 @@
 # Mobishit
-*Alternatywna, otwartoźródłowa aplikacja do dziennika mobireg z wieloma funkcjami, takimi jak pokazywanie średnich, powiadomienia o nowych ocenach, odliczanie czasu do końca lekcji, wysyłanie wiadomości czy widżet z planem godzin.*
 
-## <a href="https://github.com/JakubekWeg/Mobishit/releases/download/v1.3/mobishit_1_3.apk"><b>Pobierz aplikację</b></a>
+### Otwartoźródłowa aplikacja do dziennika Mobireg z wieloma prouczniowskimi funkcjami.
 
-### Instrukcja instalacji po kliknęciu w <i> View all of README.md</i>
+#### <a href="https://github.com/jakweg/Mobishit/releases/download/v1.3.6/mobishit-1.3.6.apk"><b>Pobierz aplikację</b></a><span style="width:3ch;display:inline-block"></span>[O projekcie](https://jakub.wegrzyn.dev/pl/mobishit/)<span style="width:3ch;display:inline-block"></span>[Read more](https://jakub.wegrzyn.dev/mobireg-app/)
 
+![Zrzuty ekranu](./art.avif?raw=true)
 
-![Zrzuty ekranu](./art.png?raw=true)
+#### Aplikacja jest lepsza od oficjalnej, bo ma m.in:
 
-
-
-### Instrukcja instalacji:
-<ol>
-<li>Kliknij <i>Pobierz plik .apk</i> powyżej</li>
-<li>Otwórz plik</li>
-<li>Zezwól na instalację spoza Google Play</li>
-<li>Zainstaluj aplikację Mobishit</li>
-<li>Wyłącz pozwolenie na instalację spoza Google Play (opcjonalnie)</li>
-<li>Otwórz aplikację i zaloguj się</li>
-<li>Gotowe – od teraz dostaniesz powiadomienia o nowych ocenach
-</ol>
-
-### 
+- nowoczesny wygląd
+- jasny, ciemny i czarny motyw
+- pokazywanie średnich oraz ich kalkulator
+- powiadomienia
+- widżet z planem lekcji
+- odliczanie czasu do końca lekcji
+- wysyłanie wiadomości
+- statystyki obecności
+- porównania na tle innych
+- widok sprawdzianów
+- ludzkie podejście twórcy (ówczesnego ucznia)
+- otwarte źródło gdyby ktoś chciał zajrzeć lub coś zmienić
+- i wiele innych usprawnień, które przydają się uczniom
