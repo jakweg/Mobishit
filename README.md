@@ -2,7 +2,7 @@
 
 ### Otwartoźródłowa aplikacja do dziennika Mobireg z wieloma prouczniowskimi funkcjami.
 
-#### <a href="https://github.com/jakweg/Mobishit/releases/download/v1.3.6/mobishit-1.3.6.apk"><b>Pobierz aplikację</b></a><span style="width:3ch;display:inline-block"></span>[O projekcie](https://jakub.wegrzyn.dev/pl/mobishit/)<span style="width:3ch;display:inline-block"></span>[Read more](https://jakub.wegrzyn.dev/mobireg-app/)
+### | <a href="https://github.com/jakweg/Mobishit/releases/download/v1.3.6/mobishit-1.3.6.apk"><b>Pobierz aplikację</b></a> | [O projekcie](https://jakub.wegrzyn.dev/pl/mobishit/) | [Read more](https://jakub.wegrzyn.dev/mobireg-app/) |
 
 ![Zrzuty ekranu](./art.avif?raw=true)
 
@@ -13,7 +13,7 @@
 - pokazywanie średnich oraz ich kalkulator
 - powiadomienia
 - widżet z planem lekcji
-- odliczanie czasu do końca lekcji
+- powiadomienie z odliczaniem czasu do końca lekcji
 - wysyłanie wiadomości
 - statystyki obecności
 - porównania na tle innych
